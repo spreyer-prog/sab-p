@@ -28,43 +28,66 @@ class ProjectProject(models.Model):
     )
 
     @api.model
+    def _sab_get_numbering_settings(self):
+        params = self.env["ir.config_parameter"].sudo()
+        return {
+            "prefix": params.get_param("sab_project.project_prefix", "A"),
+            "year_digits": int(params.get_param("sab_project.year_digits", "2")),
+            "project_separator": params.get_param("sab_project.project_separator", "."),
+            "project_digits": int(params.get_param("sab_project.project_digits", "4")),
+            "project_start_number": int(
+                params.get_param("sab_project.project_start_number", "1")
+            ),
+            "offer_separator": params.get_param("sab_project.offer_separator", "-"),
+            "offer_digits": int(params.get_param("sab_project.offer_digits", "2")),
+        }
+
+    @api.model
     def _sab_allocate_project_reference(self):
         today = fields.Date.context_today(self)
         year = today.year if today else date.today().year
+        settings = self._sab_get_numbering_settings()
+        start_number = settings["project_start_number"]
 
         # Atomare Vergabe über PostgreSQL. Auch bei parallelem Speichern
         # können zwei Benutzer niemals dieselbe laufende Nummer erhalten.
         self.env.cr.execute(
-            '''
-            INSERT INTO sab_project_year_counter (year, next_number, create_uid, create_date, write_uid, write_date)
-            VALUES (%s, 2, %s, NOW(), %s, NOW())
+            """
+            INSERT INTO sab_project_year_counter
+                (year, next_number, create_uid, create_date, write_uid, write_date)
+            VALUES (%s, %s, %s, NOW(), %s, NOW())
             ON CONFLICT (year)
             DO UPDATE SET
                 next_number = sab_project_year_counter.next_number + 1,
                 write_uid = EXCLUDED.write_uid,
                 write_date = NOW()
             RETURNING next_number - 1
-            ''',
-            [year, self.env.uid, self.env.uid],
+            """,
+            [year, start_number + 1, self.env.uid, self.env.uid],
         )
         running_number = self.env.cr.fetchone()[0]
-        return f"A{year % 100:02d}.{running_number:04d}"
+
+        year_part = str(year) if settings["year_digits"] == 4 else f"{year % 100:02d}"
+        running_part = f"{running_number:0{settings['project_digits']}d}"
+        return (
+            f"{settings['prefix']}{year_part}"
+            f"{settings['project_separator']}{running_part}"
+        )
 
     def _sab_allocate_offer_reference(self):
         self.ensure_one()
         if not self.sab_project_reference:
             raise UserError(_("Für das Projekt wurde noch keine Projektnummer vergeben."))
 
-        # Die Zeile des Projektes wird atomar aktualisiert und gesperrt.
         self.env.cr.execute(
-            '''
+            """
             UPDATE project_project
                SET sab_next_offer_number = sab_next_offer_number + 1,
                    write_uid = %s,
                    write_date = NOW()
              WHERE id = %s
          RETURNING sab_next_offer_number - 1
-            ''',
+            """,
             [self.env.uid, self.id],
         )
         row = self.env.cr.fetchone()
@@ -73,14 +96,18 @@ class ProjectProject(models.Model):
 
         offer_number = row[0]
         self.invalidate_recordset(["sab_next_offer_number"])
-        return f"{self.sab_project_reference}-{offer_number:02d}"
+        settings = self._sab_get_numbering_settings()
+        offer_part = f"{offer_number:0{settings['offer_digits']}d}"
+        return (
+            f"{self.sab_project_reference}"
+            f"{settings['offer_separator']}{offer_part}"
+        )
 
     @api.model_create_multi
     def create(self, vals_list):
         prepared_vals_list = []
         for vals in vals_list:
             vals = dict(vals)
-            # Extern übergebene Projektnummern werden bewusst ignoriert.
             vals["sab_project_reference"] = self._sab_allocate_project_reference()
             vals["sab_next_offer_number"] = 1
             prepared_vals_list.append(vals)
@@ -90,8 +117,13 @@ class ProjectProject(models.Model):
         if "sab_project_reference" in vals:
             for project in self:
                 new_reference = vals.get("sab_project_reference")
-                if project.sab_project_reference and new_reference != project.sab_project_reference:
-                    raise UserError(_("Eine vergebene Projektnummer darf nicht geändert werden."))
+                if (
+                    project.sab_project_reference
+                    and new_reference != project.sab_project_reference
+                ):
+                    raise UserError(
+                        _("Eine vergebene Projektnummer darf nicht geändert werden.")
+                    )
         return super().write(vals)
 
     def copy_data(self, default=None):
@@ -104,4 +136,6 @@ class ProjectProject(models.Model):
         super()._compute_display_name()
         for project in self:
             if project.sab_project_reference:
-                project.display_name = f"{project.sab_project_reference} – {project.name}"
+                project.display_name = (
+                    f"{project.sab_project_reference} – {project.name}"
+                )

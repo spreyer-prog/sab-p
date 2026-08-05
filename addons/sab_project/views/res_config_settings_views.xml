@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.sab.project</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="SAB-P Suite" name="sab_p_suite">
+                    <block title="Projekt- und Angebotsnummern"
+                           help="Format der automatisch vergebenen Nummern festlegen.">
+                        <setting string="Präfix"
+                                 help="Beispiel: A ergibt zusammen mit dem Jahr A26.">
+                            <field name="sab_project_prefix"/>
+                        </setting>
+                        <setting string="Jahresformat">
+                            <field name="sab_year_digits"/>
+                        </setting>
+                        <setting string="Projekt-Trennzeichen">
+                            <field name="sab_project_separator"/>
+                        </setting>
+                        <setting string="Stellen der Projektnummer">
+                            <field name="sab_project_digits"/>
+                        </setting>
+                        <setting string="Startnummer bei neuem Jahr"
+                                 help="Eine Änderung setzt den bereits laufenden aktuellen Jahreszähler nicht zurück.">
+                            <field name="sab_project_start_number"/>
+                        </setting>
+                        <setting string="Angebots-Trennzeichen">
+                            <field name="sab_offer_separator"/>
+                        </setting>
+                        <setting string="Stellen der Angebotsnummer">
+                            <field name="sab_offer_digits"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
