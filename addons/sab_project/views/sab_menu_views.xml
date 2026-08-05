@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="sab_project_root_menu"
+              name="SAB-P Suite"
+              sequence="35"/>
+
+    <menuitem id="sab_project_projects_menu"
+              name="Projekte"
+              parent="sab_project_root_menu"
+              sequence="10"/>
+
+    <menuitem id="sab_project_configuration_menu"
+              name="Einstellungen"
+              parent="sab_project_root_menu"
+              sequence="90"
+              groups="project.group_project_manager"/>
+</odoo>

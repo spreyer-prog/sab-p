@@ -88,13 +88,9 @@
         </field>
     </record>
 
-    <menuitem id="sab_project_root_menu"
-              name="SAB-P Projekte"
-              sequence="35"/>
-
     <menuitem id="sab_project_overview_menu"
               name="Projektübersicht"
-              parent="sab_project_root_menu"
+              parent="sab_project_projects_menu"
               action="sab_project_overview_action"
               sequence="10"/>
 </odoo>

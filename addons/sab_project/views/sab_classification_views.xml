@@ -102,12 +102,6 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="sab_project_configuration_menu"
-              name="Konfiguration"
-              parent="sab_project_root_menu"
-              sequence="90"
-              groups="project.group_project_manager"/>
-
     <menuitem id="sab_inquiry_type_menu"
               name="Arten der Anfrage"
               parent="sab_project_configuration_menu"
