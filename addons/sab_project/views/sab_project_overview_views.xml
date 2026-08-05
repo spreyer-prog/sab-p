@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_project_overview_list" model="ir.ui.view">
+        <field name="name">project.project.list.sab.overview</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <list string="SAB-P Projektübersicht"
+                  decoration-success="sab_status == 'won'"
+                  decoration-danger="sab_status == 'lost'"
+                  decoration-info="sab_status == 'customer_awarded'"
+                  default_order="sab_project_reference desc">
+                <field name="sab_project_reference" string="Projekt-Nr."/>
+                <field name="sab_request_date" string="Datum"/>
+                <field name="sab_status"
+                       string="Status"
+                       widget="badge"
+                       decoration-success="sab_status == 'won'"
+                       decoration-danger="sab_status == 'lost'"
+                       decoration-info="sab_status == 'customer_awarded'"/>
+                <field name="name" string="Projekt"/>
+                <field name="partner_id" string="Kunde"/>
+                <field name="sab_customer_phone" string="Telefon" optional="show"/>
+                <field name="sab_customer_email" string="E-Mail" optional="show"/>
+                <field name="sab_contact_id" string="Ansprechpartner" optional="show"/>
+                <field name="sab_engineering_office_id" string="Ing.-Büro" optional="show"/>
+                <field name="sab_delivery_date" string="Liefertermin" optional="show"/>
+                <field name="sab_calendar_week" string="KW" optional="show"/>
+                <field name="user_id" string="Bearbeiter"/>
+                <field name="sab_offer_amount" string="Gesamtangebot" sum="Gesamt"/>
+                <field name="sab_calculated_hours" string="Kalk. Zeit" sum="Gesamt"/>
+                <field name="sab_required_hours" string="Ben. Zeit" sum="Gesamt"/>
+                <field name="sab_inquiry_type_id" string="Art der Anfrage"/>
+                <field name="sab_technology_id" string="Technik"/>
+                <field name="sab_service_type_id" string="Leistungsart"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sab_project_overview_search" model="ir.ui.view">
+        <field name="name">project.project.search.sab.overview</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <search string="SAB-P Projekte">
+                <field name="sab_project_reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="sab_status"/>
+                <field name="sab_inquiry_type_id"/>
+                <field name="sab_technology_id"/>
+                <field name="sab_service_type_id"/>
+                <filter name="offer_open" string="Angebot offen"
+                        domain="[('sab_status', '=', 'offer_open')]"/>
+                <filter name="customer_awarded" string="Vergabe an uns offen"
+                        domain="[('sab_status', '=', 'customer_awarded')]"/>
+                <filter name="won" string="Auftrag erhalten"
+                        domain="[('sab_status', '=', 'won')]"/>
+                <filter name="lost" string="Auftrag verloren"
+                        domain="[('sab_status', '=', 'lost')]"/>
+                <group expand="0" string="Gruppieren nach">
+                    <filter name="group_status" string="Status"
+                            context="{'group_by': 'sab_status'}"/>
+                    <filter name="group_user" string="Bearbeiter"
+                            context="{'group_by': 'user_id'}"/>
+                    <filter name="group_customer" string="Kunde"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_inquiry" string="Art der Anfrage"
+                            context="{'group_by': 'sab_inquiry_type_id'}"/>
+                    <filter name="group_technology" string="Technik"
+                            context="{'group_by': 'sab_technology_id'}"/>
+                    <filter name="group_service" string="Leistungsart"
+                            context="{'group_by': 'sab_service_type_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="sab_project_overview_action" model="ir.actions.act_window">
+        <field name="name">SAB-P Projektübersicht</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="search_view_id" ref="sab_project_overview_search"/>
+        <field name="views" eval="[(ref('sab_project_overview_list'), 'list'), (False, 'form'), (False, 'kanban')]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Neues SAB-P Projekt anlegen
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="sab_project_root_menu"
+              name="SAB-P Projekte"
+              sequence="35"/>
+
+    <menuitem id="sab_project_overview_menu"
+              name="Projektübersicht"
+              parent="sab_project_root_menu"
+              action="sab_project_overview_action"
+              sequence="10"/>
+</odoo>

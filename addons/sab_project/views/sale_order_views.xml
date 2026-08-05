@@ -12,6 +12,7 @@
                 <field name="sab_offer_reference"
                        readonly="1"
                        invisible="not sab_offer_reference"/>
+                <field name="sab_calculated_hours"/>
             </xpath>
         </field>
     </record>

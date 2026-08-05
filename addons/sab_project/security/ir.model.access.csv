@@ -1,2 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sab_project_year_counter_system,sab.project.year.counter system,model_sab_project_year_counter,base.group_system,1,1,1,1
+access_sab_inquiry_type_user,sab.inquiry.type user,model_sab_inquiry_type,base.group_user,1,0,0,0
+access_sab_inquiry_type_manager,sab.inquiry.type manager,model_sab_inquiry_type,project.group_project_manager,1,1,1,1
+access_sab_technology_user,sab.technology user,model_sab_technology,base.group_user,1,0,0,0
+access_sab_technology_manager,sab.technology manager,model_sab_technology,project.group_project_manager,1,1,1,1
+access_sab_service_type_user,sab.service.type user,model_sab_service_type,base.group_user,1,0,0,0
+access_sab_service_type_manager,sab.service.type manager,model_sab_service_type,project.group_project_manager,1,1,1,1

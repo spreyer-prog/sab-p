@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="sab_inquiry_type_electrician" model="sab.inquiry.type">
+        <field name="name">Elektriker</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="sab_inquiry_type_wholesale" model="sab.inquiry.type">
+        <field name="name">Großhandel</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="sab_technology_energy_distribution" model="sab.technology">
+        <field name="name">Energieverteiler</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="sab_technology_control_system" model="sab.technology">
+        <field name="name">Steuerung</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="sab_service_type_new_installation" model="sab.service.type">
+        <field name="name">Neuanlage</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="sab_service_type_conversion" model="sab.service.type">
+        <field name="name">Umbau</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="sab_service_type_maintenance" model="sab.service.type">
+        <field name="name">Wartung</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="sab_service_type_assembly_effort" model="sab.service.type">
+        <field name="name">Montageaufwand</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="sab_service_type_assembly_assignment" model="sab.service.type">
+        <field name="name">Montageeinsatz</field>
+        <field name="sequence">50</field>
+    </record>
+</odoo>

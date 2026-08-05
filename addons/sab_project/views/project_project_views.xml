@@ -9,6 +9,40 @@
                 <field name="sab_project_reference"
                        readonly="1"
                        placeholder="Wird beim Speichern automatisch vergeben"/>
+                <field name="sab_status"
+                       widget="statusbar"
+                       statusbar_visible="offer_open,customer_awarded,won,lost"/>
+            </xpath>
+
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="SAB-P Angebotsdaten" name="sab_offer_data">
+                        <group>
+                            <group string="Angebotsdaten">
+                                <field name="sab_request_date"/>
+                                <field name="partner_id" string="Kunde"/>
+                                <field name="sab_contact_id"/>
+                                <field name="sab_engineering_office_id"/>
+                                <field name="sab_delivery_date"/>
+                                <field name="sab_calendar_week" readonly="1"/>
+                            </group>
+                            <group string="Bearbeiterdaten">
+                                <field name="user_id" string="Bearbeiter"/>
+                                <field name="sab_created_by_id" readonly="1"/>
+                            </group>
+                            <group string="Einordnung">
+                                <field name="sab_inquiry_type_id"/>
+                                <field name="sab_technology_id"/>
+                                <field name="sab_service_type_id"/>
+                            </group>
+                            <group string="Kalkulatorische Übersicht">
+                                <field name="sab_offer_amount" readonly="1"/>
+                                <field name="sab_calculated_hours" readonly="1"/>
+                                <field name="sab_required_hours"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
             </xpath>
         </field>
     </record>

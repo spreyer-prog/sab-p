@@ -1,3 +1,4 @@
+from . import sab_classification
 from . import project_counter
 from . import res_config_settings
 from . import project_project

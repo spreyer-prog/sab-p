@@ -7,6 +7,152 @@ from odoo.exceptions import UserError
 class ProjectProject(models.Model):
     _inherit = "project.project"
 
+    sab_status = fields.Selection(
+        selection=[
+            ("offer_open", "Angebot offen"),
+            ("customer_awarded", "Kunde hat Auftrag – Vergabe an uns offen"),
+            ("won", "Auftrag erhalten"),
+            ("lost", "Auftrag verloren"),
+        ],
+        string="Projektstatus",
+        default="offer_open",
+        required=True,
+        copy=False,
+        index=True,
+        tracking=True,
+    )
+    sab_request_date = fields.Date(
+        string="Anfragedatum",
+        default=fields.Date.context_today,
+        required=True,
+        copy=False,
+    )
+    sab_contact_id = fields.Many2one(
+        comodel_name="res.partner",
+        string="Ansprechpartner",
+        domain="[('parent_id', '=', partner_id)]",
+    )
+    sab_engineering_office_id = fields.Many2one(
+        comodel_name="res.partner",
+        string="Ingenieurbüro",
+    )
+    sab_delivery_date = fields.Date(string="Liefertermin")
+    sab_calendar_week = fields.Integer(
+        string="KW",
+        compute="_compute_sab_calendar_week",
+        store=True,
+    )
+
+    # Der Bearbeiter ist das Odoo-Standardfeld user_id.
+    # Beim Anlegen wird der aktuell eingeloggte Benutzer erzwungen,
+    # sofern kein anderer Bearbeiter ausdrücklich angegeben wurde.
+    sab_created_by_id = fields.Many2one(
+        comodel_name="res.users",
+        string="Angelegt von",
+        related="create_uid",
+        readonly=True,
+        store=True,
+    )
+
+    sab_offer_amount = fields.Monetary(
+        string="Gesamtangebotssumme",
+        currency_field="sab_currency_id",
+        compute="_compute_sab_offer_totals",
+        store=True,
+        help="Summe aller nicht stornierten Angebote und Unterangebote des Projekts.",
+    )
+    sab_calculated_hours = fields.Float(
+        string="Kalkulierte Zeit",
+        compute="_compute_sab_offer_totals",
+        store=True,
+        help="Summe der kalkulierten Stunden aller nicht stornierten Angebote.",
+    )
+    sab_required_hours = fields.Float(
+        string="Benötigte Zeit",
+        help="Wird später aus Zeitbuchungen bzw. der Nachkalkulation ermittelt.",
+    )
+    sab_currency_id = fields.Many2one(
+        comodel_name="res.currency",
+        related="company_id.currency_id",
+        string="Währung",
+        readonly=True,
+    )
+
+    sab_inquiry_type_id = fields.Many2one(
+        comodel_name="sab.inquiry.type",
+        string="Art der Anfrage",
+        required=True,
+        default=lambda self: self.env.ref(
+            "sab_project.sab_inquiry_type_electrician",
+            raise_if_not_found=False,
+        ),
+        ondelete="restrict",
+        index=True,
+    )
+    sab_technology_id = fields.Many2one(
+        comodel_name="sab.technology",
+        string="Technik",
+        required=True,
+        default=lambda self: self.env.ref(
+            "sab_project.sab_technology_energy_distribution",
+            raise_if_not_found=False,
+        ),
+        ondelete="restrict",
+        index=True,
+    )
+    sab_service_type_id = fields.Many2one(
+        comodel_name="sab.service.type",
+        string="Leistungsart",
+        required=True,
+        default=lambda self: self.env.ref(
+            "sab_project.sab_service_type_new_installation",
+            raise_if_not_found=False,
+        ),
+        ondelete="restrict",
+        index=True,
+    )
+
+    sab_customer_phone = fields.Char(
+        string="Telefon",
+        related="partner_id.phone",
+        readonly=True,
+    )
+    sab_customer_email = fields.Char(
+        string="E-Mail",
+        related="partner_id.email",
+        readonly=True,
+    )
+
+    sab_sale_order_ids = fields.One2many(
+        comodel_name="sale.order",
+        inverse_name="sab_project_id",
+        string="Angebote",
+    )
+
+    @api.depends("sab_delivery_date")
+    def _compute_sab_calendar_week(self):
+        for project in self:
+            project.sab_calendar_week = (
+                project.sab_delivery_date.isocalendar().week
+                if project.sab_delivery_date
+                else 0
+            )
+
+    @api.depends(
+        "sab_sale_order_ids.state",
+        "sab_sale_order_ids.amount_total",
+        "sab_sale_order_ids.sab_calculated_hours",
+    )
+    def _compute_sab_offer_totals(self):
+        for project in self:
+            valid_orders = project.sab_sale_order_ids.filtered(
+                lambda order: order.state != "cancel"
+            )
+            project.sab_offer_amount = sum(valid_orders.mapped("amount_total"))
+            project.sab_calculated_hours = sum(
+                valid_orders.mapped("sab_calculated_hours")
+            )
+
     sab_project_reference = fields.Char(
         string="Projektnummer",
         readonly=True,
@@ -110,6 +256,7 @@ class ProjectProject(models.Model):
             vals = dict(vals)
             vals["sab_project_reference"] = self._sab_allocate_project_reference()
             vals["sab_next_offer_number"] = 1
+            vals.setdefault("user_id", self.env.user.id)
             prepared_vals_list.append(vals)
         return super().create(prepared_vals_list)
 

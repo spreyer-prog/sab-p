@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_inquiry_type_list" model="ir.ui.view">
+        <field name="name">sab.inquiry.type.list</field>
+        <field name="model">sab.inquiry.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sab_inquiry_type_form" model="ir.ui.view">
+        <field name="name">sab.inquiry.type.form</field>
+        <field name="model">sab.inquiry.type</field>
+        <field name="arch" type="xml">
+            <form string="Art der Anfrage">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sab_inquiry_type_action" model="ir.actions.act_window">
+        <field name="name">Arten der Anfrage</field>
+        <field name="res_model">sab.inquiry.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="sab_technology_list" model="ir.ui.view">
+        <field name="name">sab.technology.list</field>
+        <field name="model">sab.technology</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sab_technology_form" model="ir.ui.view">
+        <field name="name">sab.technology.form</field>
+        <field name="model">sab.technology</field>
+        <field name="arch" type="xml">
+            <form string="Technik">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sab_technology_action" model="ir.actions.act_window">
+        <field name="name">Techniken</field>
+        <field name="res_model">sab.technology</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="sab_service_type_list" model="ir.ui.view">
+        <field name="name">sab.service.type.list</field>
+        <field name="model">sab.service.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="sab_service_type_form" model="ir.ui.view">
+        <field name="name">sab.service.type.form</field>
+        <field name="model">sab.service.type</field>
+        <field name="arch" type="xml">
+            <form string="Leistungsart">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sab_service_type_action" model="ir.actions.act_window">
+        <field name="name">Leistungsarten</field>
+        <field name="res_model">sab.service.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="sab_project_configuration_menu"
+              name="Konfiguration"
+              parent="sab_project_root_menu"
+              sequence="90"
+              groups="project.group_project_manager"/>
+
+    <menuitem id="sab_inquiry_type_menu"
+              name="Arten der Anfrage"
+              parent="sab_project_configuration_menu"
+              action="sab_inquiry_type_action"
+              sequence="10"
+              groups="project.group_project_manager"/>
+
+    <menuitem id="sab_technology_menu"
+              name="Techniken"
+              parent="sab_project_configuration_menu"
+              action="sab_technology_action"
+              sequence="20"
+              groups="project.group_project_manager"/>
+
+    <menuitem id="sab_service_type_menu"
+              name="Leistungsarten"
+              parent="sab_project_configuration_menu"
+              action="sab_service_type_action"
+              sequence="30"
+              groups="project.group_project_manager"/>
+</odoo>

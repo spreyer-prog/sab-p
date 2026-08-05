@@ -20,6 +20,10 @@ class SaleOrder(models.Model):
         index=True,
         help="Automatisch vergebene, unveränderliche Angebotsnummer.",
     )
+    sab_calculated_hours = fields.Float(
+        string="Kalkulierte Zeit",
+        help="Wird später automatisch aus den Angebots- bzw. Kalkulationspositionen summiert.",
+    )
 
     _sab_offer_reference_unique = models.Constraint(
         "UNIQUE(sab_offer_reference)",
@@ -80,4 +84,21 @@ class SaleOrder(models.Model):
             values.pop("sab_offer_reference", None)
             if values.get("sab_project_id"):
                 values["name"] = "/"
+        return result
+
+    def action_confirm(self):
+        result = super().action_confirm()
+        projects = self.mapped("sab_project_id")
+        if projects:
+            projects.write({"sab_status": "won"})
+        return result
+
+    def action_cancel(self):
+        result = super().action_cancel()
+        for project in self.mapped("sab_project_id"):
+            active_orders = project.sab_sale_order_ids.filtered(
+                lambda order: order.state not in ("cancel",)
+            )
+            if not active_orders and project.sab_status == "won":
+                project.sab_status = "offer_open"
         return result

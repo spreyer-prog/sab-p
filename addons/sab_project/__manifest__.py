@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Projekt- und Angebotsnummern",
-    "summary": "Eindeutige und konfigurierbare Projekt- und Angebotsnummern für SAB-P",
-    "version": "19.0.2.0.0",
+    "summary": "Projektübersicht, Statusfarben und konfigurierbare Nummern für SAB-P",
+    "version": "19.0.3.2.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -11,8 +11,11 @@
     ],
     "data": [
         "security/ir.model.access.csv",
+        "data/sab_classification_data.xml",
         "views/res_config_settings_views.xml",
         "views/project_project_views.xml",
+        "views/sab_classification_views.xml",
+        "views/sab_project_overview_views.xml",
         "views/sale_order_views.xml",
     ],
     "installable": True,
