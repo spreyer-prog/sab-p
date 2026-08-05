@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="sab_project_project_form_inherit" model="ir.ui.view">
-        <field name="name">project.project.form.sab.reference</field>
+        <field name="name">project.project.form.sab.project.file</field>
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
@@ -16,19 +16,30 @@
 
             <xpath expr="//sheet" position="inside">
                 <notebook>
-                    <page string="SAB-P Angebotsdaten" name="sab_offer_data">
+                    <page string="Angebotsdaten" name="sab_offer_data">
                         <group>
                             <group string="Angebotsdaten">
+                                <field name="name" string="Projektname"/>
+                                <field name="sab_commission"/>
+                                <field name="sab_offer_identifier"/>
+                                <field name="sab_customer_order_reference"/>
                                 <field name="sab_request_date"/>
+                                <field name="sab_delivery_date"/>
+                                <field name="sab_calendar_week" readonly="1"/>
+                            </group>
+                            <group string="Kunde und Planung">
                                 <field name="partner_id" string="Kunde"/>
                                 <field name="sab_contact_id"/>
                                 <field name="sab_engineering_office_id"/>
-                                <field name="sab_delivery_date"/>
-                                <field name="sab_calendar_week" readonly="1"/>
+                                <field name="sab_customer_short_code"/>
+                                <field name="sab_customer_phone" readonly="1"/>
+                                <field name="sab_customer_email" readonly="1"/>
                             </group>
                             <group string="Bearbeiterdaten">
                                 <field name="user_id" string="Bearbeiter"/>
                                 <field name="sab_created_by_id" readonly="1"/>
+                                <field name="sab_follow_up_user_id"/>
+                                <field name="sab_follow_up_date"/>
                             </group>
                             <group string="Einordnung">
                                 <field name="sab_inquiry_type_id"/>
@@ -41,6 +52,57 @@
                                 <field name="sab_required_hours"/>
                             </group>
                         </group>
+                    </page>
+
+                    <page string="Projektdaten" name="sab_project_data">
+                        <group>
+                            <group string="Projekt">
+                                <field name="sab_site_address"/>
+                                <field name="sab_internal_reference"/>
+                                <field name="company_id"/>
+                            </group>
+                            <group string="Beschreibung">
+                                <field name="sab_project_description"
+                                       nolabel="1"
+                                       placeholder="Projektbeschreibung erfassen ..."/>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="Kundendaten" name="sab_customer_data">
+                        <group>
+                            <group string="Kunde">
+                                <field name="partner_id"/>
+                                <field name="sab_contact_id"/>
+                                <field name="sab_customer_phone" readonly="1"/>
+                                <field name="sab_customer_email" readonly="1"/>
+                            </group>
+                            <group string="Planung">
+                                <field name="sab_engineering_office_id"/>
+                                <field name="sab_site_address"/>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="Bestellung / Abrechnung" name="sab_order_billing">
+                        <group>
+                            <group string="Bestelldaten">
+                                <field name="sab_customer_order_reference"/>
+                                <field name="sab_commission"/>
+                                <field name="sab_offer_identifier"/>
+                            </group>
+                            <group string="Werte">
+                                <field name="sab_offer_amount" readonly="1"/>
+                                <field name="sab_calculated_hours" readonly="1"/>
+                                <field name="sab_required_hours"/>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="Notiz" name="sab_notes">
+                        <field name="sab_notes"
+                               nolabel="1"
+                               placeholder="Interne Notizen zum Projekt ..."/>
                     </page>
                 </notebook>
             </xpath>

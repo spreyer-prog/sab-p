@@ -18,8 +18,12 @@
                        decoration-danger="sab_status == 'lost'"
                        decoration-info="sab_status == 'customer_awarded'"/>
                 <field name="name" string="Projekt"/>
+                <field name="sab_commission" string="Kommission" optional="show"/>
+                <field name="sab_offer_identifier" string="Angebotskennzeichen" optional="hide"/>
+                <field name="sab_customer_order_reference" string="Bestell-Nr." optional="hide"/>
                 <field name="partner_id" string="Kunde"/>
                 <field name="user_id" string="Bearbeiter"/>
+                <field name="sab_follow_up_date" string="Wiedervorlage" optional="hide"/>
                 <field name="sab_offer_amount" string="Gesamtangebot" sum="Gesamt"/>
                 <field name="sab_inquiry_type_id" string="Art der Anfrage"/>
                 <field name="sab_technology_id" string="Technik"/>

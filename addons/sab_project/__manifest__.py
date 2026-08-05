@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Projekt- und Angebotsnummern",
     "summary": "Projektübersicht, Statusfarben und konfigurierbare Nummern für SAB-P",
-    "version": "19.0.3.4.0",
+    "version": "19.0.4.0.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",

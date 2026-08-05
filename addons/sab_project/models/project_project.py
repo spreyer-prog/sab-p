@@ -123,6 +123,41 @@ class ProjectProject(models.Model):
         readonly=True,
     )
 
+    sab_commission = fields.Char(
+        string="Kommission",
+        help="Interne oder kundenseitige Kommissionsbezeichnung.",
+    )
+    sab_offer_identifier = fields.Char(
+        string="Angebotskennzeichen",
+        help="Freies Kennzeichen des Vorgangs bzw. Angebots.",
+    )
+    sab_customer_order_reference = fields.Char(
+        string="Bestell-Nr. / Bestellkennzeichen",
+    )
+    sab_customer_short_code = fields.Char(
+        string="Kundenkürzel",
+        help="Optionales Kürzel für Kunde oder Projekt.",
+    )
+    sab_follow_up_user_id = fields.Many2one(
+        comodel_name="res.users",
+        string="Wiedervorlage an",
+    )
+    sab_follow_up_date = fields.Date(
+        string="Datum Wiedervorlage",
+    )
+    sab_notes = fields.Html(
+        string="Notiz",
+    )
+    sab_project_description = fields.Html(
+        string="Projektbeschreibung",
+    )
+    sab_site_address = fields.Char(
+        string="Baustelle / Lieferort",
+    )
+    sab_internal_reference = fields.Char(
+        string="Interne Referenz",
+    )
+
     sab_sale_order_ids = fields.One2many(
         comodel_name="sale.order",
         inverse_name="sab_project_id",

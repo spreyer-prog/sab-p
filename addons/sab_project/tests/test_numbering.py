@@ -73,3 +73,16 @@ def test_custom_classification_can_be_added(self):
     })
     self.assertEqual(project.sab_inquiry_type_id, custom_type)
 
+def test_project_file_fields(self):
+    project = self.env["project.project"].create({
+        "name": "Projektakte",
+        "sab_commission": "Campus",
+        "sab_offer_identifier": "AV",
+        "sab_customer_order_reference": "PO-1001",
+        "sab_site_address": "Baustelle Köln",
+    })
+    self.assertEqual(project.sab_commission, "Campus")
+    self.assertEqual(project.sab_offer_identifier, "AV")
+    self.assertEqual(project.sab_customer_order_reference, "PO-1001")
+    self.assertEqual(project.sab_site_address, "Baustelle Köln")
+
