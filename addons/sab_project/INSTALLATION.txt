@@ -1,0 +1,30 @@
+SAB-P Projekt- und Angebotsnummern – Installation
+
+1. Diese ZIP-Datei nach C:\Odoo\sab-p entpacken.
+   Danach muss der Ordner so liegen:
+   C:\Odoo\sab-p\addons\sab_project
+
+2. In VS Code ein Terminal im Repository öffnen und ausführen:
+
+   git status
+   git add addons/sab_project
+   git commit -m "Add SAB project and quotation numbering"
+   git push origin main
+
+3. Odoo.sh startet danach automatisch einen neuen Build.
+
+4. Nach erfolgreichem Build:
+   - Entwicklungsdatenbank öffnen
+   - Apps öffnen
+   - "Apps-Liste aktualisieren" ausführen
+   - nach "SAB-P Projekt- und Angebotsnummern" suchen
+   - Modul installieren
+
+Ergebnis:
+- Projekte: A26.0001, A26.0002 ...
+- Jahreswechsel: A27.0001 ...
+- Angebote je Projekt: A26.0001-01, -02, -03 ...
+- Vergebene Nummern sind eindeutig und nicht änderbar.
+
+Wichtiger Hinweis:
+Die Version startet bewusst bei 0001, nicht bei 0000.

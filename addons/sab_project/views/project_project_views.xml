@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_project_project_form_inherit" model="ir.ui.view">
+        <field name="name">project.project.form.sab.reference</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="sab_project_reference"
+                       readonly="1"
+                       placeholder="Wird beim Speichern automatisch vergeben"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
