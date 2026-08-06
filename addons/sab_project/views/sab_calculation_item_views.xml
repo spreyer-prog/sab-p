@@ -96,7 +96,6 @@
     <record id="action_sab_calculation_item" model="ir.actions.act_window">
         <field name="name">Kalkulationsartikel</field>
         <field name="res_model">sab.calculation.item</field>
-        <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <!-- Listenansicht -->
