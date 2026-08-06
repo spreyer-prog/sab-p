@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+    <menuitem
+        id="sab_calculation_root_menu"
+        name="Kalkulationsdatenbank"
+        parent="sab_project_root_menu"
+        sequence="20"/>
 <odoo>
     <menuitem id="sab_project_root_menu"
               name="SAB-P Suite"
