@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Listenansicht -->
+    <record id="view_sab_calculation_item_tree" model="ir.ui.view">
+        <field name="name">sab.calculation.item.tree</field>
+        <field name="model">sab.calculation.item</field>
+        <field name="arch" type="xml">
+            <list string="Kalkulationsartikel">
+                <field name="calculation_number"/>
+                <field name="name"/>
+                <field name="status"/>
+                <field name="space_units"/>
+                <field name="total_time_minutes"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Formular -->
+    <record id="view_sab_calculation_item_form" model="ir.ui.view">
+        <field name="name">sab.calculation.item.form</field>
+        <field name="model">sab.calculation.item</field>
+        <field name="arch" type="xml">
+
+            <form string="Kalkulationsartikel">
+
+                <sheet>
+
+                    <group>
+
+                        <group>
+                            <field name="calculation_number" readonly="1"/>
+                            <field name="name"/>
+                            <field name="status"/>
+                            <field name="quotation_text"/>
+                        </group>
+
+                        <group>
+                            <field name="standard_product_id"/>
+                            <field name="space_units"/>
+                            <field name="mechanical_time_minutes"/>
+                            <field name="wiring_time_minutes"/>
+                            <field name="testing_time_minutes"/>
+                            <field name="additional_time_minutes"/>
+                            <field name="total_time_minutes" readonly="1"/>
+                        </group>
+
+                    </group>
+
+                    <notebook>
+
+                        <page string="Suchbegriffe">
+
+                            <group col="2">
+
+                                <field name="search_term_01"/>
+                                <field name="search_term_02"/>
+                                <field name="search_term_03"/>
+                                <field name="search_term_04"/>
+                                <field name="search_term_05"/>
+                                <field name="search_term_06"/>
+                                <field name="search_term_07"/>
+                                <field name="search_term_08"/>
+                                <field name="search_term_09"/>
+                                <field name="search_term_10"/>
+                                <field name="search_term_11"/>
+                                <field name="search_term_12"/>
+                                <field name="search_term_13"/>
+                                <field name="search_term_14"/>
+                                <field name="search_term_15"/>
+                                <field name="search_term_16"/>
+                                <field name="search_term_17"/>
+                                <field name="search_term_18"/>
+                                <field name="search_term_19"/>
+                                <field name="search_term_20"/>
+
+                            </group>
+
+                        </page>
+
+                        <page string="Notizen">
+
+                            <field name="notes"/>
+
+                        </page>
+
+                    </notebook>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+</odoo>

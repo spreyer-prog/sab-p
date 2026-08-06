@@ -12,6 +12,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/sab_classification_data.xml",
+        "data/sab_calculation_sequence.xml",
         "views/sab_menu_views.xml",
         "views/res_config_settings_views.xml",
         "views/project_project_views.xml",
