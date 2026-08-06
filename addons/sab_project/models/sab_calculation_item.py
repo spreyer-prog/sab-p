@@ -49,9 +49,7 @@ class SabCalculationItem(models.Model):
         comodel_name="product.product",
         string="Standard-Herstellerartikel",
         ondelete="restrict",
-        domain=[
-            ("detailed_type", "in", ["consu", "product"]),
-        ],
+     
     )
 
     alternative_product_ids = fields.Many2many(
@@ -60,9 +58,7 @@ class SabCalculationItem(models.Model):
         column1="calculation_item_id",
         column2="product_id",
         string="Alternativartikel",
-        domain=[
-            ("detailed_type", "in", ["consu", "product"]),
-        ],
+        
     )
 
     space_units = fields.Float(
