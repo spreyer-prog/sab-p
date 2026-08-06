@@ -20,6 +20,7 @@
         "views/sab_project_overview_views.xml",
         "views/sab_classification_views.xml",
         "views/sale_order_views.xml",
+        "views/sab_manufacturer_views.xml",
     ],
     "installable": True,
     "application": False,
