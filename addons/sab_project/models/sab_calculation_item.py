@@ -112,6 +112,18 @@ class SabCalculationItem(models.Model):
     # Technische Importinformationen
     # ---------------------------------------------------------
 
+    # ---------------------------------------------------------
+    # Produktpositionen / Stückliste
+    # ---------------------------------------------------------
+
+    product_line_ids = fields.One2many(
+        comodel_name="sab.calculation.item.line",
+        inverse_name="calculation_item_id",
+        string="Kalkulationszeilen",
+        copy=True,
+    )
+    
+    
     legacy_import_key = fields.Char(
         string="Import-Schlüssel",
         copy=False,
