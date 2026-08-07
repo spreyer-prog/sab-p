@@ -1,185 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- ===================================================== -->
-    <!-- LISTENANSICHT                                         -->
-    <!-- ===================================================== -->
-
+    <!-- Listenansicht -->
     <record id="view_sab_calculation_item_tree" model="ir.ui.view">
         <field name="name">sab.calculation.item.tree</field>
         <field name="model">sab.calculation.item</field>
         <field name="arch" type="xml">
-
             <list string="Kalkulationsartikel">
-
                 <field name="calculation_number"/>
                 <field name="name"/>
                 <field name="quotation_text"/>
                 <field name="status"/>
-
                 <field name="mechanical_factor"/>
                 <field name="wiring_factor"/>
                 <field name="testing_factor"/>
                 <field name="space_factor"/>
-
             </list>
-
         </field>
     </record>
 
-
-    <!-- ===================================================== -->
-    <!-- SUCHANSICHT                                           -->
-    <!-- ===================================================== -->
-
-    <record id="view_sab_calculation_item_search" model="ir.ui.view">
-        <field name="name">sab.calculation.item.search</field>
-        <field name="model">sab.calculation.item</field>
-
-        <field name="arch" type="xml">
-
-            <search string="Kalkulationsartikel suchen">
-
-                <!-- Normale Felder -->
-                <field name="calculation_number"/>
-                <field name="name"/>
-                <field name="quotation_text"/>
-
-                <!-- 20 Suchbegriffe -->
-                <field name="search_term_01"/>
-                <field name="search_term_02"/>
-                <field name="search_term_03"/>
-                <field name="search_term_04"/>
-                <field name="search_term_05"/>
-                <field name="search_term_06"/>
-                <field name="search_term_07"/>
-                <field name="search_term_08"/>
-                <field name="search_term_09"/>
-                <field name="search_term_10"/>
-                <field name="search_term_11"/>
-                <field name="search_term_12"/>
-                <field name="search_term_13"/>
-                <field name="search_term_14"/>
-                <field name="search_term_15"/>
-                <field name="search_term_16"/>
-                <field name="search_term_17"/>
-                <field name="search_term_18"/>
-                <field name="search_term_19"/>
-                <field name="search_term_20"/>
-
-                <separator/>
-
-                <filter
-                    name="filter_active"
-                    string="Aktiv"
-                    domain="[('status', '=', 'active')]"
-                />
-
-                <filter
-                    name="filter_inactive"
-                    string="Inaktiv"
-                    domain="[('status', '=', 'inactive')]"
-                />
-
-                <filter
-                    name="filter_phase_out"
-                    string="Auslauf"
-                    domain="[('status', '=', 'phase_out')]"
-                />
-
-                <filter
-                    name="filter_archived"
-                    string="Archiviert"
-                    domain="[('status', '=', 'archived')]"
-                />
-
-            </search>
-
-        </field>
-    </record>
-
-
-    <!-- ===================================================== -->
-    <!-- FORMULAR                                              -->
-    <!-- ===================================================== -->
-
+    <!-- Formularansicht -->
     <record id="view_sab_calculation_item_form" model="ir.ui.view">
         <field name="name">sab.calculation.item.form</field>
         <field name="model">sab.calculation.item</field>
-
         <field name="arch" type="xml">
 
             <form string="Kalkulationsartikel">
 
                 <sheet>
 
-                    <!-- STAMMDATEN -->
-
                     <group string="Stammdaten" col="4">
-
-                        <field
-                            name="calculation_number"
-                            readonly="1"
-                        />
-
+                        <field name="calculation_number" readonly="1"/>
                         <field name="status"/>
 
-                        <field
-                            name="name"
-                            colspan="4"
-                        />
-
-                        <field
-                            name="quotation_text"
-                            colspan="4"
-                        />
-
+                        <field name="name" colspan="4"/>
+                        <field name="quotation_text" colspan="4"/>
                     </group>
 
-
-                    <!-- ARTIKELZUORDNUNG -->
-
                     <group string="Artikel" col="4">
-
-                        <field
-                            name="standard_product_id"
-                            colspan="2"
-                        />
+                        <field name="standard_product_id" colspan="2"/>
 
                         <field
                             name="alternative_product_ids"
                             widget="many2many_tags"
                             colspan="2"
                         />
-
                     </group>
-
-
-                    <!-- KALKULATIONSHÜLLE -->
 
                     <group string="Kalkulationsfaktoren" col="4">
-
                         <field name="mechanical_factor"/>
-
                         <field name="wiring_factor"/>
-
                         <field name="testing_factor"/>
-
                         <field name="space_factor"/>
-
                     </group>
-
-
-                    <!-- WEITERE DATEN -->
 
                     <notebook>
 
-                        <!-- 20 SUCHBEGRIFFE -->
-
                         <page string="Suchbegriffe">
-
                             <group col="4">
-
                                 <field name="search_term_01"/>
                                 <field name="search_term_02"/>
                                 <field name="search_term_03"/>
@@ -204,30 +82,18 @@
                                 <field name="search_term_18"/>
                                 <field name="search_term_19"/>
                                 <field name="search_term_20"/>
-
                             </group>
-
                         </page>
 
-
-                        <!-- NOTIZEN -->
-
                         <page string="Notizen">
-
                             <field
                                 name="notes"
                                 placeholder="Interne Hinweise zur Kalkulation ..."
                             />
-
                         </page>
 
-
-                        <!-- IMPORTINFORMATION -->
-
                         <page string="Importinformation">
-
                             <group>
-
                                 <field
                                     name="legacy_source_sheet"
                                     readonly="1"
@@ -242,9 +108,7 @@
                                     name="legacy_import_key"
                                     readonly="1"
                                 />
-
                             </group>
-
                         </page>
 
                     </notebook>
@@ -256,33 +120,14 @@
         </field>
     </record>
 
-
-    <!-- ===================================================== -->
-    <!-- AKTION                                                -->
-    <!-- ===================================================== -->
-
+    <!-- Aktion -->
     <record id="action_sab_calculation_item" model="ir.actions.act_window">
-
-        <field name="name">
-            Kalkulationsartikel
-        </field>
-
-        <field name="res_model">
-            sab.calculation.item
-        </field>
-
-        <field name="view_mode">
-            list,form
-        </field>
-
-
+        <field name="name">Kalkulationsartikel</field>
+        <field name="res_model">sab.calculation.item</field>
+        <field name="view_mode">list,form</field>
     </record>
 
-
-    <!-- ===================================================== -->
-    <!-- MENÜ                                                  -->
-    <!-- ===================================================== -->
-
+    <!-- Menü -->
     <menuitem
         id="sab_calculation_item_menu"
         name="Kalkulationsartikel"
