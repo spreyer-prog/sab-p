@@ -6,15 +6,17 @@
         <field name="model">sab.calculation.import</field>
 
         <field name="arch" type="xml">
+
             <form string="Kalkulationsdatenbank importieren">
 
                 <sheet>
 
                     <group string="SAB-P Kalkulationsdatenbank">
+
                         <field
                             name="file_data"
                             filename="filename"
-                            readonly="state == 'checked'"
+                            readonly="state != 'upload'"
                         />
 
                         <field
@@ -26,12 +28,14 @@
                             name="state"
                             readonly="1"
                         />
+
                     </group>
 
                     <group
-                        string="Prüfergebnis"
-                        invisible="state != 'checked'"
+                        string="Dateiinformation"
+                        invisible="state == 'upload'"
                     >
+
                         <field
                             name="detected_sheet_count"
                             readonly="1"
@@ -41,14 +45,39 @@
                             name="detected_row_count"
                             readonly="1"
                         />
+
                     </group>
 
-                    <group invisible="state != 'checked'">
+                    <group
+                        string="Importergebnis"
+                        invisible="state != 'imported'"
+                    >
+
+                        <field
+                            name="imported_count"
+                            readonly="1"
+                        />
+
+                        <field
+                            name="duplicate_count"
+                            readonly="1"
+                        />
+
+                        <field
+                            name="skipped_count"
+                            readonly="1"
+                        />
+
+                    </group>
+
+                    <group invisible="state == 'upload'">
+
                         <field
                             name="workbook_info"
                             readonly="1"
                             nolabel="1"
                         />
+
                     </group>
 
                 </sheet>
@@ -64,10 +93,19 @@
                     />
 
                     <button
+                        name="action_import"
+                        string="Kalkulationsartikel importieren"
+                        type="object"
+                        class="btn-primary"
+                        confirm="Die Kalkulationsartikel werden jetzt in die SAB-P Kalkulationsdatenbank übernommen. Fortfahren?"
+                        invisible="state != 'checked'"
+                    />
+
+                    <button
                         name="action_reset"
                         string="Andere Datei auswählen"
                         type="object"
-                        invisible="state != 'checked'"
+                        invisible="state == 'upload'"
                     />
 
                     <button
@@ -79,7 +117,9 @@
                 </footer>
 
             </form>
+
         </field>
+
     </record>
 
 </odoo>

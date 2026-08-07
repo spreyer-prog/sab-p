@@ -7,6 +7,10 @@ class SabCalculationItem(models.Model):
     _order = "calculation_number, name"
     _rec_name = "name"
 
+    # ---------------------------------------------------------
+    # Grunddaten
+    # ---------------------------------------------------------
+
     active = fields.Boolean(
         string="Aktiv",
         default=True,
@@ -45,11 +49,15 @@ class SabCalculationItem(models.Model):
         index=True,
     )
 
+    # ---------------------------------------------------------
+    # Artikelzuordnung
+    # ---------------------------------------------------------
+
     standard_product_id = fields.Many2one(
         comodel_name="product.product",
         string="Standard-Herstellerartikel",
         ondelete="restrict",
-         )
+    )
 
     alternative_product_ids = fields.Many2many(
         comodel_name="product.product",
@@ -57,7 +65,70 @@ class SabCalculationItem(models.Model):
         column1="calculation_item_id",
         column2="product_id",
         string="Alternativartikel",
-         )
+    )
+
+    # ---------------------------------------------------------
+    # Kalkulationshülle
+    #
+    # D / E / F aus der alten Excel-Datei sind Prozentanteile.
+    # AQ ist der Platzfaktor als Dezimalwert.
+    # ---------------------------------------------------------
+
+    mechanical_factor = fields.Float(
+        string="Mechanikfaktor (%)",
+        default=100.0,
+    )
+
+    wiring_factor = fields.Float(
+        string="Verdrahtungsfaktor (%)",
+        default=100.0,
+    )
+
+    testing_factor = fields.Float(
+        string="Prüffaktor (%)",
+        default=100.0,
+    )
+
+    space_factor = fields.Float(
+        string="Platzfaktor",
+        default=1.0,
+        help=(
+            "Dezimaler Platzfaktor. "
+            "Beispiel: 0,50 = halber Wert, "
+            "1,00 = voller Wert, "
+            "1,25 = Faktor 1,25."
+        ),
+    )
+
+    # ---------------------------------------------------------
+    # Technische Importinformationen
+    # ---------------------------------------------------------
+
+    legacy_import_key = fields.Char(
+        string="Import-Schlüssel",
+        copy=False,
+        index=True,
+        readonly=True,
+    )
+
+    legacy_source_sheet = fields.Char(
+        string="Import-Tabellenblatt",
+        copy=False,
+        readonly=True,
+    )
+
+    legacy_source_row = fields.Integer(
+        string="Import-Zeile",
+        copy=False,
+        readonly=True,
+    )
+
+    # ---------------------------------------------------------
+    # Alte absolute Werte
+    #
+    # Bleiben vorerst zur Kompatibilität erhalten.
+    # Der neue Kalkulationsimport befüllt diese Felder NICHT.
+    # ---------------------------------------------------------
 
     space_units = fields.Float(
         string="Platzeinheiten",
@@ -90,6 +161,10 @@ class SabCalculationItem(models.Model):
         store=True,
     )
 
+    # ---------------------------------------------------------
+    # 20 Suchbegriffe
+    # ---------------------------------------------------------
+
     search_term_01 = fields.Char(string="Suchbegriff 1", index=True)
     search_term_02 = fields.Char(string="Suchbegriff 2", index=True)
     search_term_03 = fields.Char(string="Suchbegriff 3", index=True)
@@ -115,6 +190,10 @@ class SabCalculationItem(models.Model):
         string="Interne Hinweise",
     )
 
+    # ---------------------------------------------------------
+    # Berechnungen
+    # ---------------------------------------------------------
+
     @api.depends(
         "mechanical_time_minutes",
         "wiring_time_minutes",
@@ -130,17 +209,29 @@ class SabCalculationItem(models.Model):
                 + record.additional_time_minutes
             )
 
+    # ---------------------------------------------------------
+    # Automatische Kalkulationsnummer
+    # ---------------------------------------------------------
+
     @api.model_create_multi
     def create(self, vals_list):
         sequence = self.env["ir.sequence"]
 
         for vals in vals_list:
-            if not vals.get("calculation_number") or vals["calculation_number"] == "Neu":
+            if (
+                not vals.get("calculation_number")
+                or vals["calculation_number"] == "Neu"
+            ):
                 vals["calculation_number"] = (
-                    sequence.next_by_code("sab.calculation.item") or "Neu"
+                    sequence.next_by_code("sab.calculation.item")
+                    or "Neu"
                 )
 
         return super().create(vals_list)
+
+    # ---------------------------------------------------------
+    # Status
+    # ---------------------------------------------------------
 
     def write(self, vals):
         if "status" in vals:

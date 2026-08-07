@@ -10,88 +10,114 @@
                 <field name="calculation_number"/>
                 <field name="name"/>
                 <field name="status"/>
-                <field name="space_units"/>
-                <field name="total_time_minutes"/>
+                <field name="space_factor"/>
             </list>
         </field>
     </record>
 
-    <!-- Formularansicht -->
+    <!-- Formular -->
     <record id="view_sab_calculation_item_form" model="ir.ui.view">
         <field name="name">sab.calculation.item.form</field>
         <field name="model">sab.calculation.item</field>
         <field name="arch" type="xml">
 
             <form string="Kalkulationsartikel">
+
                 <sheet>
 
                     <group string="Stammdaten" col="4">
+
                         <field name="calculation_number" readonly="1"/>
                         <field name="status"/>
 
                         <field name="name" colspan="4"/>
+
                         <field name="quotation_text" colspan="4"/>
+
                     </group>
 
                     <group string="Artikel" col="4">
-                        <field name="standard_product_id" colspan="2"/>
-                        <field name="alternative_product_ids"
-                               widget="many2many_tags"
-                               colspan="2"/>
+
+                        <field name="standard_product_id"/>
+
+                        <field
+                            name="alternative_product_ids"
+                            widget="many2many_tags"/>
+
                     </group>
 
-                    <group string="Kalkulationswerte" col="6">
-                        <field name="space_units"/>
-                        <field name="mechanical_time_minutes"/>
-                        <field name="wiring_time_minutes"/>
-                        <field name="testing_time_minutes"/>
-                        <field name="additional_time_minutes"/>
-                        <field name="total_time_minutes" readonly="1"/>
+                    <group string="Kalkulationsfaktoren" col="4">
+
+                        <field name="mechanical_factor"/>
+
+                        <field name="wiring_factor"/>
+
+                        <field name="testing_factor"/>
+
+                        <field name="space_factor"/>
+
                     </group>
 
                     <notebook>
+
                         <page string="Suchbegriffe">
+
                             <group col="4">
+
                                 <field name="search_term_01"/>
                                 <field name="search_term_02"/>
                                 <field name="search_term_03"/>
                                 <field name="search_term_04"/>
+
                                 <field name="search_term_05"/>
                                 <field name="search_term_06"/>
                                 <field name="search_term_07"/>
                                 <field name="search_term_08"/>
+
                                 <field name="search_term_09"/>
                                 <field name="search_term_10"/>
                                 <field name="search_term_11"/>
                                 <field name="search_term_12"/>
+
                                 <field name="search_term_13"/>
                                 <field name="search_term_14"/>
                                 <field name="search_term_15"/>
                                 <field name="search_term_16"/>
+
                                 <field name="search_term_17"/>
                                 <field name="search_term_18"/>
                                 <field name="search_term_19"/>
                                 <field name="search_term_20"/>
+
                             </group>
+
                         </page>
 
                         <page string="Notizen">
-                            <field name="notes"
-                                   placeholder="Interne Hinweise zur Kalkulation ..."/>
+
+                            <field name="notes"/>
+
                         </page>
+
                     </notebook>
 
                 </sheet>
+
             </form>
 
         </field>
+
     </record>
 
     <!-- Aktion -->
     <record id="action_sab_calculation_item" model="ir.actions.act_window">
+
         <field name="name">Kalkulationsartikel</field>
+
         <field name="res_model">sab.calculation.item</field>
+
         <field name="view_mode">list,form</field>
+
     </record>
 
     <!-- Menü -->
