@@ -6,6 +6,10 @@ class SabCalculationItemLine(models.Model):
     _description = "SAB-P Kalkulationszeile"
     _order = "sequence, id"
 
+    # ---------------------------------------------------------
+    # Zugehöriger Kalkulationsartikel
+    # ---------------------------------------------------------
+
     calculation_item_id = fields.Many2one(
         comodel_name="sab.calculation.item",
         string="Kalkulationsartikel",
@@ -14,25 +18,39 @@ class SabCalculationItemLine(models.Model):
         index=True,
     )
 
+    # ---------------------------------------------------------
+    # Position / Struktur
+    # ---------------------------------------------------------
+
     sequence = fields.Integer(
         string="Pos.",
         default=10,
         index=True,
     )
 
-    product_id = fields.Many2one(
-        comodel_name="sab.product",
-        string="Standardprodukt",
+    position_type = fields.Selection(
+        selection=[
+            ("normal", "Normal"),
+            ("alternative", "Alternative"),
+            ("information", "Information"),
+            ("heading", "Überschrift"),
+            ("subtotal", "Zwischensumme"),
+        ],
+        string="Positionstyp",
         required=True,
-        ondelete="restrict",
+        default="normal",
         index=True,
     )
 
-    quantity = fields.Float(
-        string="Menge",
-        required=True,
-        default=1.0,
-        digits=(16, 3),
+    # ---------------------------------------------------------
+    # Produkt
+    # ---------------------------------------------------------
+
+    product_id = fields.Many2one(
+        comodel_name="sab.product",
+        string="Standardprodukt",
+        ondelete="restrict",
+        index=True,
     )
 
     alternative_product_ids = fields.Many2many(
@@ -43,6 +61,45 @@ class SabCalculationItemLine(models.Model):
         string="Alternativprodukte",
     )
 
+    # ---------------------------------------------------------
+    # Menge
+    # ---------------------------------------------------------
+
+    quantity = fields.Float(
+        string="Menge",
+        required=True,
+        default=1.0,
+        digits=(16, 3),
+    )
+
+    unit = fields.Selection(
+        selection=[
+            ("pcs", "Stück"),
+            ("m", "Meter"),
+            ("kg", "kg"),
+            ("min", "Minute"),
+            ("h", "Stunde"),
+            ("flat", "Pauschal"),
+        ],
+        string="Einheit",
+        required=True,
+        default="pcs",
+    )
+
+    fixed_quantity = fields.Boolean(
+        string="Festmenge",
+        default=False,
+        help=(
+            "Bei aktivierter Festmenge wird die Menge später "
+            "nicht mit einer übergeordneten Projekt- oder "
+            "Anlagenmenge vervielfacht."
+        ),
+    )
+
+    # ---------------------------------------------------------
+    # Optionen
+    # ---------------------------------------------------------
+
     optional = fields.Boolean(
         string="Optional",
         default=False,
@@ -51,6 +108,10 @@ class SabCalculationItemLine(models.Model):
     note = fields.Char(
         string="Bemerkung",
     )
+
+    # ---------------------------------------------------------
+    # Automatische Positionsnummer
+    # ---------------------------------------------------------
 
     @api.model_create_multi
     def create(self, vals_list):

@@ -47,44 +47,55 @@
             default_order="sequence"
         >
 
-            <field
-                name="sequence"
-                string="Pos."
-                widget="handle"
-            />
+          <field
+    name="sequence"
+    string="Pos."
+    widget="handle"
+/>
 
-            <field
-                name="product_id"
-                string="Standardprodukt"
-            />
+<field
+    name="position_type"
+    string="Positionstyp"
+/>
 
-            <field
-                name="quantity"
-                string="Menge"
-            />
+<field
+    name="product_id"
+    string="Standardprodukt"
+/>
 
-            <field
-                name="alternative_product_ids"
-                string="Alternativprodukte"
-                widget="many2many_tags"
-                optional="show"
-            />
+<field
+    name="quantity"
+    string="Menge"
+/>
 
-            <field
-                name="optional"
-                string="Optional"
-                optional="show"
-            />
+<field
+    name="unit"
+    string="Einheit"
+/>
 
-            <field
-                name="note"
-                string="Bemerkung"
-                optional="show"
-            />
+<field
+    name="fixed_quantity"
+    string="Festmenge"
+/>
 
-        </list>
+<field
+    name="alternative_product_ids"
+    string="Alternativprodukte"
+    widget="many2many_tags"
+    optional="show"
+/>
 
-    </field>
+<field
+    name="optional"
+    string="Optional"
+    optional="show"
+/>
+
+<field
+    name="note"
+    string="Bemerkung"
+    optional="show"
+/>
 
 </group>
 
