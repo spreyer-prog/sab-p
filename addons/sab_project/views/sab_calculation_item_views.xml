@@ -275,10 +275,6 @@
             list,form
         </field>
 
-        <field
-            name="search_view_id"
-            ref="view_sab_calculation_item_search"
-        />
 
     </record>
 
