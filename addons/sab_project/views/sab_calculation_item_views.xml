@@ -82,6 +82,35 @@
                         <field name="space_factor"/>
                     </group>
 
+                        <group string="Berechnete Werte" col="4">
+
+                        <field
+                            name="space_units"
+                            readonly="1"
+                        />
+
+                        <field
+                            name="mechanical_time_minutes"
+                            readonly="1"
+                        />
+
+                        <field
+                            name="wiring_time_minutes"
+                            readonly="1"
+                        />
+
+                        <field
+                            name="testing_time_minutes"
+                            readonly="1"
+                        />
+
+                        <field
+                            name="total_time_minutes"
+                            readonly="1"
+                        />
+
+                    </group>
+
                     <notebook>
 
                         <page string="Suchbegriffe">

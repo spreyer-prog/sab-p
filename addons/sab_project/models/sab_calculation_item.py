@@ -151,23 +151,27 @@ class SabCalculationItem(models.Model):
     # ---------------------------------------------------------
 
     space_units = fields.Float(
-        string="Platzeinheiten",
-        default=0.0,
+        string="Berechnete Platzeinheiten",
+        compute="_compute_product_values",
+        store=True,
     )
 
     mechanical_time_minutes = fields.Float(
-        string="Mechanikzeit in Minuten",
-        default=0.0,
+        string="Berechnete Mechanikzeit in Minuten",
+        compute="_compute_product_values",
+        store=True,
     )
 
     wiring_time_minutes = fields.Float(
-        string="Verdrahtungszeit in Minuten",
-        default=0.0,
+        string="Berechnete Verdrahtungszeit in Minuten",
+        compute="_compute_product_values",
+        store=True,
     )
 
     testing_time_minutes = fields.Float(
-        string="Prüfzeit in Minuten",
-        default=0.0,
+        string="Berechnete Prüfzeit in Minuten",
+        compute="_compute_product_values",
+        store=True,
     )
 
     additional_time_minutes = fields.Float(
@@ -213,7 +217,71 @@ class SabCalculationItem(models.Model):
     # ---------------------------------------------------------
     # Berechnungen
     # ---------------------------------------------------------
+    @api.depends(
+        "product_line_ids.quantity",
+        "product_line_ids.product_id.space_units",
+        "product_line_ids.product_id.mechanical_time_minutes",
+        "product_line_ids.product_id.wiring_time_minutes",
+        "product_line_ids.product_id.testing_time_minutes",
+        "mechanical_factor",
+        "wiring_factor",
+        "testing_factor",
+        "space_factor",
+    )
+    def _compute_product_values(self):
+        for record in self:
 
+            base_space_units = 0.0
+            base_mechanical_minutes = 0.0
+            base_wiring_minutes = 0.0
+            base_testing_minutes = 0.0
+
+            for line in record.product_line_ids:
+                if not line.product_id:
+                    continue
+
+                quantity = line.quantity or 0.0
+                product = line.product_id
+
+                base_space_units += (
+                    product.space_units * quantity
+                )
+
+                base_mechanical_minutes += (
+                    product.mechanical_time_minutes * quantity
+                )
+
+                base_wiring_minutes += (
+                    product.wiring_time_minutes * quantity
+                )
+
+                base_testing_minutes += (
+                    product.testing_time_minutes * quantity
+                )
+
+            record.space_units = (
+                base_space_units
+                * record.space_factor
+            )
+
+            record.mechanical_time_minutes = (
+                base_mechanical_minutes
+                * record.mechanical_factor
+                / 100.0
+            )
+
+            record.wiring_time_minutes = (
+                base_wiring_minutes
+                * record.wiring_factor
+                / 100.0
+            )
+
+            record.testing_time_minutes = (
+                base_testing_minutes
+                * record.testing_factor
+                / 100.0
+            )
+            
     @api.depends(
         "mechanical_time_minutes",
         "wiring_time_minutes",
