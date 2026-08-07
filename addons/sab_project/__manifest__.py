@@ -16,8 +16,7 @@
 
         "data/sab_classification_data.xml",
         "data/sab_calculation_sequence.xml",
-        "data/sab_default_language.xml",
-
+    
         "views/sab_menu_views.xml",
         "views/sab_calculation_item_views.xml",
         "views/res_config_settings_views.xml",
