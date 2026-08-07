@@ -7,17 +7,11 @@ class SabProduct(models.Model):
     _order = "manufacturer_id, manufacturer_article_number, name"
     _rec_name = "name"
 
-    # ---------------------------------------------------------
-    # Grunddaten
-    # ---------------------------------------------------------
-
     active = fields.Boolean(
         string="Aktiv",
         default=True,
     )
 
-
-    
     product_type = fields.Selection(
         selection=[
             ("material", "Material"),
@@ -35,6 +29,7 @@ class SabProduct(models.Model):
         default="material",
         index=True,
     )
+
     name = fields.Char(
         string="Bezeichnung",
         required=True,
@@ -58,12 +53,11 @@ class SabProduct(models.Model):
         index=True,
     )
 
-    # ---------------------------------------------------------
-    # Absolute technische Kalkulationswerte des Produktes
-    #
-    # Diese Werte gehören zum echten Produkt.
-    # Der Kalkulationsartikel enthält dagegen nur Faktoren.
-    # ---------------------------------------------------------
+    supplier_product_ids = fields.One2many(
+        comodel_name="sab.supplier.product",
+        inverse_name="product_id",
+        string="Lieferantenartikel",
+    )
 
     space_units = fields.Float(
         string="Platzeinheiten",
@@ -84,10 +78,6 @@ class SabProduct(models.Model):
         string="Prüfzeit in Minuten",
         default=0.0,
     )
-
-    # ---------------------------------------------------------
-    # Interne Hinweise
-    # ---------------------------------------------------------
 
     notes = fields.Text(
         string="Interne Hinweise",

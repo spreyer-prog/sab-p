@@ -10,4 +10,6 @@ access_sab_calculation_item_user,sab.calculation.item user,model_sab_calculation
 access_sab_calculation_item_line_user,sab.calculation.item.line user,model_sab_calculation_item_line,base.group_user,1,1,1,1
 access_sab_manufacturer_user,sab.manufacturer user,model_sab_manufacturer,base.group_user,1,1,1,1
 access_sab_product_user,sab.product user,model_sab_product,base.group_user,1,1,1,1
+access_sab_supplier_user,sab.supplier user,model_sab_supplier,base.group_user,1,1,1,1
+access_sab_supplier_product_user,sab.supplier.product user,model_sab_supplier_product,base.group_user,1,1,1,1
 access_sab_calculation_import,sab.calculation.import,model_sab_calculation_import,base.group_user,1,1,1,1

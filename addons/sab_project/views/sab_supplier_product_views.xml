@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_sab_supplier_product_tree" model="ir.ui.view">
+        <field name="name">sab.supplier.product.tree</field>
+        <field name="model">sab.supplier.product</field>
+        <field name="arch" type="xml">
+            <list string="Lieferantenartikel">
+                <field name="supplier_id"/>
+                <field name="product_id"/>
+                <field name="supplier_article_number"/>
+                <field name="datanorm_number"/>
+                <field name="purchase_price"/>
+                <field name="discount_percent"/>
+                <field name="preferred"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_supplier_product_form" model="ir.ui.view">
+        <field name="name">sab.supplier.product.form</field>
+        <field name="model">sab.supplier.product</field>
+        <field name="arch" type="xml">
+
+            <form string="Lieferantenartikel">
+                <sheet>
+
+                    <group string="Zuordnung" col="4">
+                        <field name="supplier_id"/>
+                        <field name="product_id"/>
+                        <field name="supplier_article_number"/>
+                        <field name="datanorm_number"/>
+                        <field name="preferred"/>
+                        <field name="active"/>
+                    </group>
+
+                    <group string="Preis" col="4">
+                        <field name="purchase_price"/>
+                        <field name="discount_percent"/>
+                        <field name="valid_from"/>
+                        <field name="valid_until"/>
+                    </group>
+
+                    <group string="Bestellung" col="4">
+                        <field name="unit"/>
+                        <field name="packaging_quantity"/>
+                        <field name="minimum_order_quantity"/>
+                        <field name="delivery_time_days"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Notizen">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+
+                </sheet>
+            </form>
+
+        </field>
+    </record>
+
+    <record id="action_sab_supplier_product" model="ir.actions.act_window">
+        <field name="name">Lieferantenartikel</field>
+        <field name="res_model">sab.supplier.product</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="sab_supplier_product_menu"
+        name="Lieferantenartikel"
+        parent="sab_calculation_root_menu"
+        action="action_sab_supplier_product"
+        sequence="50"
+    />
+
+</odoo>
