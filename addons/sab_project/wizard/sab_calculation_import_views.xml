@@ -4,24 +4,78 @@
     <record id="view_sab_calculation_import_form" model="ir.ui.view">
         <field name="name">sab.calculation.import.form</field>
         <field name="model">sab.calculation.import</field>
+
         <field name="arch" type="xml">
             <form string="Kalkulationsdatenbank importieren">
 
-                <group>
-                    <field name="file_data" filename="filename"/>
-                    <field name="filename" invisible="1"/>
-                </group>
+                <sheet>
+
+                    <group string="SAB-P Kalkulationsdatenbank">
+                        <field
+                            name="file_data"
+                            filename="filename"
+                            readonly="state == 'checked'"
+                        />
+
+                        <field
+                            name="filename"
+                            invisible="1"
+                        />
+
+                        <field
+                            name="state"
+                            readonly="1"
+                        />
+                    </group>
+
+                    <group
+                        string="Prüfergebnis"
+                        invisible="state != 'checked'"
+                    >
+                        <field
+                            name="detected_sheet_count"
+                            readonly="1"
+                        />
+
+                        <field
+                            name="detected_row_count"
+                            readonly="1"
+                        />
+                    </group>
+
+                    <group invisible="state != 'checked'">
+                        <field
+                            name="workbook_info"
+                            readonly="1"
+                            nolabel="1"
+                        />
+                    </group>
+
+                </sheet>
 
                 <footer>
-                    <button
-                        string="Import starten"
-                        name="action_import"
-                        type="object"
-                        class="btn-primary"/>
 
                     <button
-                        string="Abbrechen"
-                        special="cancel"/>
+                        name="action_check_file"
+                        string="Datei prüfen"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'upload'"
+                    />
+
+                    <button
+                        name="action_reset"
+                        string="Andere Datei auswählen"
+                        type="object"
+                        invisible="state != 'checked'"
+                    />
+
+                    <button
+                        string="Schließen"
+                        special="cancel"
+                        class="btn-secondary"
+                    />
+
                 </footer>
 
             </form>
