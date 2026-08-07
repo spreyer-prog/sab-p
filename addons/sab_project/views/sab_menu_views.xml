@@ -18,6 +18,20 @@
         parent="sab_project_root_menu"
         sequence="20"/>
 
+    <record id="action_sab_calculation_import" model="ir.actions.act_window">
+        <field name="name">Import Kalkulationsdatenbank</field>
+        <field name="res_model">sab.calculation.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem
+        id="sab_calculation_import_menu"
+        name="Import Kalkulationsdatenbank"
+        parent="sab_calculation_root_menu"
+        action="action_sab_calculation_import"
+        sequence="99"/>
+
     <menuitem
         id="sab_project_configuration_menu"
         name="Einstellungen"
