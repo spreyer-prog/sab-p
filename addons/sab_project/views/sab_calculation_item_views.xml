@@ -47,64 +47,68 @@
             default_order="sequence"
         >
 
-          <field
-    name="sequence"
-    string="Pos."
-    widget="handle"
-/>
+            <field
+                name="sequence"
+                string="Pos."
+                widget="handle"
+            />
 
-<field
-    name="position_type"
-    string="Positionstyp"
-/>
+            <field
+                name="position_type"
+                string="Positionstyp"
+            />
 
-<field
-    name="product_id"
-    string="Standardprodukt"
-/>
+            <field
+                name="product_id"
+                string="Standardprodukt"
+            />
 
-<field
-    name="quantity"
-    string="Menge"
-/>
+            <field
+                name="quantity"
+                string="Menge"
+            />
 
-<field
-    name="unit"
-    string="Einheit"
-/>
+            <field
+                name="unit"
+                string="Einheit"
+            />
 
-<field
-    name="fixed_quantity"
-    string="Festmenge"
-/>
+            <field
+                name="fixed_quantity"
+                string="Festmenge"
+            />
 
-<field
-    name="alternative_product_ids"
-    string="Alternativprodukte"
-    widget="many2many_tags"
-    optional="show"
-/>
+            <field
+                name="alternative_product_ids"
+                string="Alternativprodukte"
+                widget="many2many_tags"
+                optional="show"
+            />
 
-<field
-    name="optional"
-    string="Optional"
-    optional="show"
-/>
+            <field
+                name="optional"
+                string="Optional"
+                optional="show"
+            />
 
-<field
-    name="note"
-    string="Bemerkung"
-    optional="show"
-/>
+            <field
+                name="note"
+                string="Bemerkung"
+                optional="show"
+            />
+
+        </list>
+
+    </field>
 
 </group>
 
-                    <group string="Kalkulationsfaktoren" col="4">
-                        <field name="mechanical_factor"/>
-                        <field name="wiring_factor"/>
-                        <field name="testing_factor"/>
-                        <field name="space_factor"/>
-                    </group>
+<group string="Kalkulationsfaktoren" col="4">
+    <field name="mechanical_factor"/>
+    <field name="wiring_factor"/>
+    <field name="testing_factor"/>
+    <field name="space_factor"/>
+</group>
 
                         <group string="Berechnete Werte" col="4">
 
