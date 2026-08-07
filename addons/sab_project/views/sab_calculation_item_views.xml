@@ -37,36 +37,49 @@
                         <field name="quotation_text" colspan="4"/>
                     </group>
 
-                    <group string="Produktpositionen">
+                    
+<group string="Produktpositionen">
 
     <field name="product_line_ids" nolabel="1">
 
-        <list editable="bottom">
+        <list
+            editable="bottom"
+            default_order="sequence"
+        >
 
             <field
                 name="sequence"
+                string="Pos."
                 widget="handle"
             />
 
             <field
                 name="product_id"
+                string="Standardprodukt"
             />
 
             <field
                 name="quantity"
+                string="Menge"
             />
 
             <field
                 name="alternative_product_ids"
+                string="Alternativprodukte"
                 widget="many2many_tags"
+                optional="show"
             />
 
             <field
                 name="optional"
+                string="Optional"
+                optional="show"
             />
 
             <field
                 name="note"
+                string="Bemerkung"
+                optional="show"
             />
 
         </list>
