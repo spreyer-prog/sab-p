@@ -9,3 +9,4 @@ access_sab_service_type_manager,sab.service.type manager,model_sab_service_type,
 access_sab_calculation_item_user,sab.calculation.item user,model_sab_calculation_item,base.group_user,1,1,1,0
 access_sab_manufacturer_user,sab.manufacturer user,model_sab_manufacturer,base.group_user,1,1,1,1
 access_sab_calculation_import,sab.calculation.import,model_sab_calculation_import,base.group_user,1,1,1,1
+access_sab_product_user,sab.product user,model_sab_product,base.group_user,1,1,1,1

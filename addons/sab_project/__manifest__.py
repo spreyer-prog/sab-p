@@ -21,6 +21,7 @@
         "views/sab_classification_views.xml",
         "views/sale_order_views.xml",
         "views/sab_manufacturer_views.xml",
+        "views/sab_product_views.xml",
         "wizard/sab_calculation_import_views.xml",
     ],
     "installable": True,

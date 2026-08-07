@@ -53,19 +53,19 @@ class SabCalculationItem(models.Model):
     # Artikelzuordnung
     # ---------------------------------------------------------
 
-    standard_product_id = fields.Many2one(
-        comodel_name="product.product",
-        string="Standard-Herstellerartikel",
-        ondelete="restrict",
-    )
+  standard_product_id = fields.Many2one(
+    comodel_name="sab.product",
+    string="Standardprodukt",
+    ondelete="restrict",
+)
 
-    alternative_product_ids = fields.Many2many(
-        comodel_name="product.product",
-        relation="sab_calculation_item_alternative_product_rel",
-        column1="calculation_item_id",
-        column2="product_id",
-        string="Alternativartikel",
-    )
+alternative_product_ids = fields.Many2many(
+    comodel_name="sab.product",
+    relation="sab_calculation_item_alternative_product_rel",
+    column1="calculation_item_id",
+    column2="product_id",
+    string="Alternativprodukte",
+)
 
     # ---------------------------------------------------------
     # Kalkulationshülle
