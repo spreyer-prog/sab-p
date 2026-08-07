@@ -16,6 +16,25 @@ class SabProduct(models.Model):
         default=True,
     )
 
+
+    
+    product_type = fields.Selection(
+        selection=[
+            ("material", "Material"),
+            ("mechanical", "Mechanik"),
+            ("wiring", "Verdrahtung"),
+            ("testing", "Prüfung"),
+            ("labeling", "Beschriftung"),
+            ("documentation", "Dokumentation"),
+            ("transport", "Transport"),
+            ("packaging", "Verpackung"),
+            ("other", "Sonstiges"),
+        ],
+        string="Produkttyp",
+        required=True,
+        default="material",
+        index=True,
+    )
     name = fields.Char(
         string="Bezeichnung",
         required=True,
