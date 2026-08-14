@@ -71,7 +71,8 @@ class TestSabOfferCalculation(TransactionCase):
         self.assertAlmostEqual(order.sab_labor_cost, 60.0)
         self.assertAlmostEqual(order.sab_direct_cost, 129.0)
         self.assertAlmostEqual(order.sab_commercial_factor, 1.491890625)
-        self.assertAlmostEqual(order.sab_recommended_net_price, 192.453890625)
+        # Monetary-Felder werden von Odoo auf die Währungsgenauigkeit (EUR: 0,01) gerundet.
+        self.assertAlmostEqual(order.sab_recommended_net_price, 192.45, places=2)
 
     def test_offer_uses_snapshot_not_live_master_data(self):
         order = self._order()
