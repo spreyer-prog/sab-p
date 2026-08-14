@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
@@ -49,6 +49,16 @@ class SabProjectBom(models.Model):
         string="Stücklistenpositionen",
         copy=True,
     )
+    production_order_ids = fields.One2many(
+        comodel_name="sab.production.order",
+        inverse_name="bom_id",
+        string="Fertigungsaufträge",
+        copy=False,
+    )
+    production_order_count = fields.Integer(
+        string="Fertigungsaufträge",
+        compute="_compute_production_order_count",
+    )
     note = fields.Text(string="Hinweise")
 
     _order_unique = models.Constraint(
@@ -56,12 +66,38 @@ class SabProjectBom(models.Model):
         "Für diesen Auftrag existiert bereits eine SAB-P Stückliste.",
     )
 
+    @api.depends("production_order_ids")
+    def _compute_production_order_count(self):
+        for record in self:
+            record.production_order_count = len(record.production_order_ids)
+
     def action_release(self):
         for record in self:
             if not record.line_ids:
                 raise ValidationError("Eine leere Stückliste kann nicht freigegeben werden.")
             record.state = "released"
         return True
+
+    def action_create_production_order(self):
+        self.ensure_one()
+        if self.state != "released":
+            raise ValidationError(
+                _("Ein Fertigungsauftrag kann erst aus einer freigegebenen Stückliste erzeugt werden.")
+            )
+        production = self.production_order_ids[:1]
+        if not production:
+            production = self.env["sab.production.order"].create({
+                "name": f"FA {self.order_id.sab_offer_reference or self.order_id.name}",
+                "bom_id": self.id,
+            })
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("SAB-P Fertigungsauftrag"),
+            "res_model": "sab.production.order",
+            "res_id": production.id,
+            "view_mode": "form",
+            "target": "current",
+        }
 
     def write(self, vals):
         if any(record.state == "released" for record in self):
