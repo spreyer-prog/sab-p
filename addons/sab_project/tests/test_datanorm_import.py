@@ -55,7 +55,7 @@ class TestSabDatanormImport(TransactionCase):
         self.assertIn("KurztextinklTyp", source_name)
         self.assertIn("080CPN Schutzabdeckung", text)
 
-    def test_import_preserves_sab_technical_values(self):
+    def test_import_preserves_sab_technical_values_and_raw_price(self):
         manufacturer = self.env["sab.manufacturer"].create({"name": "ABB AG"})
         product = self.env["sab.product"].create({
             "name": "Alttext",
@@ -83,10 +83,20 @@ class TestSabDatanormImport(TransactionCase):
             ("supplier_article_number", "=", "1SFA170190R8000"),
         ])
         self.assertEqual(len(supplier_product), 1)
-        self.assertAlmostEqual(supplier_product.purchase_price, 7.14)
+        self.assertAlmostEqual(supplier_product.datanorm_price, 7.14)
+        self.assertEqual(supplier_product.datanorm_price_code, "V2")
+        self.assertAlmostEqual(supplier_product.purchase_price, 0.0)
         self.assertEqual(supplier_product.datanorm_type_name, "080CPN")
         self.assertEqual(supplier_product.ean, "7320500520642")
         self.assertIn("Z-Preis-/Zuschlagssätze erkannt: 1", wizard.result_text)
+
+        # Erst die explizite Lieferantenfreigabe macht den DATANORM-Preis
+        # kalkulationswirksam.
+        self.supplier.datanorm_price_as_purchase_price = True
+        wizard = self._wizard(payload)
+        wizard.action_import()
+        supplier_product.invalidate_recordset()
+        self.assertAlmostEqual(supplier_product.purchase_price, 7.14)
 
     def test_record_count_and_units(self):
         counts = self.env["sab.datanorm.import"]._record_counts([
@@ -98,5 +108,11 @@ class TestSabDatanormImport(TransactionCase):
         ])
         self.assertEqual(counts["A"], 1)
         self.assertEqual(counts["Z"], 2)
-        self.assertEqual(self.env["sab.datanorm.import"]._unit_from_datanorm("PCE"), "pcs")
-        self.assertAlmostEqual(self.env["sab.datanorm.import"]._parse_price("714"), 7.14)
+        self.assertEqual(
+            self.env["sab.datanorm.import"]._unit_from_datanorm("PCE"),
+            "pcs",
+        )
+        self.assertAlmostEqual(
+            self.env["sab.datanorm.import"]._parse_price("714"),
+            7.14,
+        )
