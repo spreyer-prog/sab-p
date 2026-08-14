@@ -29,8 +29,9 @@ class SabSupplierProduct(models.Model):
         index=True,
     )
     datanorm_number = fields.Char(string="DATANORM-Nummer", index=True)
-    datanorm_type_name = fields.Char(string="DATANORM-Typbezeichnung", index=True)
+    datanorm_type_name = fields.Char(string="Herstellertyp", index=True)
     ean = fields.Char(string="EAN", index=True)
+
     purchase_price = fields.Float(
         string="Einkaufspreis",
         digits=(16, 4),
@@ -76,8 +77,16 @@ class SabSupplierProduct(models.Model):
     preferred = fields.Boolean(string="Bevorzugter Lieferant", default=False)
     note = fields.Text(string="Interne Hinweise")
 
+    datanorm_surcharge_ids = fields.One2many(
+        comodel_name="sab.datanorm.surcharge",
+        inverse_name="supplier_product_id",
+        string="DATANORM Zu-/Abschläge",
+    )
+
     @api.depends("purchase_price", "discount_percent")
     def _compute_net_purchase_price(self):
         for record in self:
             discount = min(max(record.discount_percent or 0.0, 0.0), 100.0)
-            record.net_purchase_price = (record.purchase_price or 0.0) * (1.0 - discount / 100.0)
+            record.net_purchase_price = (
+                (record.purchase_price or 0.0) * (1.0 - discount / 100.0)
+            )
