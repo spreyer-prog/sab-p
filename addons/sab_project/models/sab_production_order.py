@@ -1,0 +1,196 @@
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
+
+
+DEFAULT_PRODUCTION_STEPS = [
+    (10, "Mechanische Fertigung"),
+    (20, "Mechanischer Aufbau"),
+    (30, "Bestückung Geräte"),
+    (40, "Bestückung Klemmen"),
+    (50, "Vorbereitung Verdrahtung"),
+    (60, "Elektrische Fertigung"),
+    (70, "Prüfung"),
+    (80, "Endkontrolle"),
+]
+
+
+class SabProductionOrder(models.Model):
+    _name = "sab.production.order"
+    _description = "SAB-P Fertigungsauftrag"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _order = "create_date desc, id desc"
+
+    name = fields.Char(string="Fertigungsauftrag", required=True, readonly=True, copy=False, tracking=True)
+    bom_id = fields.Many2one(
+        comodel_name="sab.project.bom",
+        string="Stückliste",
+        required=True,
+        ondelete="restrict",
+        index=True,
+        tracking=True,
+    )
+    order_id = fields.Many2one(
+        related="bom_id.order_id",
+        string="Kundenauftrag",
+        store=True,
+        readonly=True,
+    )
+    project_id = fields.Many2one(
+        related="bom_id.project_id",
+        string="Projekt",
+        store=True,
+        readonly=True,
+    )
+    state = fields.Selection(
+        selection=[
+            ("planned", "Geplant"),
+            ("in_progress", "In Fertigung"),
+            ("done", "Fertig"),
+            ("cancel", "Storniert"),
+        ],
+        string="Status",
+        required=True,
+        default="planned",
+        tracking=True,
+        index=True,
+    )
+    responsible_user_id = fields.Many2one(
+        comodel_name="res.users",
+        string="Verantwortlich",
+        default=lambda self: self.env.user,
+        tracking=True,
+    )
+    planned_start = fields.Datetime(string="Geplanter Start", tracking=True)
+    delivery_date = fields.Date(
+        related="project_id.sab_delivery_date",
+        string="Liefertermin",
+        readonly=True,
+    )
+    step_ids = fields.One2many(
+        comodel_name="sab.production.step",
+        inverse_name="production_order_id",
+        string="Fertigungsschritte",
+        copy=True,
+    )
+    progress_percent = fields.Float(
+        string="Fortschritt (%)",
+        compute="_compute_progress",
+        store=True,
+    )
+    note = fields.Html(string="Fertigungshinweise")
+
+    _bom_unique = models.Constraint(
+        "UNIQUE(bom_id)",
+        "Für diese Stückliste existiert bereits ein Fertigungsauftrag.",
+    )
+
+    @api.depends("step_ids.state")
+    def _compute_progress(self):
+        for record in self:
+            steps = record.step_ids.filtered(lambda step: step.state != "skipped")
+            if not steps:
+                record.progress_percent = 0.0
+                continue
+            done = len(steps.filtered(lambda step: step.state == "done"))
+            record.progress_percent = done * 100.0 / len(steps)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        prepared = []
+        for incoming in vals_list:
+            vals = dict(incoming)
+            if not vals.get("step_ids"):
+                vals["step_ids"] = [
+                    (0, 0, {"sequence": sequence, "name": name})
+                    for sequence, name in DEFAULT_PRODUCTION_STEPS
+                ]
+            prepared.append(vals)
+        return super().create(prepared)
+
+    def action_start(self):
+        for record in self:
+            if record.state != "planned":
+                continue
+            record.state = "in_progress"
+        return True
+
+    def action_mark_done(self):
+        for record in self:
+            unfinished = record.step_ids.filtered(
+                lambda step: step.state not in ("done", "skipped")
+            )
+            if unfinished:
+                raise ValidationError(
+                    _("Der Fertigungsauftrag kann erst abgeschlossen werden, wenn alle Fertigungsschritte erledigt oder übersprungen sind.")
+                )
+            record.state = "done"
+        return True
+
+
+class SabProductionStep(models.Model):
+    _name = "sab.production.step"
+    _description = "SAB-P Fertigungsschritt"
+    _order = "sequence, id"
+
+    production_order_id = fields.Many2one(
+        comodel_name="sab.production.order",
+        string="Fertigungsauftrag",
+        required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    sequence = fields.Integer(string="Reihenfolge", default=10, index=True)
+    name = fields.Char(string="Abteilung / Tätigkeit", required=True)
+    state = fields.Selection(
+        selection=[
+            ("pending", "Offen"),
+            ("in_progress", "In Arbeit"),
+            ("done", "Fertig"),
+            ("skipped", "Entfällt"),
+        ],
+        string="Status",
+        required=True,
+        default="pending",
+        index=True,
+    )
+    responsible_user_id = fields.Many2one(comodel_name="res.users", string="Mitarbeiter")
+    started_at = fields.Datetime(string="Begonnen am", readonly=True)
+    finished_at = fields.Datetime(string="Fertig am", readonly=True)
+    checked_by_id = fields.Many2one(comodel_name="res.users", string="Geprüft von")
+    note = fields.Char(string="Bemerkung")
+
+    def action_start(self):
+        for record in self:
+            if record.production_order_id.state == "done":
+                raise ValidationError("Ein abgeschlossener Fertigungsauftrag ist gesperrt.")
+            record.write({
+                "state": "in_progress",
+                "responsible_user_id": record.responsible_user_id.id or self.env.user.id,
+                "started_at": record.started_at or fields.Datetime.now(),
+            })
+            if record.production_order_id.state == "planned":
+                record.production_order_id.state = "in_progress"
+        return True
+
+    def action_done(self):
+        for record in self:
+            if record.production_order_id.state == "done":
+                raise ValidationError("Ein abgeschlossener Fertigungsauftrag ist gesperrt.")
+            record.write({
+                "state": "done",
+                "responsible_user_id": record.responsible_user_id.id or self.env.user.id,
+                "finished_at": fields.Datetime.now(),
+            })
+        return True
+
+    def action_skip(self):
+        for record in self:
+            if record.production_order_id.state == "done":
+                raise ValidationError("Ein abgeschlossener Fertigungsauftrag ist gesperrt.")
+            record.write({"state": "skipped", "finished_at": fields.Datetime.now()})
+        return True
+
+    def write(self, vals):
+        if any(record.production_order_id.state == "done" for record in self):
+            raise ValidationError("Fertigungsschritte eines abgeschlossenen Fertigungsauftrags sind gesperrt.")
+        return super().write(vals)
