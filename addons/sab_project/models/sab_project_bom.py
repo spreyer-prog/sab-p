@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -117,12 +117,28 @@ class SabProjectBomLine(models.Model):
         ondelete="set null",
     )
     unit_purchase_price = fields.Float(string="EK je Einheit", digits=(16, 4), readonly=True)
-    purchase_total = fields.Float(string="EK gesamt", digits=(16, 4), compute="_compute_purchase_total", store=True)
+    purchase_total = fields.Float(
+        string="EK gesamt",
+        digits=(16, 4),
+        compute="_compute_purchase_total",
+        store=True,
+    )
     note = fields.Char(string="Bemerkung")
 
+    @api.depends("quantity", "unit_purchase_price")
     def _compute_purchase_total(self):
         for record in self:
             record.purchase_total = (record.quantity or 0.0) * (record.unit_purchase_price or 0.0)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            bom_id = vals.get("bom_id")
+            if bom_id:
+                bom = self.env["sab.project.bom"].browse(bom_id)
+                if bom.state == "released":
+                    raise ValidationError("Zu einer freigegebenen Stückliste dürfen keine Positionen ergänzt werden.")
+        return super().create(vals_list)
 
     def write(self, vals):
         if any(record.bom_id.state == "released" for record in self):
