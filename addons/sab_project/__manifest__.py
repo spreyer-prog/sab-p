@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Projekt- und Angebotsnummern",
-    "summary": "Projektübersicht, Statusfarben und konfigurierbare Nummern für SAB-P",
-    "version": "19.0.4.0.0",
+    "summary": "Projektübersicht, Kalkulationsdatenbank und Produktlogik für SAB-P",
+    "version": "19.0.4.1.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -13,10 +13,8 @@
 
     "data": [
         "security/ir.model.access.csv",
-
         "data/sab_classification_data.xml",
         "data/sab_calculation_sequence.xml",
-    
         "views/sab_menu_views.xml",
         "views/sab_calculation_item_views.xml",
         "views/res_config_settings_views.xml",
@@ -28,7 +26,6 @@
         "views/sab_product_views.xml",
         "views/sab_supplier_views.xml",
         "views/sab_supplier_product_views.xml",
-
         "wizard/sab_calculation_import_views.xml",
     ],
 
