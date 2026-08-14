@@ -5,6 +5,15 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+
+            <xpath expr="//header" position="inside">
+                <button name="action_create_sab_revision"
+                        type="object"
+                        string="Neue Revision"
+                        class="btn-secondary"
+                        invisible="not sab_project_id"/>
+            </xpath>
+
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="sab_project_id"
                        required="state in ('draft', 'sent')"
@@ -12,8 +21,43 @@
                 <field name="sab_offer_reference"
                        readonly="1"
                        invisible="not sab_offer_reference"/>
-                <field name="sab_calculated_hours"/>
+                <field name="sab_revision_of_id"
+                       readonly="1"
+                       invisible="not sab_revision_of_id"/>
+                <field name="sab_revision_reason"
+                       invisible="not sab_revision_of_id"/>
             </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="SAB-P Kalkulation" name="sab_calculation">
+                    <field name="sab_calculation_line_ids" nolabel="1"
+                           readonly="state not in ('draft', 'sent')">
+                        <list editable="bottom" default_order="sequence">
+                            <field name="sequence" widget="handle" string="Pos."/>
+                            <field name="calculation_item_id"/>
+                            <field name="quantity"/>
+                            <field name="description" optional="show"/>
+                            <field name="material_purchase_total" readonly="1"/>
+                            <field name="mechanical_time_minutes" readonly="1" optional="show"/>
+                            <field name="wiring_time_minutes" readonly="1" optional="show"/>
+                            <field name="testing_time_minutes" readonly="1" optional="show"/>
+                            <field name="total_hours" readonly="1"/>
+                            <field name="space_units" readonly="1" optional="show"/>
+                            <field name="note" optional="show"/>
+                        </list>
+                    </field>
+
+                    <group string="Kalkulationssummen" col="6">
+                        <field name="sab_material_purchase_total" readonly="1"/>
+                        <field name="sab_mechanical_hours" readonly="1"/>
+                        <field name="sab_wiring_hours" readonly="1"/>
+                        <field name="sab_testing_hours" readonly="1"/>
+                        <field name="sab_calculated_hours" readonly="1"/>
+                        <field name="sab_space_units" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+
         </field>
     </record>
 </odoo>
