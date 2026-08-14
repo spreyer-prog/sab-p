@@ -56,7 +56,7 @@ class SabProjectBom(models.Model):
         copy=False,
     )
     production_order_count = fields.Integer(
-        string="Fertigungsaufträge",
+        string="Anzahl Fertigungsaufträge",
         compute="_compute_production_order_count",
     )
     note = fields.Text(string="Hinweise")
