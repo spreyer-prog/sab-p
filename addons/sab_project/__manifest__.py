@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Projekt- und Angebotsnummern",
-    "summary": "Projektübersicht, Kalkulationsdatenbank, DATANORM, Angebotskalkulation, Stücklisten und Fertigung für SAB-P",
-    "version": "19.0.5.3.0",
+    "summary": "Projektübersicht, Kalkulationsdatenbank, DATANORM, Angebotskalkulation, Stücklisten, Fertigung und Einkauf für SAB-P",
+    "version": "19.0.5.4.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -30,6 +30,7 @@
         "views/sab_calculation_change_log_views.xml",
         "views/sab_project_bom_views.xml",
         "views/sab_production_order_views.xml",
+        "views/sab_purchase_requirement_views.xml",
         "wizard/sab_calculation_import_views.xml",
         "wizard/sab_datanorm_import_views.xml",
     ],
