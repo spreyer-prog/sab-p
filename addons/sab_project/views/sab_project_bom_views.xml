@@ -12,6 +12,7 @@
                 <field name="generated_at"/>
                 <field name="generated_by_id"/>
                 <field name="production_order_count"/>
+                <field name="purchase_requirement_count"/>
             </list>
         </field>
     </record>
@@ -22,16 +23,9 @@
         <field name="arch" type="xml">
             <form string="SAB-P Stückliste">
                 <header>
-                    <button name="action_release"
-                            type="object"
-                            string="Stückliste freigeben"
-                            class="btn-primary"
-                            invisible="state != 'draft'"/>
-                    <button name="action_create_production_order"
-                            type="object"
-                            string="Fertigungsauftrag erzeugen"
-                            class="btn-primary"
-                            invisible="state != 'released'"/>
+                    <button name="action_release" type="object" string="Stückliste freigeben" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_create_production_order" type="object" string="Fertigungsauftrag erzeugen" class="btn-primary" invisible="state != 'released'"/>
+                    <button name="action_generate_purchase_requirements" type="object" string="Einkaufsbedarf erzeugen" invisible="state != 'released'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,released"/>
                 </header>
                 <sheet>
@@ -42,6 +36,7 @@
                         <field name="generated_at" readonly="1"/>
                         <field name="generated_by_id" readonly="1"/>
                         <field name="production_order_count" readonly="1"/>
+                        <field name="purchase_requirement_count" readonly="1"/>
                     </group>
 
                     <field name="line_ids" nolabel="1" readonly="state == 'released'">
@@ -72,9 +67,5 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="sab_project_bom_menu"
-              name="Stücklisten"
-              parent="sab_calculation_root_menu"
-              action="action_sab_project_bom"
-              sequence="90"/>
+    <menuitem id="sab_project_bom_menu" name="Stücklisten" parent="sab_calculation_root_menu" action="action_sab_project_bom" sequence="90"/>
 </odoo>
