@@ -12,6 +12,7 @@
                 <field name="datanorm_number"/>
                 <field name="purchase_price"/>
                 <field name="discount_percent"/>
+                <field name="net_purchase_price" readonly="1"/>
                 <field name="preferred"/>
                 <field name="active"/>
             </list>
@@ -22,10 +23,8 @@
         <field name="name">sab.supplier.product.form</field>
         <field name="model">sab.supplier.product</field>
         <field name="arch" type="xml">
-
             <form string="Lieferantenartikel">
                 <sheet>
-
                     <group string="Zuordnung" col="4">
                         <field name="supplier_id"/>
                         <field name="product_id"/>
@@ -38,6 +37,7 @@
                     <group string="Preis" col="4">
                         <field name="purchase_price"/>
                         <field name="discount_percent"/>
+                        <field name="net_purchase_price" readonly="1"/>
                         <field name="valid_from"/>
                         <field name="valid_until"/>
                     </group>
@@ -54,10 +54,8 @@
                             <field name="note"/>
                         </page>
                     </notebook>
-
                 </sheet>
             </form>
-
         </field>
     </record>
 
