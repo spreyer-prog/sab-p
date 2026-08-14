@@ -12,6 +12,11 @@
                         string="Neue Revision"
                         class="btn-secondary"
                         invisible="not sab_project_id"/>
+                <button name="action_generate_sab_bom"
+                        type="object"
+                        string="Stückliste erzeugen"
+                        class="btn-primary"
+                        invisible="not sab_project_id or state not in ('sale', 'done')"/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="after">
@@ -57,26 +62,16 @@
                     </group>
 
                     <group string="Kalkulationsfaktoren" col="5">
-                        <field name="sab_material_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_aux_material_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_hourly_rate"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_time_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_difficulty_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_planning_surcharge_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_packaging_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_skonto_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_margin_factor"
-                               readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_rebate_factor"
-                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_material_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_aux_material_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_hourly_rate" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_time_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_difficulty_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_planning_surcharge_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_packaging_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_skonto_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_margin_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_rebate_factor" readonly="state not in ('draft', 'sent')"/>
                     </group>
 
                     <group string="Kalkulatorischer Richtwert" col="5">
@@ -90,6 +85,7 @@
                     <div class="alert alert-info" role="alert">
                         Der kalkulatorische Netto-Richtwert dient dem Vergleich mit der SAB-P Kalkulation.
                         Er überschreibt die Verkaufspreise der Odoo-Angebotspositionen nicht automatisch.
+                        Nach Auftragsbestätigung wird die Stückliste aus den im Angebot gespeicherten Komponenten-Snapshots erzeugt.
                     </div>
                 </page>
             </xpath>
