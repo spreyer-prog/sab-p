@@ -11,6 +11,9 @@
                 <field name="state"/>
                 <field name="progress_percent"/>
                 <field name="responsible_user_id"/>
+                <field name="planned_start" optional="show"/>
+                <field name="started_at" optional="show"/>
+                <field name="finished_at" optional="hide"/>
                 <field name="delivery_date"/>
             </list>
         </field>
@@ -42,6 +45,8 @@
                         <field name="bom_id" readonly="1"/>
                         <field name="responsible_user_id" readonly="state == 'done'"/>
                         <field name="planned_start" readonly="state == 'done'"/>
+                        <field name="started_at" readonly="1"/>
+                        <field name="finished_at" readonly="1"/>
                         <field name="delivery_date" readonly="1"/>
                         <field name="progress_percent" readonly="1"/>
                     </group>
