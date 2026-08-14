@@ -54,7 +54,7 @@ class TestSabOfferCalculation(TransactionCase):
             })],
         })
 
-    def test_offer_calculation_totals(self):
+    def test_offer_calculation_totals_and_guideline(self):
         order = self._order()
 
         self.assertAlmostEqual(order.sab_material_purchase_total, 60.0)
@@ -63,6 +63,15 @@ class TestSabOfferCalculation(TransactionCase):
         self.assertAlmostEqual(order.sab_wiring_hours, 0.3)
         self.assertAlmostEqual(order.sab_testing_hours, 0.1)
         self.assertAlmostEqual(order.sab_space_units, 3.0)
+
+        # Defaultwerte aus der bereitgestellten SAB-P Altkalkulation:
+        # Material 60 * 1.00 * 1.15 = 69 EUR
+        # Lohn 0.6 h * 80 EUR * 1.25 = 60 EUR
+        self.assertAlmostEqual(order.sab_material_cost, 69.0)
+        self.assertAlmostEqual(order.sab_labor_cost, 60.0)
+        self.assertAlmostEqual(order.sab_direct_cost, 129.0)
+        self.assertAlmostEqual(order.sab_commercial_factor, 1.491890625)
+        self.assertAlmostEqual(order.sab_recommended_net_price, 192.453890625)
 
     def test_offer_uses_snapshot_not_live_master_data(self):
         order = self._order()
@@ -80,6 +89,21 @@ class TestSabOfferCalculation(TransactionCase):
         self.assertAlmostEqual(order.sab_material_purchase_total, original_material)
         self.assertAlmostEqual(order.sab_calculated_hours, original_hours)
 
+    def test_global_factor_changes_do_not_change_existing_offer(self):
+        order = self._order()
+        old_factor = order.sab_hourly_rate
+        old_guideline = order.sab_recommended_net_price
+
+        self.env["ir.config_parameter"].sudo().set_param(
+            "sab_project.hourly_rate", "125.0"
+        )
+
+        self.assertAlmostEqual(order.sab_hourly_rate, old_factor)
+        self.assertAlmostEqual(order.sab_recommended_net_price, old_guideline)
+
+        new_order = self._order()
+        self.assertAlmostEqual(new_order.sab_hourly_rate, 125.0)
+
     def test_revision_gets_new_offer_number_and_copies_snapshot(self):
         order = self._order()
         action = order.action_create_sab_revision()
@@ -89,7 +113,14 @@ class TestSabOfferCalculation(TransactionCase):
         self.assertEqual(revision.sab_revision_of_id, order)
         self.assertNotEqual(revision.sab_offer_reference, order.sab_offer_reference)
         self.assertEqual(len(revision.sab_calculation_line_ids), 1)
-        self.assertAlmostEqual(revision.sab_material_purchase_total, 60.0)
+        self.assertAlmostEqual(
+            revision.sab_material_purchase_total,
+            order.sab_material_purchase_total,
+        )
+        self.assertAlmostEqual(
+            revision.sab_recommended_net_price,
+            order.sab_recommended_net_price,
+        )
 
     def test_confirmed_offer_calculation_is_locked(self):
         order = self._order()
