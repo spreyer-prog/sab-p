@@ -64,6 +64,95 @@ class SaleOrder(models.Model):
         store=True,
     )
 
+    # Snapshot der Kalkulationskonstanten. Änderungen an den globalen
+    # Einstellungen verändern damit keine bestehenden Angebote.
+    sab_material_factor = fields.Float(
+        string="Materialfaktor",
+        default=lambda self: self._sab_float_param("sab_project.material_factor", 1.0),
+        copy=True,
+    )
+    sab_aux_material_factor = fields.Float(
+        string="Hilfsmaterialfaktor",
+        default=lambda self: self._sab_float_param("sab_project.aux_material_factor", 1.15),
+        copy=True,
+    )
+    sab_hourly_rate = fields.Float(
+        string="Kalkulatorischer Stundenlohn",
+        default=lambda self: self._sab_float_param("sab_project.hourly_rate", 80.0),
+        copy=True,
+    )
+    sab_time_factor = fields.Float(
+        string="Zeitfaktor",
+        default=lambda self: self._sab_float_param("sab_project.time_factor", 1.25),
+        copy=True,
+    )
+    sab_difficulty_factor = fields.Float(
+        string="Schwierigkeitsfaktor",
+        default=lambda self: self._sab_float_param("sab_project.difficulty_factor", 1.0),
+        copy=True,
+    )
+    sab_planning_surcharge_factor = fields.Float(
+        string="Planungszuschlag",
+        default=lambda self: self._sab_float_param(
+            "sab_project.planning_surcharge_factor", 1.15
+        ),
+        copy=True,
+    )
+    sab_packaging_factor = fields.Float(
+        string="Verpackung / Transport",
+        default=lambda self: self._sab_float_param("sab_project.packaging_factor", 1.03),
+        copy=True,
+    )
+    sab_skonto_factor = fields.Float(
+        string="Skonto",
+        default=lambda self: self._sab_float_param("sab_project.skonto_factor", 1.03),
+        copy=True,
+    )
+    sab_margin_factor = fields.Float(
+        string="Marge",
+        default=lambda self: self._sab_float_param("sab_project.margin_factor", 1.25),
+        copy=True,
+    )
+    sab_rebate_factor = fields.Float(
+        string="Rabatt",
+        default=lambda self: self._sab_float_param("sab_project.rebate_factor", 1.125),
+        copy=True,
+    )
+
+    sab_material_cost = fields.Monetary(
+        string="Material kalkulatorisch",
+        currency_field="currency_id",
+        compute="_compute_sab_calculation_totals",
+        store=True,
+    )
+    sab_labor_cost = fields.Monetary(
+        string="Lohn kalkulatorisch",
+        currency_field="currency_id",
+        compute="_compute_sab_calculation_totals",
+        store=True,
+    )
+    sab_direct_cost = fields.Monetary(
+        string="Kalkulatorische Basiskosten",
+        currency_field="currency_id",
+        compute="_compute_sab_calculation_totals",
+        store=True,
+    )
+    sab_commercial_factor = fields.Float(
+        string="Kaufmännischer Gesamtfaktor",
+        compute="_compute_sab_calculation_totals",
+        store=True,
+    )
+    sab_recommended_net_price = fields.Monetary(
+        string="Kalkulatorischer Netto-Richtwert",
+        currency_field="currency_id",
+        compute="_compute_sab_calculation_totals",
+        store=True,
+        help=(
+            "Transparenter Richtwert aus Material, Zeit und den im Angebot gespeicherten "
+            "Faktoren. Er überschreibt den Odoo-Angebotspreis nicht automatisch."
+        ),
+    )
+
     # ---------------------------------------------------------
     # Angebotsrevisionen
     # ---------------------------------------------------------
@@ -81,10 +170,7 @@ class SaleOrder(models.Model):
         inverse_name="sab_revision_of_id",
         string="Revisionen",
     )
-    sab_revision_reason = fields.Char(
-        string="Revisionsgrund",
-        copy=False,
-    )
+    sab_revision_reason = fields.Char(string="Revisionsgrund", copy=False)
     sab_revision_count = fields.Integer(
         string="Revisionen",
         compute="_compute_sab_revision_count",
@@ -95,6 +181,14 @@ class SaleOrder(models.Model):
         "Die Angebotsnummer ist bereits vergeben.",
     )
 
+    @api.model
+    def _sab_float_param(self, key, default):
+        raw = self.env["ir.config_parameter"].sudo().get_param(key, str(default))
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return float(default)
+
     @api.depends(
         "sab_calculation_line_ids.material_purchase_total",
         "sab_calculation_line_ids.mechanical_time_minutes",
@@ -102,13 +196,23 @@ class SaleOrder(models.Model):
         "sab_calculation_line_ids.testing_time_minutes",
         "sab_calculation_line_ids.total_time_minutes",
         "sab_calculation_line_ids.space_units",
+        "sab_material_factor",
+        "sab_aux_material_factor",
+        "sab_hourly_rate",
+        "sab_time_factor",
+        "sab_difficulty_factor",
+        "sab_packaging_factor",
+        "sab_skonto_factor",
+        "sab_margin_factor",
+        "sab_rebate_factor",
     )
     def _compute_sab_calculation_totals(self):
         for order in self:
             lines = order.sab_calculation_line_ids
-            order.sab_material_purchase_total = sum(
-                lines.mapped("material_purchase_total")
-            )
+            material_purchase_total = sum(lines.mapped("material_purchase_total"))
+            total_minutes = sum(lines.mapped("total_time_minutes"))
+
+            order.sab_material_purchase_total = material_purchase_total
             order.sab_mechanical_hours = sum(
                 lines.mapped("mechanical_time_minutes")
             ) / 60.0
@@ -118,10 +222,30 @@ class SaleOrder(models.Model):
             order.sab_testing_hours = sum(
                 lines.mapped("testing_time_minutes")
             ) / 60.0
-            order.sab_calculated_hours = sum(
-                lines.mapped("total_time_minutes")
-            ) / 60.0
+            order.sab_calculated_hours = total_minutes / 60.0
             order.sab_space_units = sum(lines.mapped("space_units"))
+
+            order.sab_material_cost = (
+                material_purchase_total
+                * (order.sab_material_factor or 0.0)
+                * (order.sab_aux_material_factor or 0.0)
+            )
+            order.sab_labor_cost = (
+                order.sab_calculated_hours
+                * (order.sab_hourly_rate or 0.0)
+                * (order.sab_time_factor or 0.0)
+                * (order.sab_difficulty_factor or 0.0)
+            )
+            order.sab_direct_cost = order.sab_material_cost + order.sab_labor_cost
+            order.sab_commercial_factor = (
+                (order.sab_packaging_factor or 0.0)
+                * (order.sab_skonto_factor or 0.0)
+                * (order.sab_margin_factor or 0.0)
+                * (order.sab_rebate_factor or 0.0)
+            )
+            order.sab_recommended_net_price = (
+                order.sab_direct_cost * order.sab_commercial_factor
+            )
 
     @api.depends("sab_revision_ids")
     def _compute_sab_revision_count(self):
