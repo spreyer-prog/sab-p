@@ -5,15 +5,24 @@
         <field name="model">sab.datanorm.import</field>
         <field name="arch" type="xml">
             <form string="DATANORM 5 importieren">
-                <group>
+                <group string="Importdatei">
                     <field name="file_data" filename="file_name"/>
                     <field name="file_name" invisible="1"/>
                     <field name="supplier_id"/>
                     <field name="create_missing_products"/>
+                    <field name="source_file_name" readonly="1" invisible="not source_file_name"/>
                 </group>
+
+                <div class="alert alert-info" role="alert">
+                    Es kann eine DATANORM-5-Datei (.001) oder direkt das Lieferanten-ZIP hochgeladen werden.
+                    Bei ABB wird die Variante mit Typbezeichnung im Kurztext automatisch bevorzugt.
+                    Technische SAB-P-Zeiten und Platzeinheiten werden nicht überschrieben.
+                </div>
+
                 <group string="Importprotokoll" invisible="not result_text">
                     <field name="result_text" nolabel="1" readonly="1"/>
                 </group>
+
                 <footer>
                     <button name="action_import" type="object" string="DATANORM importieren" class="btn-primary"/>
                     <button string="Schließen" special="cancel" class="btn-secondary"/>
