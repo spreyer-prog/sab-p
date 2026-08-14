@@ -20,7 +20,13 @@ class SabProductionOrder(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date desc, id desc"
 
-    name = fields.Char(string="Fertigungsauftrag", required=True, readonly=True, copy=False, tracking=True)
+    name = fields.Char(
+        string="Fertigungsauftrag",
+        required=True,
+        readonly=True,
+        copy=False,
+        tracking=True,
+    )
     bom_id = fields.Many2one(
         comodel_name="sab.project.bom",
         string="Stückliste",
@@ -61,6 +67,8 @@ class SabProductionOrder(models.Model):
         tracking=True,
     )
     planned_start = fields.Datetime(string="Geplanter Start", tracking=True)
+    started_at = fields.Datetime(string="Tatsächlicher Start", readonly=True, tracking=True)
+    finished_at = fields.Datetime(string="Fertiggestellt am", readonly=True, tracking=True)
     delivery_date = fields.Date(
         related="project_id.sab_delivery_date",
         string="Liefertermin",
@@ -84,9 +92,12 @@ class SabProductionOrder(models.Model):
         "Für diese Stückliste existiert bereits ein Fertigungsauftrag.",
     )
 
-    @api.depends("step_ids.state")
+    @api.depends("step_ids.state", "state")
     def _compute_progress(self):
         for record in self:
+            if record.state == "done":
+                record.progress_percent = 100.0
+                continue
             steps = record.step_ids.filtered(lambda step: step.state != "skipped")
             if not steps:
                 record.progress_percent = 0.0
@@ -99,6 +110,15 @@ class SabProductionOrder(models.Model):
         prepared = []
         for incoming in vals_list:
             vals = dict(incoming)
+            bom_id = vals.get("bom_id")
+            if bom_id:
+                bom = self.env["sab.project.bom"].browse(bom_id).exists()
+                if not bom:
+                    raise ValidationError(_("Die ausgewählte Stückliste existiert nicht."))
+                if bom.state != "released":
+                    raise ValidationError(
+                        _("Ein Fertigungsauftrag darf nur aus einer freigegebenen Stückliste erstellt werden.")
+                    )
             if not vals.get("step_ids"):
                 vals["step_ids"] = [
                     (0, 0, {"sequence": sequence, "name": name})
@@ -111,11 +131,22 @@ class SabProductionOrder(models.Model):
         for record in self:
             if record.state != "planned":
                 continue
-            record.state = "in_progress"
+            if record.bom_id.state != "released":
+                raise ValidationError(
+                    _("Die Fertigung kann nur mit einer freigegebenen Stückliste gestartet werden.")
+                )
+            record.write({
+                "state": "in_progress",
+                "started_at": record.started_at or fields.Datetime.now(),
+            })
         return True
 
     def action_mark_done(self):
         for record in self:
+            if record.state == "done":
+                continue
+            if record.state == "cancel":
+                raise ValidationError(_("Ein stornierter Fertigungsauftrag kann nicht abgeschlossen werden."))
             unfinished = record.step_ids.filtered(
                 lambda step: step.state not in ("done", "skipped")
             )
@@ -123,8 +154,19 @@ class SabProductionOrder(models.Model):
                 raise ValidationError(
                     _("Der Fertigungsauftrag kann erst abgeschlossen werden, wenn alle Fertigungsschritte erledigt oder übersprungen sind.")
                 )
-            record.state = "done"
+            record.write({
+                "state": "done",
+                "started_at": record.started_at or fields.Datetime.now(),
+                "finished_at": fields.Datetime.now(),
+            })
         return True
+
+    def write(self, vals):
+        if any(record.state == "done" for record in self):
+            allowed = {"responsible_user_id", "note"}
+            if set(vals) - allowed:
+                raise ValidationError(_("Ein abgeschlossener Fertigungsauftrag ist gesperrt."))
+        return super().write(vals)
 
 
 class SabProductionStep(models.Model):
@@ -159,38 +201,53 @@ class SabProductionStep(models.Model):
     checked_by_id = fields.Many2one(comodel_name="res.users", string="Geprüft von")
     note = fields.Char(string="Bemerkung")
 
-    def action_start(self):
+    def _ensure_editable(self):
         for record in self:
             if record.production_order_id.state == "done":
                 raise ValidationError("Ein abgeschlossener Fertigungsauftrag ist gesperrt.")
+            if record.production_order_id.state == "cancel":
+                raise ValidationError("Ein stornierter Fertigungsauftrag ist gesperrt.")
+            if record.production_order_id.bom_id.state != "released":
+                raise ValidationError("Fertigungsschritte benötigen eine freigegebene Stückliste.")
+
+    def action_start(self):
+        self._ensure_editable()
+        for record in self:
             record.write({
                 "state": "in_progress",
                 "responsible_user_id": record.responsible_user_id.id or self.env.user.id,
                 "started_at": record.started_at or fields.Datetime.now(),
             })
             if record.production_order_id.state == "planned":
-                record.production_order_id.state = "in_progress"
+                record.production_order_id.write({
+                    "state": "in_progress",
+                    "started_at": record.production_order_id.started_at or fields.Datetime.now(),
+                })
         return True
 
     def action_done(self):
+        self._ensure_editable()
         for record in self:
-            if record.production_order_id.state == "done":
-                raise ValidationError("Ein abgeschlossener Fertigungsauftrag ist gesperrt.")
             record.write({
                 "state": "done",
                 "responsible_user_id": record.responsible_user_id.id or self.env.user.id,
+                "started_at": record.started_at or fields.Datetime.now(),
                 "finished_at": fields.Datetime.now(),
             })
+            if record.production_order_id.state == "planned":
+                record.production_order_id.write({
+                    "state": "in_progress",
+                    "started_at": record.production_order_id.started_at or fields.Datetime.now(),
+                })
         return True
 
     def action_skip(self):
+        self._ensure_editable()
         for record in self:
-            if record.production_order_id.state == "done":
-                raise ValidationError("Ein abgeschlossener Fertigungsauftrag ist gesperrt.")
             record.write({"state": "skipped", "finished_at": fields.Datetime.now()})
         return True
 
     def write(self, vals):
-        if any(record.production_order_id.state == "done" for record in self):
-            raise ValidationError("Fertigungsschritte eines abgeschlossenen Fertigungsauftrags sind gesperrt.")
+        if any(record.production_order_id.state in ("done", "cancel") for record in self):
+            raise ValidationError("Fertigungsschritte eines abgeschlossenen oder stornierten Fertigungsauftrags sind gesperrt.")
         return super().write(vals)
