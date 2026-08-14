@@ -10,6 +10,9 @@
                 <field name="product_id"/>
                 <field name="supplier_article_number"/>
                 <field name="datanorm_number"/>
+                <field name="datanorm_type_name" optional="show"/>
+                <field name="datanorm_price" optional="show"/>
+                <field name="datanorm_price_code" optional="show"/>
                 <field name="purchase_price"/>
                 <field name="discount_percent"/>
                 <field name="net_purchase_price" readonly="1"/>
@@ -30,11 +33,18 @@
                         <field name="product_id"/>
                         <field name="supplier_article_number"/>
                         <field name="datanorm_number"/>
+                        <field name="datanorm_type_name"/>
+                        <field name="ean"/>
                         <field name="preferred"/>
                         <field name="active"/>
                     </group>
 
-                    <group string="Preis" col="4">
+                    <group string="DATANORM-Preisquelle" col="4">
+                        <field name="datanorm_price" readonly="1"/>
+                        <field name="datanorm_price_code" readonly="1"/>
+                    </group>
+
+                    <group string="Kalkulationswirksamer Einkaufspreis" col="4">
                         <field name="purchase_price"/>
                         <field name="discount_percent"/>
                         <field name="net_purchase_price" readonly="1"/>
