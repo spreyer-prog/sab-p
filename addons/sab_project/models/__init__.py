@@ -11,3 +11,4 @@ from . import sab_supplier
 from . import sab_supplier_product
 from . import sab_datanorm_surcharge
 from . import sab_offer_calculation_line
+from . import sab_calculation_change_log
