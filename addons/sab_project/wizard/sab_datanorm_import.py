@@ -1,4 +1,7 @@
 import base64
+import io
+import zipfile
+from collections import Counter
 from datetime import datetime
 
 from odoo import fields, models
@@ -9,8 +12,9 @@ class SabDatanormImport(models.TransientModel):
     _name = "sab.datanorm.import"
     _description = "SAB-P DATANORM-Import"
 
-    file_data = fields.Binary(string="DATANORM-Datei", required=True)
+    file_data = fields.Binary(string="DATANORM-Datei / ZIP", required=True)
     file_name = fields.Char(string="Dateiname")
+    source_file_name = fields.Char(string="Verarbeitete DATANORM-Datei", readonly=True)
     supplier_id = fields.Many2one(
         "sab.supplier",
         string="Lieferant / Datenquelle",
@@ -23,9 +27,12 @@ class SabDatanormImport(models.TransientModel):
     )
     result_text = fields.Text(string="Importprotokoll", readonly=True)
 
-    def _decode(self):
-        self.ensure_one()
-        raw = base64.b64decode(self.file_data or b"")
+    # ABB liefert die Gesamtdatei komprimiert wesentlich kleiner aus. Der
+    # Import akzeptiert daher sowohl eine rohe DATANORM-.001 als auch das ZIP.
+    MAX_UNCOMPRESSED_BYTES = 150 * 1024 * 1024
+
+    @staticmethod
+    def _decode_bytes(raw):
         for encoding in ("cp1252", "latin1", "utf-8"):
             try:
                 return raw.decode(encoding)
@@ -33,19 +40,81 @@ class SabDatanormImport(models.TransientModel):
                 continue
         raise UserError("Die DATANORM-Datei konnte nicht gelesen werden.")
 
+    @classmethod
+    def _select_zip_member(cls, archive):
+        candidates = [
+            info
+            for info in archive.infolist()
+            if not info.is_dir() and info.filename.lower().endswith((".001", ".dat", ".txt"))
+        ]
+        if not candidates:
+            raise UserError("Das ZIP enthält keine unterstützte DATANORM-Datei.")
+
+        # ABB liefert im Testpaket zusätzlich eine Variante, bei der der Typ
+        # bereits in den Kurztext integriert ist. Diese ist für die spätere
+        # Artikelsuche in SAB-P die bessere Quelle.
+        candidates.sort(
+            key=lambda info: (
+                "kurztextinkltyp" not in info.filename.lower(),
+                info.filename.lower(),
+            )
+        )
+        selected = candidates[0]
+        if selected.file_size > cls.MAX_UNCOMPRESSED_BYTES:
+            raise UserError(
+                "Die entpackte DATANORM-Datei ist größer als 150 MB und wird aus Sicherheitsgründen nicht verarbeitet."
+            )
+        return selected
+
+    def _read_payload(self):
+        self.ensure_one()
+        raw = base64.b64decode(self.file_data or b"")
+        if not raw:
+            raise UserError("Es wurde keine Datei hochgeladen.")
+
+        if zipfile.is_zipfile(io.BytesIO(raw)):
+            with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                member = self._select_zip_member(archive)
+                payload = archive.read(member)
+                return self._decode_bytes(payload), member.filename
+
+        if len(raw) > self.MAX_UNCOMPRESSED_BYTES:
+            raise UserError(
+                "Die DATANORM-Datei ist größer als 150 MB und wird aus Sicherheitsgründen nicht verarbeitet."
+            )
+        return self._decode_bytes(raw), self.file_name or "DATANORM-Datei"
+
     @staticmethod
     def _parse_price(value):
         if not value:
             return 0.0
         try:
-            # ABB DATANORM 5 liefert den Preis als Ganzzahl in Cent.
+            # In der vorliegenden ABB-DATANORM-5-Datei steht der A-Satz-Preis
+            # als Ganzzahl mit zwei impliziten Nachkommastellen.
             return int(value) / 100.0
-        except ValueError:
+        except (TypeError, ValueError):
             return 0.0
+
+    @staticmethod
+    def _unit_from_datanorm(value):
+        return {
+            "PCE": "pcs",
+            "MTR": "m",
+            "KGM": "kg",
+        }.get((value or "").strip().upper(), "other")
+
+    @staticmethod
+    def _record_counts(lines):
+        counter = Counter()
+        for line in lines:
+            if line:
+                counter[line[0]] += 1
+        return counter
 
     def action_import(self):
         self.ensure_one()
-        text = self._decode()
+        text, source_file_name = self._read_payload()
+        self.source_file_name = source_file_name
         lines = text.splitlines()
         if not lines:
             raise UserError("Die DATANORM-Datei ist leer.")
@@ -62,20 +131,43 @@ class SabDatanormImport(models.TransientModel):
             except ValueError:
                 source_date = False
 
+        record_counts = self._record_counts(lines)
+
         Manufacturer = self.env["sab.manufacturer"]
         Product = self.env["sab.product"]
         SupplierProduct = self.env["sab.supplier.product"]
 
-        manufacturer = Manufacturer.search([("name", "=ilike", manufacturer_name)], limit=1)
+        manufacturer = Manufacturer.search(
+            [("name", "=ilike", manufacturer_name)], limit=1
+        )
         if not manufacturer:
             manufacturer = Manufacturer.create({"name": manufacturer_name})
 
-        created_products = updated_products = 0
-        created_supplier = updated_supplier = skipped = errors = 0
+        # Maps vermeiden für die ABB-Gesamtdatei zehntausende identische
+        # Datenbank-Suchabfragen.
+        product_map = {
+            record.manufacturer_article_number: record
+            for record in Product.search([
+                ("manufacturer_id", "=", manufacturer.id),
+                ("manufacturer_article_number", "!=", False),
+            ])
+        }
+        supplier_map = {
+            record.supplier_article_number: record
+            for record in SupplierProduct.search([
+                ("supplier_id", "=", self.supplier_id.id),
+                ("supplier_article_number", "!=", False),
+            ])
+        }
+
+        created_products = updated_products = unchanged_products = 0
+        created_supplier = updated_supplier = unchanged_supplier = 0
+        skipped = errors = 0
 
         for raw_line in lines[1:]:
             if not raw_line.startswith("A;"):
                 continue
+
             try:
                 parts = raw_line.split(";")
                 if len(parts) < 21:
@@ -83,73 +175,101 @@ class SabDatanormImport(models.TransientModel):
                     continue
 
                 article_number = parts[2].strip()
-                short_text = " ".join(x.strip() for x in parts[3:5] if x.strip()).strip()
+                short_text = " ".join(
+                    value.strip() for value in parts[3:5] if value.strip()
+                ).strip()
                 unit = parts[5].strip()
                 price = self._parse_price(parts[8].strip())
                 type_name = parts[12].strip()
-                manufacturer_article = (parts[16].strip() or article_number)
+                manufacturer_article = parts[16].strip() or article_number
                 ean = parts[18].strip()
 
-                if not manufacturer_article:
+                if not manufacturer_article or not article_number:
                     skipped += 1
                     continue
 
-                product = Product.search([
-                    ("manufacturer_id", "=", manufacturer.id),
-                    ("manufacturer_article_number", "=", manufacturer_article),
-                ], limit=1)
-
+                product = product_map.get(manufacturer_article)
                 vals_product = {
                     "manufacturer_id": manufacturer.id,
                     "manufacturer_article_number": manufacturer_article,
                     "datanorm_number": article_number,
                     "name": short_text or type_name or manufacturer_article,
                 }
+
                 if product:
-                    # Technische Zeiten/Platzeinheiten bleiben unangetastet.
-                    product.write(vals_product)
-                    updated_products += 1
+                    changed = any(
+                        product[field_name] != value
+                        for field_name, value in vals_product.items()
+                    )
+                    if changed:
+                        # Technische Zeiten und Platzeinheiten werden hier
+                        # absichtlich nicht geschrieben.
+                        product.write(vals_product)
+                        updated_products += 1
+                    else:
+                        unchanged_products += 1
                 elif self.create_missing_products:
                     product = Product.create(vals_product)
+                    product_map[manufacturer_article] = product
                     created_products += 1
                 else:
                     skipped += 1
                     continue
 
-                supplier_product = SupplierProduct.search([
-                    ("supplier_id", "=", self.supplier_id.id),
-                    ("supplier_article_number", "=", article_number),
-                ], limit=1)
-
+                supplier_product = supplier_map.get(article_number)
                 vals_supplier = {
                     "supplier_id": self.supplier_id.id,
                     "product_id": product.id,
                     "supplier_article_number": article_number,
                     "datanorm_number": article_number,
                     "purchase_price": price,
-                    "unit": {"PCE": "pcs", "MTR": "m", "KGM": "kg"}.get(unit, "other"),
+                    "unit": self._unit_from_datanorm(unit),
                     "valid_from": source_date,
                     "datanorm_type_name": type_name,
                     "ean": ean,
                 }
+
                 if supplier_product:
-                    supplier_product.write(vals_supplier)
-                    updated_supplier += 1
+                    changed = any(
+                        supplier_product[field_name] != value
+                        for field_name, value in vals_supplier.items()
+                    )
+                    if changed:
+                        supplier_product.write(vals_supplier)
+                        updated_supplier += 1
+                    else:
+                        unchanged_supplier += 1
                 else:
-                    SupplierProduct.create(vals_supplier)
+                    supplier_product = SupplierProduct.create(vals_supplier)
+                    supplier_map[article_number] = supplier_product
                     created_supplier += 1
+
             except Exception:
                 errors += 1
 
+        # Z ist in DATANORM 5 kein Zusatztextsatz, sondern u. a. für
+        # Staffelpreise sowie Zu-/Abschläge (z. B. NE-Metall) vorgesehen.
+        # Die ABB-Datei enthält davon über eine Million Sätze. Sie werden
+        # bewusst erkannt, aber noch nicht preiswirksam importiert. Eine
+        # pauschale Übernahme würde Datenmenge und Kalkulation unnötig belasten.
+        z_count = record_counts.get("Z", 0)
+
         self.result_text = (
             f"DATANORM 5: {manufacturer_name}\n"
+            f"Quelle: {source_file_name}\n"
+            f"Datenstand: {source_date or '-'}\n"
+            f"A-Artikelsätze erkannt: {record_counts.get('A', 0)}\n"
+            f"Z-Preis-/Zuschlagssätze erkannt: {z_count} (noch nicht preiswirksam importiert)\n\n"
             f"Produkte neu: {created_products}\n"
             f"Produkte aktualisiert: {updated_products}\n"
+            f"Produkte unverändert: {unchanged_products}\n"
             f"Lieferantenartikel neu: {created_supplier}\n"
             f"Lieferantenartikel aktualisiert: {updated_supplier}\n"
+            f"Lieferantenartikel unverändert: {unchanged_supplier}\n"
             f"Übersprungen: {skipped}\n"
             f"Fehler: {errors}"
         )
+
         return {
             "type": "ir.actions.act_window",
             "res_model": self._name,
