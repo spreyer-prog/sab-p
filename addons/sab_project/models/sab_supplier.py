@@ -28,6 +28,17 @@ class SabSupplier(models.Model):
         index=True,
     )
 
+    datanorm_price_as_purchase_price = fields.Boolean(
+        string="DATANORM-Preis als EK übernehmen",
+        default=False,
+        help=(
+            "Nur aktivieren, wenn fachlich geklärt ist, dass der im DATANORM-"
+            "A-Satz gelieferte Preis für diesen Lieferanten als kalkulationswirksamer "
+            "Einkaufspreis verwendet werden darf. Der rohe DATANORM-Preis wird "
+            "unabhängig davon immer gespeichert."
+        ),
+    )
+
     website = fields.Char(
         string="Website",
     )
