@@ -182,4 +182,4 @@ class ResConfigSettings(models.TransientModel):
             }
             for label, value in values.items():
                 if value < 0:
-                    raise ValidationError(_("%s darf nicht negativ sein.", label))
+                    raise ValidationError(_("%s darf nicht negativ sein.") % label)
