@@ -53,8 +53,6 @@ class ResConfigSettings(models.TransientModel):
     # ---------------------------------------------------------
     # Kalkulationskonstanten
     # ---------------------------------------------------------
-    # Die Defaults bilden die im bereitgestellten Altkalkulationsbeispiel
-    # sichtbaren Grundwerte ab. Sie bleiben vollständig konfigurierbar.
 
     sab_material_factor = fields.Float(
         string="Materialfaktor",
@@ -111,9 +109,14 @@ class ResConfigSettings(models.TransientModel):
         default="1111",
         config_parameter="sab_project.calculation_change_code",
         help=(
-            "Einfacher bewusster Freigabecode für protokollierte Änderungen. "
-            "Dies ist kein Sicherheitskennwort, sondern eine Bedienbarriere gegen versehentliche Änderungen."
+            "Bedienfreigabe für Änderungen an zentralen Kalkulationsparametern. "
+            "Der Code ersetzt keine Benutzerberechtigungen."
         ),
+    )
+    sab_calculation_change_code_confirm = fields.Char(
+        string="Freigabecode bestätigen",
+        copy=False,
+        help="Bei Änderungen an Kalkulationsparametern den aktuell gültigen Freigabecode eingeben.",
     )
 
     @api.constrains(
@@ -183,3 +186,67 @@ class ResConfigSettings(models.TransientModel):
             for label, value in values.items():
                 if value < 0:
                     raise ValidationError(_("%s darf nicht negativ sein.") % label)
+
+    @api.model
+    def _sab_protected_calculation_parameters(self):
+        return {
+            "sab_material_factor": ("sab_project.material_factor", "Materialfaktor", "1.0"),
+            "sab_aux_material_factor": ("sab_project.aux_material_factor", "Hilfsmaterialfaktor", "1.15"),
+            "sab_hourly_rate": ("sab_project.hourly_rate", "Kalkulatorischer Stundenlohn", "80.0"),
+            "sab_time_factor": ("sab_project.time_factor", "Zeitfaktor", "1.25"),
+            "sab_difficulty_factor": ("sab_project.difficulty_factor", "Schwierigkeitsfaktor", "1.0"),
+            "sab_planning_surcharge_factor": ("sab_project.planning_surcharge_factor", "Planungszuschlag", "1.15"),
+            "sab_packaging_factor": ("sab_project.packaging_factor", "Verpackung / Transport Faktor", "1.03"),
+            "sab_skonto_factor": ("sab_project.skonto_factor", "Skontofaktor", "1.03"),
+            "sab_margin_factor": ("sab_project.margin_factor", "Margenfaktor", "1.25"),
+            "sab_rebate_factor": ("sab_project.rebate_factor", "Rabattfaktor", "1.125"),
+        }
+
+    def set_values(self):
+        self.ensure_one()
+        params = self.env["ir.config_parameter"].sudo()
+        protected = self._sab_protected_calculation_parameters()
+        changes = []
+
+        for field_name, (parameter_key, label, default) in protected.items():
+            old_raw = params.get_param(parameter_key, default)
+            old_value = float(old_raw or 0.0)
+            new_value = float(self[field_name] or 0.0)
+            if abs(old_value - new_value) > 1e-9:
+                changes.append((parameter_key, label, old_value, new_value))
+
+        old_code = params.get_param("sab_project.calculation_change_code", "1111") or "1111"
+        new_code = self.sab_calculation_change_code or ""
+        code_changed = new_code != old_code
+
+        if changes or code_changed:
+            if (self.sab_calculation_change_code_confirm or "") != old_code:
+                raise ValidationError(
+                    _("Der Freigabecode für die Änderung der Kalkulationsparameter ist nicht korrekt.")
+                )
+
+        result = super().set_values()
+
+        Log = self.env["sab.calculation.change.log"].sudo()
+        for parameter_key, label, old_value, new_value in changes:
+            Log.create({
+                "parameter_key": parameter_key,
+                "parameter_label": label,
+                "old_value": str(old_value),
+                "new_value": str(new_value),
+                "changed_by_id": self.env.user.id,
+                "note": "Änderung über SAB-P Einstellungen mit Freigabecode.",
+            })
+
+        if code_changed:
+            Log.create({
+                "parameter_key": "sab_project.calculation_change_code",
+                "parameter_label": "Freigabecode Kalkulationsänderung",
+                "old_value": "****",
+                "new_value": "****",
+                "changed_by_id": self.env.user.id,
+                "note": "Freigabecode wurde geändert; Codewerte werden nicht protokolliert.",
+            })
+
+        self.sab_calculation_change_code_confirm = False
+        return result
