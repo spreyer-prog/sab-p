@@ -9,6 +9,7 @@
                 <field name="supplier_number"/>
                 <field name="name"/>
                 <field name="datanorm_identifier"/>
+                <field name="datanorm_price_as_purchase_price" optional="show"/>
                 <field name="website"/>
                 <field name="active"/>
             </list>
@@ -26,8 +27,12 @@
                         <field name="supplier_number"/>
                         <field name="active"/>
                         <field name="name" colspan="4"/>
-                        <field name="datanorm_identifier"/>
                         <field name="website"/>
+                    </group>
+
+                    <group string="DATANORM" col="4">
+                        <field name="datanorm_identifier"/>
+                        <field name="datanorm_price_as_purchase_price"/>
                     </group>
 
                     <notebook>
