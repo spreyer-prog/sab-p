@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_datanorm_import_form" model="ir.ui.view">
+        <field name="name">sab.datanorm.import.form</field>
+        <field name="model">sab.datanorm.import</field>
+        <field name="arch" type="xml">
+            <form string="DATANORM 5 importieren">
+                <group>
+                    <field name="file_data" filename="file_name"/>
+                    <field name="file_name" invisible="1"/>
+                    <field name="supplier_id"/>
+                    <field name="create_missing_products"/>
+                </group>
+                <group string="Importprotokoll" invisible="not result_text">
+                    <field name="result_text" nolabel="1" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="DATANORM importieren" class="btn-primary"/>
+                    <button string="Schließen" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_datanorm_import" model="ir.actions.act_window">
+        <field name="name">DATANORM 5 importieren</field>
+        <field name="res_model">sab.datanorm.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="sab_datanorm_import_menu"
+              name="DATANORM importieren"
+              parent="sab_calculation_root_menu"
+              action="action_sab_datanorm_import"
+              sequence="60"/>
+</odoo>
