@@ -9,66 +9,39 @@
                 <app string="SAB-P Suite" name="sab_p_suite">
                     <block title="Projekt- und Angebotsnummern"
                            help="Format der automatisch vergebenen Nummern festlegen.">
-                        <setting string="Präfix"
-                                 help="Beispiel: A ergibt zusammen mit dem Jahr A26.">
+                        <setting string="Präfix" help="Beispiel: A ergibt zusammen mit dem Jahr A26.">
                             <field name="sab_project_prefix"/>
                         </setting>
-                        <setting string="Jahresformat">
-                            <field name="sab_year_digits"/>
-                        </setting>
-                        <setting string="Projekt-Trennzeichen">
-                            <field name="sab_project_separator"/>
-                        </setting>
-                        <setting string="Stellen der Projektnummer">
-                            <field name="sab_project_digits"/>
-                        </setting>
+                        <setting string="Jahresformat"><field name="sab_year_digits"/></setting>
+                        <setting string="Projekt-Trennzeichen"><field name="sab_project_separator"/></setting>
+                        <setting string="Stellen der Projektnummer"><field name="sab_project_digits"/></setting>
                         <setting string="Startnummer bei neuem Jahr"
                                  help="Eine Änderung setzt den bereits laufenden aktuellen Jahreszähler nicht zurück.">
                             <field name="sab_project_start_number"/>
                         </setting>
-                        <setting string="Angebots-Trennzeichen">
-                            <field name="sab_offer_separator"/>
-                        </setting>
-                        <setting string="Stellen der Angebotsnummer">
-                            <field name="sab_offer_digits"/>
-                        </setting>
+                        <setting string="Angebots-Trennzeichen"><field name="sab_offer_separator"/></setting>
+                        <setting string="Stellen der Angebotsnummer"><field name="sab_offer_digits"/></setting>
                     </block>
 
                     <block title="Kalkulationskonstanten"
-                           help="Vorgabewerte aus der SAB-P Altkalkulation. Die Werte werden bei neuen Angeboten als Kalkulationsstand übernommen und bleiben danach nachvollziehbar.">
-                        <setting string="Materialfaktor">
-                            <field name="sab_material_factor"/>
-                        </setting>
-                        <setting string="Hilfsmaterialfaktor">
-                            <field name="sab_aux_material_factor"/>
-                        </setting>
-                        <setting string="Kalkulatorischer Stundenlohn">
-                            <field name="sab_hourly_rate"/>
-                        </setting>
-                        <setting string="Zeitfaktor">
-                            <field name="sab_time_factor"/>
-                        </setting>
-                        <setting string="Schwierigkeitsfaktor">
-                            <field name="sab_difficulty_factor"/>
-                        </setting>
-                        <setting string="Planungszuschlag">
-                            <field name="sab_planning_surcharge_factor"/>
-                        </setting>
-                        <setting string="Verpackung / Transport">
-                            <field name="sab_packaging_factor"/>
-                        </setting>
-                        <setting string="Skonto">
-                            <field name="sab_skonto_factor"/>
-                        </setting>
-                        <setting string="Marge">
-                            <field name="sab_margin_factor"/>
-                        </setting>
-                        <setting string="Rabatt">
-                            <field name="sab_rebate_factor"/>
-                        </setting>
-                        <setting string="Freigabecode für Kalkulationsänderungen"
-                                 help="Bedienbarriere gegen versehentliche Änderungen; kein Sicherheitskennwort.">
+                           help="Änderungen werden mit Benutzer und Zeitpunkt protokolliert. Zum Speichern geänderter Kalkulationswerte ist der aktuell gültige Freigabecode erforderlich.">
+                        <setting string="Materialfaktor"><field name="sab_material_factor"/></setting>
+                        <setting string="Hilfsmaterialfaktor"><field name="sab_aux_material_factor"/></setting>
+                        <setting string="Kalkulatorischer Stundenlohn"><field name="sab_hourly_rate"/></setting>
+                        <setting string="Zeitfaktor"><field name="sab_time_factor"/></setting>
+                        <setting string="Schwierigkeitsfaktor"><field name="sab_difficulty_factor"/></setting>
+                        <setting string="Planungszuschlag"><field name="sab_planning_surcharge_factor"/></setting>
+                        <setting string="Verpackung / Transport"><field name="sab_packaging_factor"/></setting>
+                        <setting string="Skonto"><field name="sab_skonto_factor"/></setting>
+                        <setting string="Marge"><field name="sab_margin_factor"/></setting>
+                        <setting string="Rabatt"><field name="sab_rebate_factor"/></setting>
+                        <setting string="Freigabecode ändern"
+                                 help="Ändert den künftig gültigen Code. Auch dafür muss unten zuerst der bisherige Code bestätigt werden.">
                             <field name="sab_calculation_change_code" password="True"/>
+                        </setting>
+                        <setting string="Freigabecode bestätigen"
+                                 help="Nur erforderlich, wenn mindestens ein Kalkulationsparameter oder der Freigabecode geändert wurde.">
+                            <field name="sab_calculation_change_code_confirm" password="True"/>
                         </setting>
                     </block>
                 </app>
