@@ -13,5 +13,6 @@ access_sab_product_user,sab.product user,model_sab_product,base.group_user,1,1,1
 access_sab_supplier_user,sab.supplier user,model_sab_supplier,base.group_user,1,1,1,1
 access_sab_supplier_product_user,sab.supplier.product user,model_sab_supplier_product,base.group_user,1,1,1,1
 access_sab_datanorm_surcharge_user,sab.datanorm.surcharge user,model_sab_datanorm_surcharge,base.group_user,1,1,1,1
+access_sab_offer_calculation_line_user,sab.offer.calculation.line user,model_sab_offer_calculation_line,base.group_user,1,1,1,1
 access_sab_calculation_import,sab.calculation.import,model_sab_calculation_import,base.group_user,1,1,1,1
 access_sab_datanorm_import,sab.datanorm.import,model_sab_datanorm_import,base.group_user,1,1,1,1
