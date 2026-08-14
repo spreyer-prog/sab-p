@@ -28,7 +28,7 @@ class TestSabOfferCalculation(TransactionCase):
             "wiring_time_minutes": 3.0,
             "testing_time_minutes": 1.0,
         })
-        cls.env["sab.supplier.product"].create({
+        cls.supplier_product = cls.env["sab.supplier.product"].create({
             "supplier_id": cls.supplier.id,
             "product_id": cls.product.id,
             "supplier_article_number": "L-ANG-100",
@@ -57,19 +57,30 @@ class TestSabOfferCalculation(TransactionCase):
     def test_offer_calculation_totals(self):
         order = self._order()
 
-        # Kalkulationsartikel: 2 Produkte à 10 EUR = 20 EUR.
-        # Angebotsmenge 3 = 60 EUR Material-EK.
         self.assertAlmostEqual(order.sab_material_purchase_total, 60.0)
-
-        # Pro Kalkulationsartikel: 2 * (2 + 3 + 1) = 12 Minuten.
-        # Angebotsmenge 3 = 36 Minuten = 0,6 Stunden.
         self.assertAlmostEqual(order.sab_calculated_hours, 0.6)
         self.assertAlmostEqual(order.sab_mechanical_hours, 0.2)
         self.assertAlmostEqual(order.sab_wiring_hours, 0.3)
         self.assertAlmostEqual(order.sab_testing_hours, 0.1)
         self.assertAlmostEqual(order.sab_space_units, 3.0)
 
-    def test_revision_gets_new_offer_number_and_copies_calculation(self):
+    def test_offer_uses_snapshot_not_live_master_data(self):
+        order = self._order()
+        original_material = order.sab_material_purchase_total
+        original_hours = order.sab_calculated_hours
+
+        # Stammdaten ändern sich später z. B. durch DATANORM oder Zeitpflege.
+        self.supplier_product.purchase_price = 100.0
+        self.product.mechanical_time_minutes = 20.0
+
+        self.assertNotAlmostEqual(
+            self.calculation_item.purchase_total,
+            original_material / 3.0,
+        )
+        self.assertAlmostEqual(order.sab_material_purchase_total, original_material)
+        self.assertAlmostEqual(order.sab_calculated_hours, original_hours)
+
+    def test_revision_gets_new_offer_number_and_copies_snapshot(self):
         order = self._order()
         action = order.action_create_sab_revision()
         revision = self.env["sale.order"].browse(action["res_id"])
