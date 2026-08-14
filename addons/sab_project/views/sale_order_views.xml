@@ -47,7 +47,7 @@
                         </list>
                     </field>
 
-                    <group string="Kalkulationssummen" col="6">
+                    <group string="Technische und kaufmännische Summen" col="6">
                         <field name="sab_material_purchase_total" readonly="1"/>
                         <field name="sab_mechanical_hours" readonly="1"/>
                         <field name="sab_wiring_hours" readonly="1"/>
@@ -55,6 +55,42 @@
                         <field name="sab_calculated_hours" readonly="1"/>
                         <field name="sab_space_units" readonly="1"/>
                     </group>
+
+                    <group string="Kalkulationsfaktoren" col="5">
+                        <field name="sab_material_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_aux_material_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_hourly_rate"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_time_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_difficulty_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_planning_surcharge_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_packaging_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_skonto_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_margin_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_rebate_factor"
+                               readonly="state not in ('draft', 'sent')"/>
+                    </group>
+
+                    <group string="Kalkulatorischer Richtwert" col="5">
+                        <field name="sab_material_cost" readonly="1"/>
+                        <field name="sab_labor_cost" readonly="1"/>
+                        <field name="sab_direct_cost" readonly="1"/>
+                        <field name="sab_commercial_factor" readonly="1"/>
+                        <field name="sab_recommended_net_price" readonly="1"/>
+                    </group>
+
+                    <div class="alert alert-info" role="alert">
+                        Der kalkulatorische Netto-Richtwert dient dem Vergleich mit der SAB-P Kalkulation.
+                        Er überschreibt die Verkaufspreise der Odoo-Angebotspositionen nicht automatisch.
+                    </div>
                 </page>
             </xpath>
 
