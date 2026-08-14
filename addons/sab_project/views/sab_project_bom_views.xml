@@ -11,6 +11,7 @@
                 <field name="state"/>
                 <field name="generated_at"/>
                 <field name="generated_by_id"/>
+                <field name="production_order_count"/>
             </list>
         </field>
     </record>
@@ -26,6 +27,11 @@
                             string="Stückliste freigeben"
                             class="btn-primary"
                             invisible="state != 'draft'"/>
+                    <button name="action_create_production_order"
+                            type="object"
+                            string="Fertigungsauftrag erzeugen"
+                            class="btn-primary"
+                            invisible="state != 'released'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,released"/>
                 </header>
                 <sheet>
@@ -35,6 +41,7 @@
                         <field name="order_id" readonly="1"/>
                         <field name="generated_at" readonly="1"/>
                         <field name="generated_by_id" readonly="1"/>
+                        <field name="production_order_count" readonly="1"/>
                     </group>
 
                     <field name="line_ids" nolabel="1" readonly="state == 'released'">
