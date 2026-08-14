@@ -32,6 +32,17 @@ class SabSupplierProduct(models.Model):
     datanorm_type_name = fields.Char(string="Herstellertyp", index=True)
     ean = fields.Char(string="EAN", index=True)
 
+    datanorm_price = fields.Float(
+        string="DATANORM-Preis",
+        digits=(16, 4),
+        default=0.0,
+        help="Preiswert aus dem DATANORM-A-Satz, unabhängig von seiner kalkulatorischen Verwendung.",
+    )
+    datanorm_price_code = fields.Char(
+        string="DATANORM-Preiskennzeichen",
+        help="Preis-/Einheitenkennzeichen aus dem DATANORM-A-Satz, z. B. V2.",
+    )
+
     purchase_price = fields.Float(
         string="Einkaufspreis",
         digits=(16, 4),
