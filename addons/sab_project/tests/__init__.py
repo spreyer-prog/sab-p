@@ -3,3 +3,4 @@ from . import test_calculation_core
 from . import test_datanorm_import
 from . import test_offer_calculation
 from . import test_calculation_audit_and_bom
+from . import test_production_workflow
