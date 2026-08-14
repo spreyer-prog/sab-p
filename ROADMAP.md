@@ -1,17 +1,53 @@
-# SAB-P Suite – Roadmap
+# SAB-P Suite – Leitfaden / Entwicklungsstand
 
-## Abgeschlossen
-- Version 0.1: Projekt- und Angebotsnummern
-- Version 0.2: konfigurierbarer Nummernkreis
+## Festgelegte Kernarchitektur
 
-## In Arbeit
-- Version 0.3.3: Projektübersicht, Statusfarben und frei pflegbare Stammdaten
+Projekt → Angebot → Kalkulationsartikel → Kalkulationspositionen → SAB-Produkt → Lieferantenartikel → Lieferant/DATANORM
 
-## Geplant
-- Version 0.4: Kalkulation
-- Version 0.5: Angebotsdokumente und Versionierung
-- Version 0.6: Stücklisten
-- Version 0.7: Fertigung
-- Version 0.8: Lager
-- Version 0.9: Nachkalkulation
-- Version 1.0: produktive SAB-P Suite
+## Abgeschlossen / im aktuellen Stand vorhanden
+
+- Projekt- und Angebotsnummern sowie konfigurierbarer Nummernkreis
+- Projektübersicht und SAB-P Stammdaten
+- Kalkulationsartikel mit 20 Suchbegriffen
+- Excel-Import der Kalkulationshüllen
+- Faktoren aus der Altkalkulation: Mechanik %, Verdrahtung %, Prüfung %, Platzfaktor als Dezimalwert
+- Mehrere Produktpositionen je Kalkulationsartikel
+- SAB-Produkte mit absoluten Platzeinheiten und absoluten Mechanik-/Verdrahtungs-/Prüfzeiten
+- Lieferanten und Lieferantenartikel
+- Einkaufspreis + Rabatt → Netto-Einkaufspreis
+- Automatische Lieferantenartikelauswahl in der Kalkulationsposition: bevorzugte aktive Bezugsquelle, sonst günstigste aktive Bezugsquelle
+- Material-EK je Kalkulationsposition und Summen je Kalkulationsartikel
+- Technische Berechnung Produktwert × Menge × Kalkulationsfaktor
+
+## Nächster Block
+
+### DATANORM-Synchronisation
+
+Ziel:
+- DATANORM-/Lieferantendaten aktualisieren Lieferantenartikel, nicht die technische Kalkulationslogik.
+- Produktzeiten, Platzeinheiten, Kalkulationszuordnungen und Suchbegriffe dürfen durch Preisupdates nicht überschrieben werden.
+- Vorhandene Lieferantenartikel werden aktualisiert; neue Datensätze werden nachvollziehbar angelegt/zugeordnet.
+- Import muss wiederholbar und dublettensicher sein.
+
+Das konkrete DATANORM-Dateiformat und die Feldzuordnung werden nicht geraten. Die Synchronisation wird auf Basis einer realen SAB-P/Lieferanten-Datei finalisiert.
+
+## Danach gemäß Leitfaden
+
+1. Kalkulations-/Preisengine vollständig abschließen
+2. Angebotskalkulation und Angebotsversionierung
+3. Stücklisten
+4. Fertigung
+5. Einkauf
+6. Lager
+7. Dokumente
+8. Service / Zeiterfassung
+9. Nachkalkulation / Reporting
+10. Produktivsetzung SAB-P Suite
+
+## Entwicklungsregel
+
+- `main` bleibt stabil.
+- Gesamtentwicklung erfolgt zunächst auf `agent/leitfaden-gesamtstand`.
+- Keine automatische Sprachumstellung.
+- Keine neuen Architekturideen außerhalb des festgelegten Leitfadens ohne fachliche Freigabe.
+- Reale Odoo.sh-Buildfehler werden nach dem Gesamtstand nacheinander korrigiert.
