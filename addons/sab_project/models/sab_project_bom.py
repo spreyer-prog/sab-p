@@ -9,67 +9,29 @@ class SabProjectBom(models.Model):
     _rec_name = "name"
 
     name = fields.Char(string="Stückliste", required=True, readonly=True, copy=False)
-    order_id = fields.Many2one(
-        comodel_name="sale.order",
-        string="Auftrag / Angebot",
-        required=True,
-        ondelete="restrict",
-        index=True,
-    )
-    project_id = fields.Many2one(
-        comodel_name="project.project",
-        string="Projekt",
-        required=True,
-        ondelete="restrict",
-        index=True,
-    )
-    state = fields.Selection(
-        selection=[("draft", "Entwurf"), ("released", "Freigegeben")],
-        string="Status",
-        required=True,
-        default="draft",
-        index=True,
-    )
-    generated_at = fields.Datetime(
-        string="Erzeugt am",
-        required=True,
-        readonly=True,
-        default=fields.Datetime.now,
-    )
-    generated_by_id = fields.Many2one(
-        comodel_name="res.users",
-        string="Erzeugt von",
-        required=True,
-        readonly=True,
-        default=lambda self: self.env.user,
-    )
-    line_ids = fields.One2many(
-        comodel_name="sab.project.bom.line",
-        inverse_name="bom_id",
-        string="Stücklistenpositionen",
-        copy=True,
-    )
-    production_order_ids = fields.One2many(
-        comodel_name="sab.production.order",
-        inverse_name="bom_id",
-        string="Fertigungsaufträge",
-        copy=False,
-    )
-    production_order_count = fields.Integer(
-        string="Anzahl Fertigungsaufträge",
-        compute="_compute_production_order_count",
-    )
+    order_id = fields.Many2one(comodel_name="sale.order", string="Auftrag / Angebot", required=True, ondelete="restrict", index=True)
+    project_id = fields.Many2one(comodel_name="project.project", string="Projekt", required=True, ondelete="restrict", index=True)
+    state = fields.Selection(selection=[("draft", "Entwurf"), ("released", "Freigegeben")], string="Status", required=True, default="draft", index=True)
+    generated_at = fields.Datetime(string="Erzeugt am", required=True, readonly=True, default=fields.Datetime.now)
+    generated_by_id = fields.Many2one(comodel_name="res.users", string="Erzeugt von", required=True, readonly=True, default=lambda self: self.env.user)
+    line_ids = fields.One2many(comodel_name="sab.project.bom.line", inverse_name="bom_id", string="Stücklistenpositionen", copy=True)
+    production_order_ids = fields.One2many(comodel_name="sab.production.order", inverse_name="bom_id", string="Fertigungsaufträge", copy=False)
+    production_order_count = fields.Integer(string="Anzahl Fertigungsaufträge", compute="_compute_production_order_count")
+    purchase_requirement_ids = fields.One2many(comodel_name="sab.purchase.requirement", inverse_name="bom_id", string="Einkaufsbedarf", copy=False)
+    purchase_requirement_count = fields.Integer(string="Anzahl Einkaufsbedarfe", compute="_compute_purchase_requirement_count")
     note = fields.Text(string="Hinweise")
 
-    _order_unique = models.Constraint(
-        "UNIQUE(order_id)",
-        "Für diesen Auftrag existiert bereits eine SAB-P Stückliste.",
-    )
+    _order_unique = models.Constraint("UNIQUE(order_id)", "Für diesen Auftrag existiert bereits eine SAB-P Stückliste.")
 
     @api.depends("production_order_ids")
     def _compute_production_order_count(self):
         for record in self:
             record.production_order_count = len(record.production_order_ids)
+
+    @api.depends("purchase_requirement_ids")
+    def _compute_purchase_requirement_count(self):
+        for record in self:
+            record.purchase_requirement_count = len(record.purchase_requirement_ids)
 
     def action_release(self):
         for record in self:
@@ -81,23 +43,23 @@ class SabProjectBom(models.Model):
     def action_create_production_order(self):
         self.ensure_one()
         if self.state != "released":
-            raise ValidationError(
-                _("Ein Fertigungsauftrag kann erst aus einer freigegebenen Stückliste erzeugt werden.")
-            )
+            raise ValidationError(_("Ein Fertigungsauftrag kann erst aus einer freigegebenen Stückliste erzeugt werden."))
         production = self.production_order_ids[:1]
         if not production:
-            production = self.env["sab.production.order"].create({
-                "name": f"FA {self.order_id.sab_offer_reference or self.order_id.name}",
-                "bom_id": self.id,
-            })
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("SAB-P Fertigungsauftrag"),
-            "res_model": "sab.production.order",
-            "res_id": production.id,
-            "view_mode": "form",
-            "target": "current",
-        }
+            production = self.env["sab.production.order"].create({"name": f"FA {self.order_id.sab_offer_reference or self.order_id.name}", "bom_id": self.id})
+        return {"type": "ir.actions.act_window", "name": _("SAB-P Fertigungsauftrag"), "res_model": "sab.production.order", "res_id": production.id, "view_mode": "form", "target": "current"}
+
+    def action_generate_purchase_requirements(self):
+        self.ensure_one()
+        if self.state != "released":
+            raise ValidationError(_("Einkaufsbedarf kann erst aus einer freigegebenen Stückliste erzeugt werden."))
+        Requirement = self.env["sab.purchase.requirement"]
+        existing_line_ids = set(self.purchase_requirement_ids.mapped("bom_line_id").ids)
+        for line in self.line_ids.filtered(lambda item: not item.optional):
+            if line.id in existing_line_ids:
+                continue
+            Requirement.create({"bom_line_id": line.id})
+        return {"type": "ir.actions.act_window", "name": _("SAB-P Einkaufsbedarf"), "res_model": "sab.purchase.requirement", "view_mode": "list,form", "domain": [("bom_id", "=", self.id)], "target": "current"}
 
     def write(self, vals):
         if any(record.state == "released" for record in self):
@@ -117,48 +79,15 @@ class SabProjectBomLine(models.Model):
     _description = "SAB-P Projektstücklistenposition"
     _order = "sequence, id"
 
-    bom_id = fields.Many2one(
-        comodel_name="sab.project.bom",
-        string="Stückliste",
-        required=True,
-        ondelete="cascade",
-        index=True,
-    )
+    bom_id = fields.Many2one(comodel_name="sab.project.bom", string="Stückliste", required=True, ondelete="cascade", index=True)
     sequence = fields.Integer(string="Pos.", default=10, index=True)
-    product_id = fields.Many2one(
-        comodel_name="sab.product",
-        string="Produkt",
-        required=True,
-        ondelete="restrict",
-        index=True,
-    )
+    product_id = fields.Many2one(comodel_name="sab.product", string="Produkt", required=True, ondelete="restrict", index=True)
     quantity = fields.Float(string="Menge", required=True, digits=(16, 3), default=1.0)
-    unit = fields.Selection(
-        selection=[
-            ("pcs", "Stück"),
-            ("m", "Meter"),
-            ("kg", "kg"),
-            ("min", "Minute"),
-            ("h", "Stunde"),
-            ("flat", "Pauschal"),
-        ],
-        string="Einheit",
-        required=True,
-        default="pcs",
-    )
+    unit = fields.Selection(selection=[("pcs", "Stück"), ("m", "Meter"), ("kg", "kg"), ("min", "Minute"), ("h", "Stunde"), ("flat", "Pauschal")], string="Einheit", required=True, default="pcs")
     optional = fields.Boolean(string="Optional", default=False)
-    supplier_product_id = fields.Many2one(
-        comodel_name="sab.supplier.product",
-        string="Lieferantenartikel",
-        ondelete="set null",
-    )
+    supplier_product_id = fields.Many2one(comodel_name="sab.supplier.product", string="Lieferantenartikel", ondelete="set null")
     unit_purchase_price = fields.Float(string="EK je Einheit", digits=(16, 4), readonly=True)
-    purchase_total = fields.Float(
-        string="EK gesamt",
-        digits=(16, 4),
-        compute="_compute_purchase_total",
-        store=True,
-    )
+    purchase_total = fields.Float(string="EK gesamt", digits=(16, 4), compute="_compute_purchase_total", store=True)
     note = fields.Char(string="Bemerkung")
 
     @api.depends("quantity", "unit_purchase_price")
