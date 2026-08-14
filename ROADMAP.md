@@ -4,7 +4,7 @@
 
 Projekt → Angebot → Kalkulationsartikel → Kalkulationspositionen → SAB-Produkt → Lieferantenartikel → Lieferant/DATANORM
 
-## Abgeschlossen / im aktuellen Stand vorhanden
+## Im Entwicklungsbranch umgesetzt
 
 - Projekt- und Angebotsnummern sowie konfigurierbarer Nummernkreis
 - Projektübersicht und SAB-P Stammdaten
@@ -15,34 +15,51 @@ Projekt → Angebot → Kalkulationsartikel → Kalkulationspositionen → SAB-P
 - SAB-Produkte mit absoluten Platzeinheiten und absoluten Mechanik-/Verdrahtungs-/Prüfzeiten
 - Lieferanten und Lieferantenartikel
 - Einkaufspreis + Rabatt → Netto-Einkaufspreis
-- Automatische Lieferantenartikelauswahl in der Kalkulationsposition: bevorzugte aktive Bezugsquelle, sonst günstigste aktive Bezugsquelle
+- Automatische Lieferantenartikelauswahl: bevorzugte aktive Bezugsquelle, sonst günstigste aktive Bezugsquelle
 - Material-EK je Kalkulationsposition und Summen je Kalkulationsartikel
 - Technische Berechnung Produktwert × Menge × Kalkulationsfaktor
 
-## Nächster Block
+### DATANORM 5
 
-### DATANORM-Synchronisation
+- Import auf Basis der realen ABB-DATANORM-5-Datei, Kennung 050
+- Direkter Upload einer .001-Datei oder eines Lieferanten-ZIP
+- ABB-ZIP: KurztextinklTyp-Variante wird automatisch bevorzugt
+- Herstellerartikelnummer, Kurztext, Typ, EAN, Einheit und DATANORM-Preis werden übernommen
+- Produktzeiten, Platzeinheiten, Kalkulationszuordnungen und Suchbegriffe werden durch DATANORM nicht überschrieben
+- Vorhandene Artikel werden wiederholbar aktualisiert, fehlende Artikel können angelegt werden
+- DATANORM-Preis und Preiskennzeichen werden getrennt vom kalkulationswirksamen EK gespeichert
+- Übernahme des DATANORM-Preises in den EK muss je Lieferant ausdrücklich freigegeben werden
+- Z-Sätze werden erkannt und gezählt, aber noch nicht pauschal preiswirksam verarbeitet
+- Datenmodell für gezielte spätere Zu-/Abschläge ist vorbereitet
 
-Ziel:
-- DATANORM-/Lieferantendaten aktualisieren Lieferantenartikel, nicht die technische Kalkulationslogik.
-- Produktzeiten, Platzeinheiten, Kalkulationszuordnungen und Suchbegriffe dürfen durch Preisupdates nicht überschrieben werden.
-- Vorhandene Lieferantenartikel werden aktualisiert; neue Datensätze werden nachvollziehbar angelegt/zugeordnet.
-- Import muss wiederholbar und dublettensicher sein.
+### Angebotskalkulation / Versionierung
 
-Das konkrete DATANORM-Dateiformat und die Feldzuordnung werden nicht geraten. Die Synchronisation wird auf Basis einer realen SAB-P/Lieferanten-Datei finalisiert.
+- Ein Angebot kann mehrere SAB-P Kalkulationsartikel mit eigener Menge enthalten
+- Material-EK, Mechanik-, Verdrahtungs-, Prüfzeiten, Gesamtstunden und Platzeinheiten werden automatisch summiert
+- Beim Einfügen eines Kalkulationsartikels wird ein Snapshot der aktuellen Kalkulationswerte im Angebot gespeichert
+- Spätere DATANORM-, Preis- oder Zeitänderungen verändern bestehende Angebotsstände nicht rückwirkend
+- Bestätigte Angebote sperren die SAB-P Kalkulationspositionen
+- Angebotsrevision erzeugt eine neue Angebotsnummer und kopiert den historischen Kalkulationsstand
+- Kalkulationskonstanten aus der Altkalkulation sind zentral konfigurierbar
+- Material- und Lohnkosten sowie ein transparenter kalkulatorischer Netto-Richtwert werden berechnet
+- Der Richtwert überschreibt Odoo-Verkaufspreise bewusst nicht automatisch
+
+## Noch fachlich/technisch abzugleichen
+
+- Bedeutung und Preiswirkung der ABB/DATANORM-Z-Sätze für die tatsächlich benötigten NE-Metall-/Staffelpreisfälle
+- Exakte Vergleichsrechnung Alt-Excel gegen neue Odoo-Kalkulation, insbesondere Planungszuschlag und Sonderfaktoren
+- Änderungsprotokoll/Freigabecode für bewusste manuelle Kalkulationsänderungen gemäß Fragenkatalog
 
 ## Danach gemäß Leitfaden
 
-1. Kalkulations-/Preisengine vollständig abschließen
-2. Angebotskalkulation und Angebotsversionierung
-3. Stücklisten
-4. Fertigung
-5. Einkauf
-6. Lager
-7. Dokumente
-8. Service / Zeiterfassung
-9. Nachkalkulation / Reporting
-10. Produktivsetzung SAB-P Suite
+1. Stücklisten / Auftragsübergabe aus freigegebenem Angebot
+2. Fertigung
+3. Einkauf
+4. Lager
+5. Dokumente
+6. Service / Zeiterfassung
+7. Nachkalkulation / Reporting
+8. Produktivsetzung SAB-P Suite
 
 ## Entwicklungsregel
 
