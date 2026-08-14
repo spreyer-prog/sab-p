@@ -64,8 +64,7 @@ class SaleOrder(models.Model):
         store=True,
     )
 
-    # Snapshot der Kalkulationskonstanten. Änderungen an den globalen
-    # Einstellungen verändern damit keine bestehenden Angebote.
+    # Snapshot der Kalkulationskonstanten.
     sab_material_factor = fields.Float(
         string="Materialfaktor",
         default=lambda self: self._sab_float_param("sab_project.material_factor", 1.0),
@@ -176,6 +175,18 @@ class SaleOrder(models.Model):
         compute="_compute_sab_revision_count",
     )
 
+    # ---------------------------------------------------------
+    # Übergabe in Stückliste
+    # ---------------------------------------------------------
+
+    sab_bom_ids = fields.One2many(
+        comodel_name="sab.project.bom",
+        inverse_name="order_id",
+        string="SAB-P Stücklisten",
+        copy=False,
+    )
+    sab_bom_count = fields.Integer(string="Stücklisten", compute="_compute_sab_bom_count")
+
     _sab_offer_reference_unique = models.Constraint(
         "UNIQUE(sab_offer_reference)",
         "Die Angebotsnummer ist bereits vergeben.",
@@ -213,15 +224,9 @@ class SaleOrder(models.Model):
             total_minutes = sum(lines.mapped("total_time_minutes"))
 
             order.sab_material_purchase_total = material_purchase_total
-            order.sab_mechanical_hours = sum(
-                lines.mapped("mechanical_time_minutes")
-            ) / 60.0
-            order.sab_wiring_hours = sum(
-                lines.mapped("wiring_time_minutes")
-            ) / 60.0
-            order.sab_testing_hours = sum(
-                lines.mapped("testing_time_minutes")
-            ) / 60.0
+            order.sab_mechanical_hours = sum(lines.mapped("mechanical_time_minutes")) / 60.0
+            order.sab_wiring_hours = sum(lines.mapped("wiring_time_minutes")) / 60.0
+            order.sab_testing_hours = sum(lines.mapped("testing_time_minutes")) / 60.0
             order.sab_calculated_hours = total_minutes / 60.0
             order.sab_space_units = sum(lines.mapped("space_units"))
 
@@ -243,14 +248,17 @@ class SaleOrder(models.Model):
                 * (order.sab_margin_factor or 0.0)
                 * (order.sab_rebate_factor or 0.0)
             )
-            order.sab_recommended_net_price = (
-                order.sab_direct_cost * order.sab_commercial_factor
-            )
+            order.sab_recommended_net_price = order.sab_direct_cost * order.sab_commercial_factor
 
     @api.depends("sab_revision_ids")
     def _compute_sab_revision_count(self):
         for order in self:
             order.sab_revision_count = len(order.sab_revision_ids)
+
+    @api.depends("sab_bom_ids")
+    def _compute_sab_bom_count(self):
+        for order in self:
+            order.sab_bom_count = len(order.sab_bom_ids)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -292,15 +300,14 @@ class SaleOrder(models.Model):
         if "name" in vals:
             for order in self:
                 if order.sab_offer_reference and vals.get("name") != order.name:
-                    raise ValidationError(
-                        _("Eine vergebene Angebotsnummer darf nicht geändert werden.")
-                    )
+                    raise ValidationError(_("Eine vergebene Angebotsnummer darf nicht geändert werden."))
         return super().write(vals)
 
     def copy_data(self, default=None):
         result = super().copy_data(default)
         for values in result:
             values.pop("sab_offer_reference", None)
+            values.pop("sab_bom_ids", None)
             if values.get("sab_project_id"):
                 values["name"] = "/"
         return result
@@ -325,6 +332,86 @@ class SaleOrder(models.Model):
             "target": "current",
         }
 
+    def action_generate_sab_bom(self):
+        self.ensure_one()
+        if self.state not in ("sale", "done"):
+            raise ValidationError(
+                _("Die SAB-P Stückliste kann erst aus einem bestätigten Auftrag erzeugt werden.")
+            )
+        if not self.sab_project_id:
+            raise ValidationError(_("Dem Auftrag ist kein SAB-P Projekt zugeordnet."))
+        if not self.sab_calculation_line_ids:
+            raise ValidationError(_("Der Auftrag enthält keine SAB-P Kalkulationspositionen."))
+
+        bom = self.sab_bom_ids[:1]
+        if bom and bom.state == "released":
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "sab.project.bom",
+                "res_id": bom.id,
+                "view_mode": "form",
+                "target": "current",
+            }
+
+        aggregated = {}
+        for calc_line in self.sab_calculation_line_ids:
+            for component in calc_line.component_snapshot_ids:
+                # Optionale Positionen bleiben in der Stückliste sichtbar, werden
+                # aber als optional gekennzeichnet und nicht stillschweigend verworfen.
+                qty = component.quantity_per_unit or 0.0
+                if not component.fixed_quantity:
+                    qty *= calc_line.quantity or 0.0
+                key = (
+                    component.product_id.id,
+                    component.unit,
+                    component.optional,
+                    component.supplier_product_id.id or False,
+                    component.unit_purchase_price or 0.0,
+                )
+                if key not in aggregated:
+                    aggregated[key] = {
+                        "product_id": component.product_id.id,
+                        "quantity": 0.0,
+                        "unit": component.unit,
+                        "optional": component.optional,
+                        "supplier_product_id": component.supplier_product_id.id or False,
+                        "unit_purchase_price": component.unit_purchase_price or 0.0,
+                        "note": component.note,
+                    }
+                aggregated[key]["quantity"] += qty
+
+        if not aggregated:
+            raise ValidationError(_("Aus den Kalkulations-Snapshots konnten keine Stücklistenpositionen erzeugt werden."))
+
+        line_commands = []
+        for sequence, values in enumerate(aggregated.values(), start=1):
+            values = dict(values)
+            values["sequence"] = sequence * 10
+            line_commands.append((0, 0, values))
+
+        if bom:
+            bom.write({
+                "generated_at": fields.Datetime.now(),
+                "generated_by_id": self.env.user.id,
+                "line_ids": [(5, 0, 0)] + line_commands,
+            })
+        else:
+            bom = self.env["sab.project.bom"].create({
+                "name": f"STL {self.sab_offer_reference or self.name}",
+                "order_id": self.id,
+                "project_id": self.sab_project_id.id,
+                "line_ids": line_commands,
+            })
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("SAB-P Stückliste"),
+            "res_model": "sab.project.bom",
+            "res_id": bom.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
     def action_confirm(self):
         result = super().action_confirm()
         projects = self.mapped("sab_project_id")
@@ -335,9 +422,7 @@ class SaleOrder(models.Model):
     def action_cancel(self):
         result = super().action_cancel()
         for project in self.mapped("sab_project_id"):
-            active_orders = project.sab_sale_order_ids.filtered(
-                lambda order: order.state not in ("cancel",)
-            )
+            active_orders = project.sab_sale_order_ids.filtered(lambda order: order.state not in ("cancel",))
             if not active_orders and project.sab_status == "won":
                 project.sab_status = "offer_open"
         return result
