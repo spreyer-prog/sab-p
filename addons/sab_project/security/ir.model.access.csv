@@ -19,6 +19,7 @@ access_sab_project_bom_user,sab.project.bom user,model_sab_project_bom,base.grou
 access_sab_project_bom_line_user,sab.project.bom.line user,model_sab_project_bom_line,base.group_user,1,1,1,1
 access_sab_production_order_user,sab.production.order user,model_sab_production_order,base.group_user,1,1,1,1
 access_sab_production_step_user,sab.production.step user,model_sab_production_step,base.group_user,1,1,1,1
+access_sab_purchase_requirement_user,sab.purchase.requirement user,model_sab_purchase_requirement,base.group_user,1,1,1,1
 access_sab_calculation_change_log_user,sab.calculation.change.log user,model_sab_calculation_change_log,base.group_user,1,0,0,0
 access_sab_calculation_import,sab.calculation.import,model_sab_calculation_import,base.group_user,1,1,1,1
 access_sab_datanorm_import,sab.datanorm.import,model_sab_datanorm_import,base.group_user,1,1,1,1
