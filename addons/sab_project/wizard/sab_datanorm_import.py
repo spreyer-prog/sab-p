@@ -27,8 +27,6 @@ class SabDatanormImport(models.TransientModel):
     )
     result_text = fields.Text(string="Importprotokoll", readonly=True)
 
-    # ABB liefert die Gesamtdatei komprimiert wesentlich kleiner aus. Der
-    # Import akzeptiert daher sowohl eine rohe DATANORM-.001 als auch das ZIP.
     MAX_UNCOMPRESSED_BYTES = 150 * 1024 * 1024
 
     @staticmethod
@@ -45,14 +43,12 @@ class SabDatanormImport(models.TransientModel):
         candidates = [
             info
             for info in archive.infolist()
-            if not info.is_dir() and info.filename.lower().endswith((".001", ".dat", ".txt"))
+            if not info.is_dir()
+            and info.filename.lower().endswith((".001", ".dat", ".txt"))
         ]
         if not candidates:
             raise UserError("Das ZIP enthält keine unterstützte DATANORM-Datei.")
 
-        # ABB liefert im Testpaket zusätzlich eine Variante, bei der der Typ
-        # bereits in den Kurztext integriert ist. Diese ist für die spätere
-        # Artikelsuche in SAB-P die bessere Quelle.
         candidates.sort(
             key=lambda info: (
                 "kurztextinkltyp" not in info.filename.lower(),
@@ -89,8 +85,6 @@ class SabDatanormImport(models.TransientModel):
         if not value:
             return 0.0
         try:
-            # In der vorliegenden ABB-DATANORM-5-Datei steht der A-Satz-Preis
-            # als Ganzzahl mit zwei impliziten Nachkommastellen.
             return int(value) / 100.0
         except (TypeError, ValueError):
             return 0.0
@@ -110,6 +104,18 @@ class SabDatanormImport(models.TransientModel):
             if line:
                 counter[line[0]] += 1
         return counter
+
+    @staticmethod
+    def _needs_write(record, vals):
+        """Vergleicht ORM-Werte typgerecht und verhindert unnötige Writes."""
+        for field_name, value in vals.items():
+            field = record._fields[field_name]
+            current = record[field_name]
+            if field.type == "many2one":
+                current = current.id or False
+            if current != value:
+                return True
+        return False
 
     def action_import(self):
         self.ensure_one()
@@ -143,8 +149,6 @@ class SabDatanormImport(models.TransientModel):
         if not manufacturer:
             manufacturer = Manufacturer.create({"name": manufacturer_name})
 
-        # Maps vermeiden für die ABB-Gesamtdatei zehntausende identische
-        # Datenbank-Suchabfragen.
         product_map = {
             record.manufacturer_article_number: record
             for record in Product.search([
@@ -179,7 +183,8 @@ class SabDatanormImport(models.TransientModel):
                     value.strip() for value in parts[3:5] if value.strip()
                 ).strip()
                 unit = parts[5].strip()
-                price = self._parse_price(parts[8].strip())
+                datanorm_price = self._parse_price(parts[8].strip())
+                datanorm_price_code = parts[9].strip()
                 type_name = parts[12].strip()
                 manufacturer_article = parts[16].strip() or article_number
                 ean = parts[18].strip()
@@ -197,13 +202,8 @@ class SabDatanormImport(models.TransientModel):
                 }
 
                 if product:
-                    changed = any(
-                        product[field_name] != value
-                        for field_name, value in vals_product.items()
-                    )
-                    if changed:
-                        # Technische Zeiten und Platzeinheiten werden hier
-                        # absichtlich nicht geschrieben.
+                    if self._needs_write(product, vals_product):
+                        # Technische Zeiten und Platzeinheiten bleiben unangetastet.
                         product.write(vals_product)
                         updated_products += 1
                     else:
@@ -222,19 +222,21 @@ class SabDatanormImport(models.TransientModel):
                     "product_id": product.id,
                     "supplier_article_number": article_number,
                     "datanorm_number": article_number,
-                    "purchase_price": price,
+                    "datanorm_price": datanorm_price,
+                    "datanorm_price_code": datanorm_price_code,
                     "unit": self._unit_from_datanorm(unit),
                     "valid_from": source_date,
                     "datanorm_type_name": type_name,
                     "ean": ean,
                 }
 
+                # Nur nach ausdrücklicher Lieferantenfreigabe beeinflusst der
+                # DATANORM-Preis den kalkulationswirksamen Einkaufspreis.
+                if self.supplier_id.datanorm_price_as_purchase_price:
+                    vals_supplier["purchase_price"] = datanorm_price
+
                 if supplier_product:
-                    changed = any(
-                        supplier_product[field_name] != value
-                        for field_name, value in vals_supplier.items()
-                    )
-                    if changed:
+                    if self._needs_write(supplier_product, vals_supplier):
                         supplier_product.write(vals_supplier)
                         updated_supplier += 1
                     else:
@@ -247,17 +249,18 @@ class SabDatanormImport(models.TransientModel):
             except Exception:
                 errors += 1
 
-        # Z ist in DATANORM 5 kein Zusatztextsatz, sondern u. a. für
-        # Staffelpreise sowie Zu-/Abschläge (z. B. NE-Metall) vorgesehen.
-        # Die ABB-Datei enthält davon über eine Million Sätze. Sie werden
-        # bewusst erkannt, aber noch nicht preiswirksam importiert. Eine
-        # pauschale Übernahme würde Datenmenge und Kalkulation unnötig belasten.
         z_count = record_counts.get("Z", 0)
+        price_mode = (
+            "JA – DATANORM-Preis wird als EK übernommen"
+            if self.supplier_id.datanorm_price_as_purchase_price
+            else "NEIN – DATANORM-Preis wird nur als Quelldatum gespeichert"
+        )
 
         self.result_text = (
             f"DATANORM 5: {manufacturer_name}\n"
             f"Quelle: {source_file_name}\n"
             f"Datenstand: {source_date or '-'}\n"
+            f"Preisübernahme in EK: {price_mode}\n"
             f"A-Artikelsätze erkannt: {record_counts.get('A', 0)}\n"
             f"Z-Preis-/Zuschlagssätze erkannt: {z_count} (noch nicht preiswirksam importiert)\n\n"
             f"Produkte neu: {created_products}\n"
