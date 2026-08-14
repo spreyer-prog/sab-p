@@ -6,10 +6,6 @@ class SabCalculationItemLine(models.Model):
     _description = "SAB-P Kalkulationszeile"
     _order = "sequence, id"
 
-    # ---------------------------------------------------------
-    # Zugehöriger Kalkulationsartikel
-    # ---------------------------------------------------------
-
     calculation_item_id = fields.Many2one(
         comodel_name="sab.calculation.item",
         string="Kalkulationsartikel",
@@ -17,17 +13,7 @@ class SabCalculationItemLine(models.Model):
         ondelete="cascade",
         index=True,
     )
-
-    # ---------------------------------------------------------
-    # Position / Struktur
-    # ---------------------------------------------------------
-
-    sequence = fields.Integer(
-        string="Pos.",
-        default=10,
-        index=True,
-    )
-
+    sequence = fields.Integer(string="Pos.", default=10, index=True)
     position_type = fields.Selection(
         selection=[
             ("normal", "Normal"),
@@ -41,18 +27,12 @@ class SabCalculationItemLine(models.Model):
         default="normal",
         index=True,
     )
-
-    # ---------------------------------------------------------
-    # Produkt
-    # ---------------------------------------------------------
-
     product_id = fields.Many2one(
         comodel_name="sab.product",
         string="Standardprodukt",
         ondelete="restrict",
         index=True,
     )
-
     alternative_product_ids = fields.Many2many(
         comodel_name="sab.product",
         relation="sab_calculation_line_alternative_product_rel",
@@ -60,18 +40,12 @@ class SabCalculationItemLine(models.Model):
         column2="product_id",
         string="Alternativprodukte",
     )
-
-    # ---------------------------------------------------------
-    # Menge
-    # ---------------------------------------------------------
-
     quantity = fields.Float(
         string="Menge",
         required=True,
         default=1.0,
         digits=(16, 3),
     )
-
     unit = fields.Selection(
         selection=[
             ("pcs", "Stück"),
@@ -85,56 +59,64 @@ class SabCalculationItemLine(models.Model):
         required=True,
         default="pcs",
     )
-
     fixed_quantity = fields.Boolean(
         string="Festmenge",
         default=False,
         help=(
-            "Bei aktivierter Festmenge wird die Menge später "
-            "nicht mit einer übergeordneten Projekt- oder "
-            "Anlagenmenge vervielfacht."
+            "Bei aktivierter Festmenge wird die Menge später nicht mit einer "
+            "übergeordneten Projekt- oder Anlagenmenge vervielfacht."
         ),
     )
+    optional = fields.Boolean(string="Optional", default=False)
+    note = fields.Char(string="Bemerkung")
 
-    # ---------------------------------------------------------
-    # Optionen
-    # ---------------------------------------------------------
-
-    optional = fields.Boolean(
-        string="Optional",
-        default=False,
+    selected_supplier_product_id = fields.Many2one(
+        comodel_name="sab.supplier.product",
+        string="Verwendeter Lieferantenartikel",
+        compute="_compute_purchase_values",
+    )
+    unit_purchase_price = fields.Float(
+        string="EK je Einheit",
+        digits=(16, 4),
+        compute="_compute_purchase_values",
+    )
+    purchase_total = fields.Float(
+        string="EK gesamt",
+        digits=(16, 4),
+        compute="_compute_purchase_values",
     )
 
-    note = fields.Char(
-        string="Bemerkung",
+    @api.depends(
+        "product_id",
+        "quantity",
+        "product_id.supplier_product_ids.active",
+        "product_id.supplier_product_ids.preferred",
+        "product_id.supplier_product_ids.net_purchase_price",
     )
-
-    # ---------------------------------------------------------
-    # Automatische Positionsnummer
-    # ---------------------------------------------------------
+    def _compute_purchase_values(self):
+        for line in self:
+            selected = False
+            price = 0.0
+            if line.product_id:
+                candidates = line.product_id.supplier_product_ids.filtered("active")
+                preferred = candidates.filtered("preferred")
+                pool = preferred or candidates
+                if pool:
+                    selected = min(pool, key=lambda item: (item.net_purchase_price, item.id))
+                    price = selected.net_purchase_price
+            line.selected_supplier_product_id = selected
+            line.unit_purchase_price = price
+            line.purchase_total = price * (line.quantity or 0.0)
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             calculation_item_id = vals.get("calculation_item_id")
-
             if calculation_item_id and not vals.get("sequence"):
                 last_line = self.search(
-                    [
-                        (
-                            "calculation_item_id",
-                            "=",
-                            calculation_item_id,
-                        )
-                    ],
+                    [("calculation_item_id", "=", calculation_item_id)],
                     order="sequence desc, id desc",
                     limit=1,
                 )
-
-                vals["sequence"] = (
-                    last_line.sequence + 10
-                    if last_line
-                    else 10
-                )
-
+                vals["sequence"] = last_line.sequence + 10 if last_line else 10
         return super().create(vals_list)
