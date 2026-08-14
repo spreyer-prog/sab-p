@@ -33,6 +33,44 @@
                             <field name="sab_offer_digits"/>
                         </setting>
                     </block>
+
+                    <block title="Kalkulationskonstanten"
+                           help="Vorgabewerte aus der SAB-P Altkalkulation. Die Werte werden bei neuen Angeboten als Kalkulationsstand übernommen und bleiben danach nachvollziehbar.">
+                        <setting string="Materialfaktor">
+                            <field name="sab_material_factor"/>
+                        </setting>
+                        <setting string="Hilfsmaterialfaktor">
+                            <field name="sab_aux_material_factor"/>
+                        </setting>
+                        <setting string="Kalkulatorischer Stundenlohn">
+                            <field name="sab_hourly_rate"/>
+                        </setting>
+                        <setting string="Zeitfaktor">
+                            <field name="sab_time_factor"/>
+                        </setting>
+                        <setting string="Schwierigkeitsfaktor">
+                            <field name="sab_difficulty_factor"/>
+                        </setting>
+                        <setting string="Planungszuschlag">
+                            <field name="sab_planning_surcharge_factor"/>
+                        </setting>
+                        <setting string="Verpackung / Transport">
+                            <field name="sab_packaging_factor"/>
+                        </setting>
+                        <setting string="Skonto">
+                            <field name="sab_skonto_factor"/>
+                        </setting>
+                        <setting string="Marge">
+                            <field name="sab_margin_factor"/>
+                        </setting>
+                        <setting string="Rabatt">
+                            <field name="sab_rebate_factor"/>
+                        </setting>
+                        <setting string="Freigabecode für Kalkulationsänderungen"
+                                 help="Bedienbarriere gegen versehentliche Änderungen; kein Sicherheitskennwort.">
+                            <field name="sab_calculation_change_code" password="True"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
