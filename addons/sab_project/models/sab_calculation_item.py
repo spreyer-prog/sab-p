@@ -7,15 +7,7 @@ class SabCalculationItem(models.Model):
     _order = "calculation_number, name"
     _rec_name = "name"
 
-    # ---------------------------------------------------------
-    # Grunddaten
-    # ---------------------------------------------------------
-
-    active = fields.Boolean(
-        string="Aktiv",
-        default=True,
-    )
-
+    active = fields.Boolean(string="Aktiv", default=True)
     calculation_number = fields.Char(
         string="Kalkulationsnummer",
         required=True,
@@ -24,18 +16,8 @@ class SabCalculationItem(models.Model):
         default="Neu",
         index=True,
     )
-
-    name = fields.Char(
-        string="Bezeichnung",
-        required=True,
-        index=True,
-    )
-
-    quotation_text = fields.Text(
-        string="Angebotstext",
-        required=True,
-    )
-
+    name = fields.Char(string="Bezeichnung", required=True, index=True)
+    quotation_text = fields.Text(string="Angebotstext", required=True)
     status = fields.Selection(
         selection=[
             ("active", "Aktiv"),
@@ -49,20 +31,11 @@ class SabCalculationItem(models.Model):
         index=True,
     )
 
-    # ---------------------------------------------------------
-    # Artikelzuordnung
-    # ---------------------------------------------------------
-
-    # ---------------------------------------------------------
-    # Artikelzuordnung
-    # ---------------------------------------------------------
-
     standard_product_id = fields.Many2one(
         comodel_name="sab.product",
         string="Standardprodukt",
         ondelete="restrict",
     )
-
     alternative_product_ids = fields.Many2many(
         comodel_name="sab.product",
         relation="sab_calculation_item_alternative_product_rel",
@@ -71,50 +44,14 @@ class SabCalculationItem(models.Model):
         string="Alternativprodukte",
     )
 
-    # ---------------------------------------------------------
-    # Kalkulationshülle
-    # ---------------------------------------------------------
-
-    # ---------------------------------------------------------
-    # Kalkulationshülle
-    #
-    # D / E / F aus der alten Excel-Datei sind Prozentanteile.
-    # AQ ist der Platzfaktor als Dezimalwert.
-    # ---------------------------------------------------------
-
-    mechanical_factor = fields.Float(
-        string="Mechanikfaktor (%)",
-        default=100.0,
-    )
-
-    wiring_factor = fields.Float(
-        string="Verdrahtungsfaktor (%)",
-        default=100.0,
-    )
-
-    testing_factor = fields.Float(
-        string="Prüffaktor (%)",
-        default=100.0,
-    )
-
+    mechanical_factor = fields.Float(string="Mechanikfaktor (%)", default=100.0)
+    wiring_factor = fields.Float(string="Verdrahtungsfaktor (%)", default=100.0)
+    testing_factor = fields.Float(string="Prüffaktor (%)", default=100.0)
     space_factor = fields.Float(
         string="Platzfaktor",
         default=1.0,
-        help=(
-            "Dezimaler Platzfaktor. "
-            "Beispiel: 0,50 = halber Wert, "
-            "1,00 = voller Wert, "
-            "1,25 = Faktor 1,25."
-        ),
+        help="Dezimaler Platzfaktor, z. B. 0,50 / 1,00 / 1,25.",
     )
-
-    # ---------------------------------------------------------
-    # Technische Importinformationen
-    # ---------------------------------------------------------
-
-    # ---------------------------------------------------------
-    # Produktpositionen / Stückliste
-    # ---------------------------------------------------------
 
     product_line_ids = fields.One2many(
         comodel_name="sab.calculation.item.line",
@@ -122,72 +59,53 @@ class SabCalculationItem(models.Model):
         string="Kalkulationszeilen",
         copy=True,
     )
-    
-    
+
     legacy_import_key = fields.Char(
-        string="Import-Schlüssel",
-        copy=False,
-        index=True,
-        readonly=True,
+        string="Import-Schlüssel", copy=False, index=True, readonly=True
     )
-
     legacy_source_sheet = fields.Char(
-        string="Import-Tabellenblatt",
-        copy=False,
-        readonly=True,
+        string="Import-Tabellenblatt", copy=False, readonly=True
     )
-
     legacy_source_row = fields.Integer(
-        string="Import-Zeile",
-        copy=False,
-        readonly=True,
+        string="Import-Zeile", copy=False, readonly=True
     )
-
-    # ---------------------------------------------------------
-    # Alte absolute Werte
-    #
-    # Bleiben vorerst zur Kompatibilität erhalten.
-    # Der neue Kalkulationsimport befüllt diese Felder NICHT.
-    # ---------------------------------------------------------
 
     space_units = fields.Float(
         string="Berechnete Platzeinheiten",
         compute="_compute_product_values",
         store=True,
     )
-
     mechanical_time_minutes = fields.Float(
         string="Berechnete Mechanikzeit in Minuten",
         compute="_compute_product_values",
         store=True,
     )
-
     wiring_time_minutes = fields.Float(
         string="Berechnete Verdrahtungszeit in Minuten",
         compute="_compute_product_values",
         store=True,
     )
-
     testing_time_minutes = fields.Float(
         string="Berechnete Prüfzeit in Minuten",
         compute="_compute_product_values",
         store=True,
     )
-
-    additional_time_minutes = fields.Float(
-        string="Zusatzzeit in Minuten",
-        default=0.0,
-    )
-
+    additional_time_minutes = fields.Float(string="Zusatzzeit in Minuten", default=0.0)
     total_time_minutes = fields.Float(
         string="Gesamtzeit in Minuten",
         compute="_compute_total_time_minutes",
         store=True,
     )
-
-    # ---------------------------------------------------------
-    # 20 Suchbegriffe
-    # ---------------------------------------------------------
+    purchase_total = fields.Float(
+        string="Material-EK gesamt",
+        digits=(16, 4),
+        compute="_compute_purchase_totals",
+    )
+    optional_purchase_total = fields.Float(
+        string="Optionaler Material-EK",
+        digits=(16, 4),
+        compute="_compute_purchase_totals",
+    )
 
     search_term_01 = fields.Char(string="Suchbegriff 1", index=True)
     search_term_02 = fields.Char(string="Suchbegriff 2", index=True)
@@ -209,14 +127,8 @@ class SabCalculationItem(models.Model):
     search_term_18 = fields.Char(string="Suchbegriff 18", index=True)
     search_term_19 = fields.Char(string="Suchbegriff 19", index=True)
     search_term_20 = fields.Char(string="Suchbegriff 20", index=True)
+    notes = fields.Text(string="Interne Hinweise")
 
-    notes = fields.Text(
-        string="Interne Hinweise",
-    )
-
-    # ---------------------------------------------------------
-    # Berechnungen
-    # ---------------------------------------------------------
     @api.depends(
         "product_line_ids.quantity",
         "product_line_ids.product_id.space_units",
@@ -230,58 +142,21 @@ class SabCalculationItem(models.Model):
     )
     def _compute_product_values(self):
         for record in self:
-
-            base_space_units = 0.0
-            base_mechanical_minutes = 0.0
-            base_wiring_minutes = 0.0
-            base_testing_minutes = 0.0
-
+            base_space = base_mechanical = base_wiring = base_testing = 0.0
             for line in record.product_line_ids:
                 if not line.product_id:
                     continue
-
                 quantity = line.quantity or 0.0
                 product = line.product_id
+                base_space += product.space_units * quantity
+                base_mechanical += product.mechanical_time_minutes * quantity
+                base_wiring += product.wiring_time_minutes * quantity
+                base_testing += product.testing_time_minutes * quantity
+            record.space_units = base_space * record.space_factor
+            record.mechanical_time_minutes = base_mechanical * record.mechanical_factor / 100.0
+            record.wiring_time_minutes = base_wiring * record.wiring_factor / 100.0
+            record.testing_time_minutes = base_testing * record.testing_factor / 100.0
 
-                base_space_units += (
-                    product.space_units * quantity
-                )
-
-                base_mechanical_minutes += (
-                    product.mechanical_time_minutes * quantity
-                )
-
-                base_wiring_minutes += (
-                    product.wiring_time_minutes * quantity
-                )
-
-                base_testing_minutes += (
-                    product.testing_time_minutes * quantity
-                )
-
-            record.space_units = (
-                base_space_units
-                * record.space_factor
-            )
-
-            record.mechanical_time_minutes = (
-                base_mechanical_minutes
-                * record.mechanical_factor
-                / 100.0
-            )
-
-            record.wiring_time_minutes = (
-                base_wiring_minutes
-                * record.wiring_factor
-                / 100.0
-            )
-
-            record.testing_time_minutes = (
-                base_testing_minutes
-                * record.testing_factor
-                / 100.0
-            )
-            
     @api.depends(
         "mechanical_time_minutes",
         "wiring_time_minutes",
@@ -297,62 +172,43 @@ class SabCalculationItem(models.Model):
                 + record.additional_time_minutes
             )
 
-    # ---------------------------------------------------------
-    # Automatische Kalkulationsnummer
-    # ---------------------------------------------------------
+    @api.depends("product_line_ids.purchase_total", "product_line_ids.optional")
+    def _compute_purchase_totals(self):
+        for record in self:
+            normal_total = 0.0
+            optional_total = 0.0
+            for line in record.product_line_ids:
+                if line.optional:
+                    optional_total += line.purchase_total
+                else:
+                    normal_total += line.purchase_total
+            record.purchase_total = normal_total
+            record.optional_purchase_total = optional_total
 
     @api.model_create_multi
     def create(self, vals_list):
         sequence = self.env["ir.sequence"]
-
         for vals in vals_list:
-            if (
-                not vals.get("calculation_number")
-                or vals["calculation_number"] == "Neu"
-            ):
-                vals["calculation_number"] = (
-                    sequence.next_by_code("sab.calculation.item")
-                    or "Neu"
-                )
-
+            if not vals.get("calculation_number") or vals["calculation_number"] == "Neu":
+                vals["calculation_number"] = sequence.next_by_code("sab.calculation.item") or "Neu"
         return super().create(vals_list)
-
-    # ---------------------------------------------------------
-    # Status
-    # ---------------------------------------------------------
 
     def write(self, vals):
         if "status" in vals:
             vals["active"] = vals["status"] != "archived"
-
         return super().write(vals)
 
     def action_set_active(self):
-        self.write({
-            "status": "active",
-            "active": True,
-        })
+        self.write({"status": "active", "active": True})
 
     def action_set_inactive(self):
-        self.write({
-            "status": "inactive",
-            "active": True,
-        })
+        self.write({"status": "inactive", "active": True})
 
     def action_set_phase_out(self):
-        self.write({
-            "status": "phase_out",
-            "active": True,
-        })
+        self.write({"status": "phase_out", "active": True})
 
     def action_archive_item(self):
-        self.write({
-            "status": "archived",
-            "active": False,
-        })
+        self.write({"status": "archived", "active": False})
 
     def action_restore_item(self):
-        self.write({
-            "status": "active",
-            "active": True,
-        })
+        self.write({"status": "active", "active": True})
