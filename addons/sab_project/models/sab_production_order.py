@@ -24,10 +24,7 @@ class SabProductionOrder(models.Model):
     bom_id = fields.Many2one(comodel_name="sab.project.bom", string="Stückliste", required=True, ondelete="restrict", index=True, tracking=True)
     order_id = fields.Many2one(related="bom_id.order_id", string="Kundenauftrag", store=True, readonly=True)
     project_id = fields.Many2one(related="bom_id.project_id", string="Projekt", store=True, readonly=True)
-    state = fields.Selection(
-        selection=[("planned", "Geplant"), ("in_progress", "In Fertigung"), ("done", "Fertig"), ("cancel", "Storniert")],
-        string="Status", required=True, default="planned", tracking=True, index=True,
-    )
+    state = fields.Selection(selection=[("planned", "Geplant"), ("in_progress", "In Fertigung"), ("done", "Fertig"), ("cancel", "Storniert")], string="Status", required=True, default="planned", tracking=True, index=True)
     responsible_user_id = fields.Many2one(comodel_name="res.users", string="Verantwortlich", default=lambda self: self.env.user, tracking=True)
     planned_start = fields.Datetime(string="Geplanter Start", tracking=True)
     started_at = fields.Datetime(string="Tatsächlicher Start", readonly=True, tracking=True)
@@ -49,8 +46,7 @@ class SabProductionOrder(models.Model):
             if not steps:
                 record.progress_percent = 0.0
                 continue
-            done = len(steps.filtered(lambda step: step.state == "done"))
-            record.progress_percent = done * 100.0 / len(steps)
+            record.progress_percent = len(steps.filtered(lambda step: step.state == "done")) * 100.0 / len(steps)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -84,8 +80,7 @@ class SabProductionOrder(models.Model):
                 continue
             if record.state == "cancel":
                 raise ValidationError(_("Ein stornierter Fertigungsauftrag kann nicht abgeschlossen werden."))
-            unfinished = record.step_ids.filtered(lambda step: step.state not in ("done", "skipped"))
-            if unfinished:
+            if record.step_ids.filtered(lambda step: step.state not in ("done", "skipped")):
                 raise ValidationError(_("Der Fertigungsauftrag kann erst abgeschlossen werden, wenn alle Fertigungsschritte erledigt oder übersprungen sind."))
             record.write({"state": "done", "started_at": record.started_at or fields.Datetime.now(), "finished_at": fields.Datetime.now()})
         return True
@@ -109,10 +104,7 @@ class SabProductionStep(models.Model):
     production_state = fields.Selection(related="production_order_id.state", string="Fertigungsstatus", readonly=True)
     sequence = fields.Integer(string="Reihenfolge", default=10, index=True)
     name = fields.Char(string="Abteilung / Tätigkeit", required=True)
-    state = fields.Selection(
-        selection=[("pending", "Offen"), ("in_progress", "In Arbeit"), ("done", "Fertig"), ("skipped", "Entfällt")],
-        string="Status", required=True, default="pending", index=True,
-    )
+    state = fields.Selection(selection=[("pending", "Offen"), ("in_progress", "In Arbeit"), ("done", "Fertig"), ("skipped", "Entfällt")], string="Status", required=True, default="pending", index=True)
     responsible_user_id = fields.Many2one(comodel_name="res.users", string="Mitarbeiter", index=True)
     started_at = fields.Datetime(string="Begonnen am", readonly=True)
     finished_at = fields.Datetime(string="Fertig am", readonly=True)
@@ -160,11 +152,12 @@ class SabProductionStep(models.Model):
         self._ensure_user_can_work()
         if not self.responsible_user_id:
             self.responsible_user_id = self.env.user
+        employee_view = self.env.ref("sab_project.view_sab_employee_time_entry_form")
         return {
             "type": "ir.actions.act_window",
             "name": _("Arbeitszeit erfassen"),
             "res_model": "sab.time.entry",
-            "view_mode": "form",
+            "views": [(employee_view.id, "form")],
             "target": "current",
             "context": {
                 "default_production_step_id": self.id,
