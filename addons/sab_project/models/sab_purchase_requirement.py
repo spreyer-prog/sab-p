@@ -21,17 +21,8 @@ class SabPurchaseRequirement(models.Model):
     supplier_id = fields.Many2one(related="supplier_product_id.supplier_id", string="Lieferant", store=True, readonly=True)
     unit_purchase_price = fields.Float(string="EK je Einheit", digits=(16, 4), readonly=True)
     purchase_total = fields.Float(string="EK gesamt", digits=(16, 4), compute="_compute_purchase_total", store=True)
-    stock_movement_id = fields.Many2one(
-        comodel_name="sab.stock.movement",
-        string="Lagerzugang",
-        readonly=True,
-        copy=False,
-        ondelete="restrict",
-    )
-    state = fields.Selection(
-        selection=[("open", "Offen"), ("ordered", "Bestellt"), ("received", "Geliefert"), ("cancel", "Storniert")],
-        string="Status", required=True, default="open", index=True,
-    )
+    stock_movement_id = fields.Many2one(comodel_name="sab.stock.movement", string="Lagerzugang", readonly=True, copy=False, ondelete="restrict")
+    state = fields.Selection(selection=[("open", "Offen"), ("ordered", "Bestellt"), ("received", "Geliefert"), ("cancel", "Storniert")], string="Status", required=True, default="open", index=True)
     note = fields.Char(string="Bemerkung")
 
     _bom_line_unique = models.Constraint("UNIQUE(bom_line_id)", "Für diese Stücklistenposition existiert bereits ein Einkaufsbedarf.")
@@ -81,6 +72,7 @@ class SabPurchaseRequirement(models.Model):
                     "movement_type": "receipt",
                     "quantity": record.quantity,
                     "unit": record.unit,
+                    "unit_cost": record.unit_purchase_price,
                     "project_id": record.project_id.id or False,
                     "purchase_requirement_id": record.id,
                     "note": record.name,
