@@ -6,3 +6,4 @@ from . import test_calculation_audit_and_bom
 from . import test_production_workflow
 from . import test_purchase_requirement
 from . import test_stock_workflow
+from . import test_project_document
