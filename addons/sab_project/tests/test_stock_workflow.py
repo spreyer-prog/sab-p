@@ -16,6 +16,7 @@ class TestSabStockWorkflow(TransactionCase):
             "movement_type": "receipt",
             "quantity": 10.0,
             "unit": "pcs",
+            "unit_cost": 5.0,
         })
         self.assertAlmostEqual(self.product.stock_on_hand, 10.0)
         self.assertAlmostEqual(self.product.stock_available, 10.0)
@@ -46,14 +47,24 @@ class TestSabStockWorkflow(TransactionCase):
         self.assertAlmostEqual(self.product.stock_reserved, 3.0)
         self.assertAlmostEqual(self.product.stock_available, 7.0)
 
-        Movement.create({
+        issue = Movement.create({
             "product_id": self.product.id,
             "movement_type": "issue",
             "quantity": 2.0,
             "unit": "pcs",
         })
+        self.assertAlmostEqual(issue.unit_cost, 5.0)
+        self.assertAlmostEqual(issue.total_value, 10.0)
         self.assertAlmostEqual(self.product.stock_on_hand, 8.0)
         self.assertAlmostEqual(self.product.stock_available, 5.0)
+
+    def test_weighted_stock_value_is_snapshotted_on_issue(self):
+        Movement = self.env["sab.stock.movement"]
+        Movement.create({"product_id": self.product.id, "movement_type": "receipt", "quantity": 10.0, "unit": "pcs", "unit_cost": 5.0})
+        Movement.create({"product_id": self.product.id, "movement_type": "receipt", "quantity": 10.0, "unit": "pcs", "unit_cost": 7.0})
+        issue = Movement.create({"product_id": self.product.id, "movement_type": "issue", "quantity": 5.0, "unit": "pcs"})
+        self.assertAlmostEqual(issue.unit_cost, 6.0)
+        self.assertAlmostEqual(issue.total_value, 30.0)
 
     def test_purchase_receipt_posts_stock_once(self):
         partner = self.env["res.partner"].create({"name": "Kunde Lager"})
@@ -67,6 +78,7 @@ class TestSabStockWorkflow(TransactionCase):
                 "product_id": self.product.id,
                 "quantity": 3.0,
                 "unit": "pcs",
+                "unit_purchase_price": 12.5,
             })],
         })
         bom.action_release()
@@ -76,6 +88,8 @@ class TestSabStockWorkflow(TransactionCase):
 
         self.assertEqual(requirement.state, "received")
         self.assertTrue(requirement.stock_movement_id)
+        self.assertAlmostEqual(requirement.stock_movement_id.unit_cost, 12.5)
+        self.assertAlmostEqual(requirement.stock_movement_id.total_value, 37.5)
         self.assertAlmostEqual(self.product.stock_on_hand, 3.0)
 
         movement_id = requirement.stock_movement_id.id
