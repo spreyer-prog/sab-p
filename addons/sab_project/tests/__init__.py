@@ -8,3 +8,4 @@ from . import test_purchase_requirement
 from . import test_stock_workflow
 from . import test_project_document
 from . import test_time_entry
+from . import test_employee_feedback
