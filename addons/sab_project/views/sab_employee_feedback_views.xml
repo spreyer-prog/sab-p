@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_employee_feedback_list" model="ir.ui.view">
+        <field name="name">sab.employee.feedback.list</field>
+        <field name="model">sab.employee.feedback</field>
+        <field name="arch" type="xml">
+            <list string="Rückmeldungen">
+                <field name="create_date"/>
+                <field name="project_id"/>
+                <field name="production_step_id"/>
+                <field name="feedback_type"/>
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_employee_feedback_form" model="ir.ui.view">
+        <field name="name">sab.employee.feedback.form</field>
+        <field name="model">sab.employee.feedback</field>
+        <field name="arch" type="xml">
+            <form string="Mitarbeiter-Rückmeldung">
+                <header>
+                    <button name="action_mark_processed" type="object" string="Als bearbeitet markieren" class="btn-primary" invisible="state != 'open'" groups="project.group_project_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,processed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="production_step_id" readonly="1"/>
+                        <field name="project_id" readonly="1"/>
+                        <field name="user_id" readonly="1"/>
+                        <field name="feedback_type"/>
+                        <field name="name"/>
+                    </group>
+                    <group string="Rückmeldung">
+                        <field name="description"/>
+                        <field name="photo_filename" invisible="feedback_type != 'photo'"/>
+                        <field name="photo" filename="photo_filename" widget="image" invisible="feedback_type != 'photo'"/>
+                    </group>
+                    <group string="Materialbedarf" invisible="feedback_type != 'material'">
+                        <field name="material_product_id"/>
+                        <field name="material_quantity"/>
+                        <field name="material_unit"/>
+                    </group>
+                    <group string="Bearbeitung" invisible="state != 'processed'">
+                        <field name="processed_by_id" readonly="1"/>
+                        <field name="processed_at" readonly="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_employee_feedback" model="ir.actions.act_window">
+        <field name="name">Rückmeldungen</field>
+        <field name="res_model">sab.employee.feedback</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_sab_employee_my_feedback" model="ir.actions.act_window">
+        <field name="name">Meine Rückmeldungen</field>
+        <field name="res_model">sab.employee.feedback</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+    </record>
+
+    <menuitem id="sab_employee_my_feedback_menu" name="Meine Rückmeldungen" parent="sab_employee_mobile_root_menu" action="action_sab_employee_my_feedback" sequence="40"/>
+    <menuitem id="sab_employee_feedback_admin_menu" name="Rückmeldungen" parent="sab_calculation_root_menu" action="action_sab_employee_feedback" sequence="170" groups="project.group_project_manager"/>
+</odoo>
