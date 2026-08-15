@@ -149,33 +149,38 @@ class SabProductionStep(models.Model):
         self._ensure_editable()
         self._ensure_user_can_work()
         for record in self:
-            record.write({
-                "state": "in_progress",
-                "responsible_user_id": record.responsible_user_id.id or self.env.user.id,
-                "started_at": record.started_at or fields.Datetime.now(),
-            })
+            record.write({"state": "in_progress", "responsible_user_id": record.responsible_user_id.id or self.env.user.id, "started_at": record.started_at or fields.Datetime.now()})
             if record.production_order_id.state == "planned":
-                record.production_order_id.write({
-                    "state": "in_progress",
-                    "started_at": record.production_order_id.started_at or fields.Datetime.now(),
-                })
+                record.production_order_id.write({"state": "in_progress", "started_at": record.production_order_id.started_at or fields.Datetime.now()})
         return True
+
+    def action_open_time_entry(self):
+        self.ensure_one()
+        self._ensure_editable()
+        self._ensure_user_can_work()
+        if not self.responsible_user_id:
+            self.responsible_user_id = self.env.user
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Arbeitszeit erfassen"),
+            "res_model": "sab.time.entry",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_production_step_id": self.id,
+                "default_project_id": self.project_id.id,
+                "default_user_id": self.env.user.id,
+                "default_name": self.name,
+            },
+        }
 
     def action_done(self):
         self._ensure_editable()
         self._ensure_user_can_work()
         for record in self:
-            record.write({
-                "state": "done",
-                "responsible_user_id": record.responsible_user_id.id or self.env.user.id,
-                "started_at": record.started_at or fields.Datetime.now(),
-                "finished_at": fields.Datetime.now(),
-            })
+            record.write({"state": "done", "responsible_user_id": record.responsible_user_id.id or self.env.user.id, "started_at": record.started_at or fields.Datetime.now(), "finished_at": fields.Datetime.now()})
             if record.production_order_id.state == "planned":
-                record.production_order_id.write({
-                    "state": "in_progress",
-                    "started_at": record.production_order_id.started_at or fields.Datetime.now(),
-                })
+                record.production_order_id.write({"state": "in_progress", "started_at": record.production_order_id.started_at or fields.Datetime.now()})
         return True
 
     def action_skip(self):
