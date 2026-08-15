@@ -29,6 +29,19 @@ class TestSabProductionWorkflow(TransactionCase):
                 "bom_id": self.bom.id,
             })
 
+    def test_employee_can_claim_unassigned_step(self):
+        self.bom.state = "released"
+        production = self.env["sab.production.order"].create({
+            "name": "FA Mitarbeiter",
+            "bom_id": self.bom.id,
+        })
+        step = production.step_ids.sorted("sequence")[:1]
+        self.assertFalse(step.responsible_user_id)
+        step.action_claim()
+        self.assertEqual(step.responsible_user_id, self.env.user)
+        self.assertEqual(step.project_id, self.project)
+        self.assertEqual(step.production_state, "planned")
+
     def test_production_start_and_finish_timestamps(self):
         self.bom.state = "released"
         production = self.env["sab.production.order"].create({
