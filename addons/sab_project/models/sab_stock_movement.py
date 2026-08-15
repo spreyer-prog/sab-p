@@ -88,9 +88,10 @@ class SabStockMovement(models.Model):
                 existing = Movement.search([("product_id", "=", product.id)])
                 on_hand = sum(existing.filtered(lambda m: m.movement_type == "receipt").mapped("quantity")) - sum(existing.filtered(lambda m: m.movement_type == "issue").mapped("quantity"))
                 reserved = sum(existing.filtered(lambda m: m.movement_type == "reserve").mapped("quantity")) - sum(existing.filtered(lambda m: m.movement_type == "release").mapped("quantity"))
-                if movement_type == "issue" and qty > on_hand:
-                    raise ValidationError(_("Die Entnahme überschreitet den vorhandenen Lagerbestand."))
-                if movement_type == "reserve" and qty > (on_hand - reserved):
+                available = on_hand - reserved
+                if movement_type == "issue" and qty > available:
+                    raise ValidationError(_("Die Entnahme überschreitet den frei verfügbaren Lagerbestand. Reservierte Mengen müssen zuerst freigegeben werden."))
+                if movement_type == "reserve" and qty > available:
                     raise ValidationError(_("Die Reservierung überschreitet den verfügbaren Lagerbestand."))
                 if movement_type == "release" and qty > reserved:
                     raise ValidationError(_("Es kann nicht mehr Reservierung freigegeben werden als vorhanden ist."))
