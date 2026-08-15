@@ -24,6 +24,7 @@
                                 <button name="action_claim" type="object" string="Übernehmen" class="btn btn-secondary" invisible="responsible_user_id or state not in ('pending', 'in_progress')"/>
                                 <button name="action_start" type="object" string="Start" class="btn btn-primary" invisible="state != 'pending'"/>
                                 <button name="action_open_time_entry" type="object" string="Zeit erfassen" class="btn btn-outline-primary" invisible="state not in ('pending', 'in_progress')"/>
+                                <button name="action_open_feedback" type="object" string="Rückmeldung" class="btn btn-outline-secondary" invisible="state not in ('pending', 'in_progress')"/>
                                 <button name="action_done" type="object" string="Fertig" class="btn btn-success" invisible="state not in ('pending', 'in_progress')"/>
                             </div>
                         </div>
@@ -42,6 +43,7 @@
                     <button name="action_claim" type="object" string="Arbeit übernehmen" class="btn-secondary" invisible="responsible_user_id or state not in ('pending', 'in_progress')"/>
                     <button name="action_start" type="object" string="Start" class="btn-primary" invisible="state != 'pending'"/>
                     <button name="action_open_time_entry" type="object" string="Zeit erfassen" class="btn-secondary" invisible="state not in ('pending', 'in_progress')"/>
+                    <button name="action_open_feedback" type="object" string="Rückmeldung / Foto / Material" class="btn-secondary" invisible="state not in ('pending', 'in_progress')"/>
                     <button name="action_done" type="object" string="Fertig melden" class="btn-primary" invisible="state not in ('pending', 'in_progress')"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,done"/>
                 </header>
@@ -55,7 +57,7 @@
                         <field name="started_at" readonly="1"/>
                         <field name="finished_at" readonly="1"/>
                     </group>
-                    <group string="Rückmeldung">
+                    <group string="Kurznotiz">
                         <field name="note" placeholder="Bemerkung zum Arbeitsschritt ..."/>
                     </group>
                 </sheet>
