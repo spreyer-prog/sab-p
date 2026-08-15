@@ -3,17 +3,19 @@
     <record id="sab_project_overview_list" model="ir.ui.view">
         <field name="name">project.project.list.sab.overview</field>
         <field name="model">project.project</field>
+        <field name="priority">100</field>
         <field name="arch" type="xml">
             <list string="SAB-P Projektübersicht"
                   decoration-success="sab_status == 'won'"
                   decoration-danger="sab_status == 'lost'"
                   decoration-info="sab_status == 'customer_awarded'"
                   default_order="sab_project_reference desc">
-                <field name="sab_project_reference" string="Projekt-Nr."/>
-                <field name="sab_request_date" string="Datum"/>
+                <field name="sab_project_reference" string="Projekt-Nr." optional="show"/>
+                <field name="sab_request_date" string="Datum" optional="show"/>
                 <field name="sab_status"
                        string="Status"
                        widget="badge"
+                       optional="show"
                        decoration-success="sab_status == 'won'"
                        decoration-danger="sab_status == 'lost'"
                        decoration-info="sab_status == 'customer_awarded'"/>
@@ -24,10 +26,10 @@
                 <field name="partner_id" string="Kunde"/>
                 <field name="user_id" string="Bearbeiter"/>
                 <field name="sab_follow_up_date" string="Wiedervorlage" optional="hide"/>
-                <field name="sab_offer_amount" string="Gesamtangebot" sum="Gesamt"/>
-                <field name="sab_inquiry_type_id" string="Art der Anfrage"/>
-                <field name="sab_technology_id" string="Technik"/>
-                <field name="sab_service_type_id" string="Leistungsart"/>
+                <field name="sab_offer_amount" string="Gesamtangebot" sum="Gesamt" optional="show"/>
+                <field name="sab_inquiry_type_id" string="Art der Anfrage" optional="show"/>
+                <field name="sab_technology_id" string="Technik" optional="show"/>
+                <field name="sab_service_type_id" string="Leistungsart" optional="show"/>
             </list>
         </field>
     </record>
