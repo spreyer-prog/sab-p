@@ -21,3 +21,4 @@ from . import sab_project_document
 from . import sab_time_entry
 from . import sab_project_controlling
 from . import sab_employee_feedback
+from . import sab_customer_status
