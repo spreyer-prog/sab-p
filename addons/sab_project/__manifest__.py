@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Projekt- und Angebotsnummern",
     "summary": "Projektübersicht, Kalkulationsdatenbank, DATANORM, Angebotskalkulation, Stücklisten, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung und Nachkalkulation für SAB-P",
-    "version": "19.0.5.8.0",
+    "version": "19.0.5.9.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
