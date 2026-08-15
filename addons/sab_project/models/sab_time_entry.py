@@ -60,3 +60,27 @@ class SabTimeEntry(models.Model):
                 raise ValidationError(_("Eine Zeitbuchung benötigt eine Dauer größer 0 Stunden."))
             if record.hourly_cost < 0:
                 raise ValidationError(_("Der Kostensatz darf nicht negativ sein."))
+
+    @api.model
+    def _sync_project_hours(self, projects):
+        for project in projects.exists():
+            entries = self.search([("project_id", "=", project.id)])
+            project.sab_required_hours = sum(entries.mapped("hours"))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        self._sync_project_hours(records.mapped("project_id"))
+        return records
+
+    def write(self, vals):
+        projects_before = self.mapped("project_id")
+        result = super().write(vals)
+        self._sync_project_hours(projects_before | self.mapped("project_id"))
+        return result
+
+    def unlink(self):
+        projects = self.mapped("project_id")
+        result = super().unlink()
+        self._sync_project_hours(projects)
+        return result
