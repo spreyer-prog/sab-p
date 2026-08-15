@@ -167,6 +167,26 @@ class SabProductionStep(models.Model):
             },
         }
 
+    def action_open_feedback(self):
+        self.ensure_one()
+        self._ensure_editable()
+        self._ensure_user_can_work()
+        if not self.responsible_user_id:
+            self.responsible_user_id = self.env.user
+        employee_view = self.env.ref("sab_project.view_sab_employee_feedback_form")
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Rückmeldung erfassen"),
+            "res_model": "sab.employee.feedback",
+            "views": [(employee_view.id, "form")],
+            "target": "current",
+            "context": {
+                "default_production_step_id": self.id,
+                "default_user_id": self.env.user.id,
+                "default_name": self.name,
+            },
+        }
+
     def action_done(self):
         self._ensure_editable()
         self._ensure_user_can_work()
