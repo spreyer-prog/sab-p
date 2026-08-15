@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_customer_status_list" model="ir.ui.view">
+        <field name="name">sab.customer.project.status.list</field>
+        <field name="model">sab.customer.project.status</field>
+        <field name="arch" type="xml">
+            <list string="Kundenstatus">
+                <field name="project_id"/>
+                <field name="partner_id"/>
+                <field name="milestone"/>
+                <field name="progress_percent"/>
+                <field name="released"/>
+                <field name="released_at" optional="show"/>
+                <field name="released_by_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_customer_status_form" model="ir.ui.view">
+        <field name="name">sab.customer.project.status.form</field>
+        <field name="model">sab.customer.project.status</field>
+        <field name="arch" type="xml">
+            <form string="Kundenstatus">
+                <header>
+                    <button name="action_release" type="object" string="Für Kunden freigeben" class="btn-primary" invisible="released"/>
+                    <button name="action_withdraw" type="object" string="Freigabe zurückziehen" invisible="not released"/>
+                </header>
+                <sheet>
+                    <group col="4">
+                        <field name="project_id"/>
+                        <field name="partner_id" readonly="1"/>
+                        <field name="milestone"/>
+                        <field name="progress_percent" readonly="1"/>
+                        <field name="released" readonly="1"/>
+                        <field name="released_at" readonly="1"/>
+                        <field name="released_by_id" readonly="1"/>
+                    </group>
+                    <group string="Kundentext">
+                        <field name="note_customer" placeholder="Dieser Text darf dem Kunden angezeigt werden ..."/>
+                    </group>
+                    <group string="Intern">
+                        <field name="note_internal" placeholder="Interner Hinweis – niemals im Kundenportal anzeigen ..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_customer_status" model="ir.actions.act_window">
+        <field name="name">Kundenstatus</field>
+        <field name="res_model">sab.customer.project.status</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="sab_customer_root_menu" name="Kundenportal" parent="sab_calculation_root_menu" sequence="170"/>
+    <menuitem id="sab_customer_status_menu" name="Statusfreigaben" parent="sab_customer_root_menu" action="action_sab_customer_status" sequence="10"/>
+</odoo>
