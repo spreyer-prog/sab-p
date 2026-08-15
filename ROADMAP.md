@@ -2,10 +2,11 @@
 
 ## Festgelegte Kernarchitektur
 
-Projekt → Angebot → Kalkulationsartikel → Kalkulationspositionen → SAB-Produkt → Lieferantenartikel → Lieferant/DATANORM
+Projekt → Angebot → Kalkulationsartikel → Kalkulationspositionen → SAB-Produkt → Lieferantenartikel → Lieferant/DATANORM → Stückliste → Einkauf/Lager → Fertigung → Dokumentation/Zeiten → Nachkalkulation
 
 ## Im Entwicklungsbranch umgesetzt
 
+### Projekt / Angebot / Kalkulation
 - Projekt- und Angebotsnummern sowie konfigurierbarer Nummernkreis
 - Projektübersicht und SAB-P Stammdaten
 - Kalkulationsartikel mit 20 Suchbegriffen
@@ -18,9 +19,10 @@ Projekt → Angebot → Kalkulationsartikel → Kalkulationspositionen → SAB-P
 - Automatische Lieferantenartikelauswahl: bevorzugte aktive Bezugsquelle, sonst günstigste aktive Bezugsquelle
 - Material-EK je Kalkulationsposition und Summen je Kalkulationsartikel
 - Technische Berechnung Produktwert × Menge × Kalkulationsfaktor
+- Angebotskalkulation mit Snapshots, Revisionen und kalkulatorischem Netto-Richtwert
+- Änderungsprotokoll und geschützte Änderung von Kalkulationsparametern
 
 ### DATANORM 5
-
 - Import auf Basis der realen ABB-DATANORM-5-Datei, Kennung 050
 - Direkter Upload einer .001-Datei oder eines Lieferanten-ZIP
 - ABB-ZIP: KurztextinklTyp-Variante wird automatisch bevorzugt
@@ -29,42 +31,58 @@ Projekt → Angebot → Kalkulationsartikel → Kalkulationspositionen → SAB-P
 - Vorhandene Artikel werden wiederholbar aktualisiert, fehlende Artikel können angelegt werden
 - DATANORM-Preis und Preiskennzeichen werden getrennt vom kalkulationswirksamen EK gespeichert
 - Übernahme des DATANORM-Preises in den EK muss je Lieferant ausdrücklich freigegeben werden
-- Z-Sätze werden erkannt und gezählt, aber noch nicht pauschal preiswirksam verarbeitet
-- Datenmodell für gezielte spätere Zu-/Abschläge ist vorbereitet
+- Z-Sätze werden erkannt und gezählt; pauschale Preiswirkung ist bewusst nicht aktiviert
 
-### Angebotskalkulation / Versionierung
+### Auftragsübergabe / Fertigung
+- Bestätigtes Angebot kann eine gesperrte Projektstückliste aus Kalkulations-Snapshots erzeugen
+- Fertigungsauftrag nur aus freigegebener Stückliste
+- definierte Fertigungsschritte mit Status, Mitarbeiter, Start-/Endzeit und Fortschritt
+- abgeschlossene Fertigungsaufträge und Schritte sind gesperrt
 
-- Ein Angebot kann mehrere SAB-P Kalkulationsartikel mit eigener Menge enthalten
-- Material-EK, Mechanik-, Verdrahtungs-, Prüfzeiten, Gesamtstunden und Platzeinheiten werden automatisch summiert
-- Beim Einfügen eines Kalkulationsartikels wird ein Snapshot der aktuellen Kalkulationswerte im Angebot gespeichert
-- Spätere DATANORM-, Preis- oder Zeitänderungen verändern bestehende Angebotsstände nicht rückwirkend
-- Bestätigte Angebote sperren die SAB-P Kalkulationspositionen
-- Angebotsrevision erzeugt eine neue Angebotsnummer und kopiert den historischen Kalkulationsstand
-- Kalkulationskonstanten aus der Altkalkulation sind zentral konfigurierbar
-- Material- und Lohnkosten sowie ein transparenter kalkulatorischer Netto-Richtwert werden berechnet
-- Der Richtwert überschreibt Odoo-Verkaufspreise bewusst nicht automatisch
+### Einkauf / Lager
+- Einkaufsbedarf aus freigegebener Stückliste
+- optionale Positionen werden nicht automatisch disponiert
+- Lieferant, Lieferantenartikel, Menge und EK werden als Bedarf übernommen
+- Status Offen → Bestellt → Geliefert
+- Lieferung erzeugt genau einen Lagerzugang
+- Lagerbewegungen: Zugang, Entnahme, Reservierung, Freigabe
+- Bestand, reservierter Bestand und frei verfügbarer Bestand je Produkt
+- Bewertungs-EK wird auf Lagerbewegungen historisch eingefroren
+- Materialentnahmen werden mit gleitendem historischen Lagerwert bewertet
 
-## Noch fachlich/technisch abzugleichen
+### Dokumente / Service / Nachkalkulation
+- Projektbezogene Dokumente mit Dokumentarten, Datei, Freigabe und Revisionen
+- freigegebene Dokumentstände sind unveränderlich; Änderungen laufen über Revisionen
+- projektbezogene Zeiterfassung mit Mitarbeiter, Tätigkeit, Datum, Stunden und Kostensatz
+- Fahrtzeit als eigene Tätigkeitsart
+- gebuchte Zeiten sind gesperrt und fließen in Ist-Stunden ein
+- Nachkalkulation mit Soll-/Ist-Stunden, Lohnkosten, historisch bewerteten Materialentnahmen, Direktkosten und Deckungsbeitrag
+- Listen-, Pivot- und Diagrammansichten für Projektcontrolling
 
-- Bedeutung und Preiswirkung der ABB/DATANORM-Z-Sätze für die tatsächlich benötigten NE-Metall-/Staffelpreisfälle
+## Noch fachlich abzugleichen
+
+- Bedeutung und Preiswirkung der ABB/DATANORM-Z-Sätze für tatsächlich benötigte NE-Metall-/Staffelpreisfälle
 - Exakte Vergleichsrechnung Alt-Excel gegen neue Odoo-Kalkulation, insbesondere Planungszuschlag und Sonderfaktoren
-- Änderungsprotokoll/Freigabecode für bewusste manuelle Kalkulationsänderungen gemäß Fragenkatalog
+- Grenzwerte/Interpretation des Deckungsbeitrags im späteren Management-Reporting
 
-## Danach gemäß Leitfaden
+## Aktuelle Phase: Integration / Produktivsetzung
 
-1. Stücklisten / Auftragsübergabe aus freigegebenem Angebot
-2. Fertigung
-3. Einkauf
-4. Lager
-5. Dokumente
-6. Service / Zeiterfassung
-7. Nachkalkulation / Reporting
-8. Produktivsetzung SAB-P Suite
+1. Odoo.sh Build-Warnings und Restfehler bereinigen
+2. Vollständigen Modul-Upgrade-Test durchführen
+3. Ein echtes Projekt Ende-zu-Ende durchspielen
+4. Alt-Excel gegen Odoo mit identischem Musterprojekt vergleichen
+5. Berechtigungen pro Benutzerrolle finalisieren
+6. DATANORM-Import mit vollständigem ABB-Paket unter Odoo.sh testen
+7. Lageranfangsbestände und Bewertungslogik für Produktivstart festlegen
+8. Dokumentarten und Pflichtdokumente je Projektstatus fachlich prüfen
+9. Backup-/Rollback-Ablauf vor Merge dokumentieren
+10. Erst nach erfolgreichem Abnahmetest Merge in `main`
 
 ## Entwicklungsregel
 
 - `main` bleibt stabil.
-- Gesamtentwicklung erfolgt zunächst auf `agent/leitfaden-gesamtstand`.
+- Gesamtentwicklung erfolgt auf `agent/leitfaden-gesamtstand`.
 - Keine automatische Sprachumstellung.
 - Keine neuen Architekturideen außerhalb des festgelegten Leitfadens ohne fachliche Freigabe.
-- Reale Odoo.sh-Buildfehler werden nach dem Gesamtstand nacheinander korrigiert.
+- Reale Odoo.sh-Buildfehler werden priorisiert korrigiert.
+- Historische Angebots-, Dokument-, Zeit- und Lagerwerte dürfen durch spätere Stammdatenänderungen nicht rückwirkend verändert werden.
