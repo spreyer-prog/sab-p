@@ -6,28 +6,12 @@ class SabTimeEntry(models.Model):
     _name = "sab.time.entry"
     _description = "SAB-P Zeitbuchung"
     _order = "work_date desc, id desc"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
 
-    name = fields.Char(string="Tätigkeit", required=True)
-    project_id = fields.Many2one(
-        comodel_name="project.project",
-        string="Projekt",
-        required=True,
-        ondelete="cascade",
-        index=True,
-    )
-    user_id = fields.Many2one(
-        comodel_name="res.users",
-        string="Mitarbeiter",
-        required=True,
-        default=lambda self: self.env.user,
-        index=True,
-    )
-    work_date = fields.Date(
-        string="Datum",
-        required=True,
-        default=fields.Date.context_today,
-        index=True,
-    )
+    name = fields.Char(string="Tätigkeit", required=True, tracking=True)
+    project_id = fields.Many2one(comodel_name="project.project", string="Projekt", required=True, ondelete="cascade", index=True, tracking=True)
+    user_id = fields.Many2one(comodel_name="res.users", string="Mitarbeiter", required=True, default=lambda self: self.env.user, index=True, tracking=True)
+    work_date = fields.Date(string="Datum", required=True, default=fields.Date.context_today, index=True)
     activity_type = fields.Selection(
         selection=[
             ("engineering", "Planung / Technik"),
@@ -35,18 +19,25 @@ class SabTimeEntry(models.Model):
             ("wiring", "Verdrahtung"),
             ("testing", "Prüfung"),
             ("service", "Service / Montage"),
+            ("travel", "Fahrtzeit"),
             ("documentation", "Dokumentation"),
             ("other", "Sonstiges"),
         ],
-        string="Tätigkeitsart",
-        required=True,
-        default="other",
-        index=True,
+        string="Tätigkeitsart", required=True, default="service", index=True,
     )
-    hours = fields.Float(string="Stunden", required=True, digits=(16, 2))
-    hourly_cost = fields.Float(string="Kostensatz / h", required=True, digits=(16, 2), default=0.0)
+    hours = fields.Float(string="Stunden", required=True, digits=(16, 2), tracking=True)
+    hourly_cost = fields.Float(string="Kostensatz / h", required=True, digits=(16, 2), default=lambda self: self._default_hourly_cost(), tracking=True)
     cost_total = fields.Float(string="Kosten gesamt", compute="_compute_cost_total", store=True, digits=(16, 2))
+    state = fields.Selection(selection=[("draft", "Entwurf"), ("confirmed", "Gebucht")], string="Status", required=True, default="draft", tracking=True, index=True)
     note = fields.Text(string="Bemerkung")
+
+    @api.model
+    def _default_hourly_cost(self):
+        raw = self.env["ir.config_parameter"].sudo().get_param("sab_project.hourly_rate", "80.0")
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return 80.0
 
     @api.depends("hours", "hourly_cost")
     def _compute_cost_total(self):
@@ -64,7 +55,7 @@ class SabTimeEntry(models.Model):
     @api.model
     def _sync_project_hours(self, projects):
         for project in projects.exists():
-            entries = self.search([("project_id", "=", project.id)])
+            entries = self.search([("project_id", "=", project.id), ("state", "=", "confirmed")])
             project.sab_required_hours = sum(entries.mapped("hours"))
 
     @api.model_create_multi
@@ -73,13 +64,25 @@ class SabTimeEntry(models.Model):
         self._sync_project_hours(records.mapped("project_id"))
         return records
 
+    def action_confirm(self):
+        for record in self:
+            if record.state == "draft":
+                record.state = "confirmed"
+        self._sync_project_hours(self.mapped("project_id"))
+        return True
+
     def write(self, vals):
         projects_before = self.mapped("project_id")
+        protected = {"project_id", "user_id", "work_date", "activity_type", "hours", "hourly_cost"}
+        if any(record.state == "confirmed" for record in self) and protected.intersection(vals):
+            raise ValidationError(_("Gebuchte Zeiten dürfen nicht nachträglich verändert werden."))
         result = super().write(vals)
         self._sync_project_hours(projects_before | self.mapped("project_id"))
         return result
 
     def unlink(self):
+        if any(record.state == "confirmed" for record in self):
+            raise ValidationError(_("Gebuchte Zeiten dürfen nicht gelöscht werden."))
         projects = self.mapped("project_id")
         result = super().unlink()
         self._sync_project_hours(projects)
