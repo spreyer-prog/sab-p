@@ -11,6 +11,61 @@ Ergänzend gehören zum festgelegten Gesamtumfang zwei Benutzeroberflächen auß
 
 Diese beiden Bereiche sind Bestandteil des Gesamtprojekts und keine optionalen späteren Ideen.
 
+## Verbindliche Projektdokumentation / Bedienungsanleitung
+
+Die SAB-P Suite gilt erst dann als vollständig fertiggestellt, wenn zusätzlich zum Programmcode eine vollständige deutschsprachige Bedienungs- und Systemdokumentation vorhanden ist. Diese Dokumentation ist ein fester Bestandteil des Projektumfangs und muss mit der Software mitgeführt und bei Funktionsänderungen aktualisiert werden.
+
+Für **jede von SAB-P entwickelte Funktion, Ansicht, Schaltfläche, Statusänderung und Automatik** muss dokumentiert werden:
+
+- Wo befindet sich die Funktion in Odoo bzw. in Mitarbeiter-App oder Kundenportal?
+- Für welche Benutzerrolle ist sie bestimmt?
+- Was zeigt die jeweilige Ansicht und was bedeuten die einzelnen Felder?
+- Was bewirkt jede Schaltfläche / jeder Button konkret?
+- Welche Voraussetzungen müssen erfüllt sein, bevor die Funktion verwendet werden kann?
+- Welche Eingaben muss der Benutzer machen?
+- Welche Daten erzeugt oder verändert das System im Hintergrund?
+- Welche automatischen Folgeprozesse werden ausgelöst?
+- Welche Sperren, Freigaben und Plausibilitätsprüfungen greifen?
+- Welche Auswirkungen hat der Vorgang auf Kalkulation, Stückliste, Einkauf, Lager, Fertigung, Dokumente, Zeiterfassung, Nachkalkulation oder Kundenstatus?
+- Was kann der Benutzer nach Abschluss des Vorgangs noch ändern und was ist bewusst gesperrt?
+- Welche typischen Fehler oder Fehlermeldungen können auftreten und wie sind sie zu beheben?
+- Welche Daten sind intern, welche für Mitarbeiter sichtbar und welche dürfen Kunden sehen?
+
+Die Dokumentation muss nicht nur eine Klickanleitung sein, sondern auch die **Systemlogik im Hintergrund** erklären, damit später nachvollziehbar bleibt, warum Odoo einen Wert berechnet, einen Status setzt, eine Position sperrt oder einen Folgeprozess erzeugt.
+
+### Vorgesehene Struktur des endgültigen Handbuchs
+
+1. Systemüberblick und Gesamtprozess der SAB-P Suite
+2. Benutzer, Rollen und Berechtigungen
+3. Projekte und Projektnummern
+4. Angebote, Angebotsnummern und Revisionen
+5. Kalkulationsartikel, Suchbegriffe und Produktpositionen
+6. SAB-Produkte, Hersteller, Lieferanten und Lieferantenartikel
+7. DATANORM-Import einschließlich Preislogik
+8. Angebotskalkulation, Faktoren, Snapshots und Freigaben
+9. Auftragsübergabe und Stücklisten
+10. Einkauf und Materialbedarf
+11. Lager, Reservierungen, Entnahmen und Lagerbewertung
+12. Fertigungsaufträge und sämtliche Fertigungsschritte
+13. Dokumentenverwaltung, Freigaben und Revisionen
+14. Service, Montage und Zeiterfassung
+15. Nachkalkulation, Deckungsbeitrag und Reporting
+16. Mitarbeiter-App / mobile Mitarbeiteroberfläche
+17. Kundenportal / Kunden-App und Kundenstatus
+18. Foto- und Dokumentfreigabe für Kunden
+19. Einstellungen und administrativer Bereich
+20. Fehlerbehebung und typische Bedienfehler
+21. Backup, Upgrade, Rollback und technischer Betrieb
+22. vollständiger Beispielprozess eines Projekts von Anfrage bis Abschluss
+
+### Dokumentationsregel während der Entwicklung
+
+- Neue Funktionen dürfen nicht nur programmiert werden; ihre Bedienung und Hintergrundlogik müssen für das spätere Handbuch nachvollziehbar festgehalten werden.
+- Vor Produktivsetzung wird der tatsächlich vorhandene Softwarestand noch einmal vollständig gegen das Handbuch geprüft.
+- Nicht vorhandene oder verworfene Funktionen dürfen im endgültigen Handbuch nicht beschrieben werden.
+- Das endgültige Handbuch wird aus dem tatsächlich getesteten Produktivstand erstellt, nicht aus Annahmen oder nur aus der ursprünglichen Planung.
+- Screenshots/Abbildungen werden erst auf Basis der finalen Oberflächen ergänzt, damit sie nicht durch spätere UI-Änderungen veraltet sind.
+
 ## Im Entwicklungsbranch umgesetzt
 
 ### Projekt / Angebot / Kalkulation
@@ -131,8 +186,10 @@ Vorgesehener Umfang:
 9. DATANORM-Import mit vollständigem ABB-Paket unter Odoo.sh testen
 10. Lageranfangsbestände und Bewertungslogik für Produktivstart festlegen
 11. Dokumentarten und Pflichtdokumente je Projektstatus fachlich prüfen
-12. Backup-/Rollback-Ablauf vor Merge dokumentieren
-13. Erst nach erfolgreichem Abnahmetest Merge in `main`
+12. vollständige Bedienungs- und Systemdokumentation gegen den finalen Softwarestand fertigstellen
+13. kompletten Beispielprozess und Fehlerbehebungskapitel im Handbuch verifizieren
+14. Backup-/Rollback-Ablauf vor Merge dokumentieren
+15. Erst nach erfolgreichem Abnahmetest **und vollständiger Bedienungsanleitung** Merge in `main`
 
 ## Entwicklungsregel
 
@@ -143,3 +200,4 @@ Vorgesehener Umfang:
 - Reale Odoo.sh-Buildfehler werden priorisiert korrigiert.
 - Historische Angebots-, Dokument-, Zeit- und Lagerwerte dürfen durch spätere Stammdatenänderungen nicht rückwirkend verändert werden.
 - Mitarbeiter-App und Kundenportal sind fester Projektumfang und dürfen bei der Produktivsetzung nicht als optionale Nachträge entfallen.
+- Die vollständige Bedienungs- und Systemdokumentation ist ebenfalls fester Projektumfang. Ohne sie ist die SAB-P Suite nicht abnahme- bzw. produktionsfertig.
