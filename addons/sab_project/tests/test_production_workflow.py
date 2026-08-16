@@ -39,6 +39,30 @@ class TestSabProductionWorkflow(TransactionCase):
         with self.assertRaises(ValidationError):
             step.write({"responsible_employee_id": employee.id})
 
+    def test_employee_can_only_claim_matching_work_area(self):
+        self.bom.state = "released"
+        production = self.env["sab.production.order"].create({"name": "FA Mitarbeiterbereich", "bom_id": self.bom.id})
+        mechanical_step = production.step_ids.sorted("sequence")[0]
+        electrical_step = production.step_ids.sorted("sequence")[5]
+        mechanical_area = self.env.ref("sab_project.sab_work_area_mechanical_fabrication")
+
+        employee = self.env["sab.employee.profile"].create({
+            "name": "Mechanik Mitarbeiter",
+            "login": "mechanic.workarea@test.local",
+            "email": "mechanic.workarea@example.invalid",
+            "work_area_ids": [(6, 0, [mechanical_area.id])],
+            "mobile_access": True,
+        })
+        employee.action_create_or_update_user()
+
+        mechanical_step.with_user(employee.user_id).action_claim()
+        mechanical_step.invalidate_recordset(["responsible_employee_id", "responsible_user_id"])
+        self.assertEqual(mechanical_step.responsible_employee_id, employee)
+        self.assertEqual(mechanical_step.responsible_user_id, employee.user_id)
+
+        with self.assertRaises(ValidationError):
+            electrical_step.with_user(employee.user_id).action_claim()
+
     def test_employee_can_claim_unassigned_step(self):
         self.bom.state = "released"
         production = self.env["sab.production.order"].create({"name": "FA Mitarbeiter", "bom_id": self.bom.id})
