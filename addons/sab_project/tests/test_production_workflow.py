@@ -8,33 +8,17 @@ class TestSabProductionWorkflow(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.partner = cls.env["res.partner"].create({"name": "Kunde Fertigung"})
-        cls.project = cls.env["project.project"].create({
-            "name": "Projekt Fertigung",
-            "partner_id": cls.partner.id,
-        })
-        cls.order = cls.env["sale.order"].create({
-            "partner_id": cls.partner.id,
-            "sab_project_id": cls.project.id,
-        })
-        cls.bom = cls.env["sab.project.bom"].create({
-            "name": "STL Fertigungstest",
-            "order_id": cls.order.id,
-            "project_id": cls.project.id,
-        })
+        cls.project = cls.env["project.project"].create({"name": "Projekt Fertigung", "partner_id": cls.partner.id})
+        cls.order = cls.env["sale.order"].create({"partner_id": cls.partner.id, "sab_project_id": cls.project.id})
+        cls.bom = cls.env["sab.project.bom"].create({"name": "STL Fertigungstest", "order_id": cls.order.id, "project_id": cls.project.id})
 
     def test_production_requires_released_bom(self):
         with self.assertRaises(ValidationError):
-            self.env["sab.production.order"].create({
-                "name": "FA gesperrt",
-                "bom_id": self.bom.id,
-            })
+            self.env["sab.production.order"].create({"name": "FA gesperrt", "bom_id": self.bom.id})
 
     def test_employee_can_claim_unassigned_step(self):
         self.bom.state = "released"
-        production = self.env["sab.production.order"].create({
-            "name": "FA Mitarbeiter",
-            "bom_id": self.bom.id,
-        })
+        production = self.env["sab.production.order"].create({"name": "FA Mitarbeiter", "bom_id": self.bom.id})
         step = production.step_ids.sorted("sequence")[:1]
         self.assertFalse(step.responsible_user_id)
         step.action_claim()
@@ -42,13 +26,24 @@ class TestSabProductionWorkflow(TransactionCase):
         self.assertEqual(step.project_id, self.project)
         self.assertEqual(step.production_state, "planned")
 
+    def test_step_pause_and_resume(self):
+        self.bom.state = "released"
+        production = self.env["sab.production.order"].create({"name": "FA Pause", "bom_id": self.bom.id})
+        step = production.step_ids.sorted("sequence")[:1]
+        step.action_start()
+        started_at = step.started_at
+        self.assertEqual(step.state, "in_progress")
+        step.action_pause()
+        self.assertEqual(step.state, "paused")
+        self.assertTrue(step.paused_at)
+        step.action_start()
+        self.assertEqual(step.state, "in_progress")
+        self.assertFalse(step.paused_at)
+        self.assertEqual(step.started_at, started_at)
+
     def test_production_start_and_finish_timestamps(self):
         self.bom.state = "released"
-        production = self.env["sab.production.order"].create({
-            "name": "FA Test",
-            "bom_id": self.bom.id,
-        })
-
+        production = self.env["sab.production.order"].create({"name": "FA Test", "bom_id": self.bom.id})
         self.assertEqual(production.state, "planned")
         self.assertFalse(production.started_at)
         self.assertEqual(len(production.step_ids), 8)
