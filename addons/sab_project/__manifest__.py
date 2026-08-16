@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Projekt- und Angebotsnummern",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.25.0",
+    "version": "19.0.5.26.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -11,7 +11,7 @@
         "mail",
         "portal",
         "project",
-        "sale_management"
+        "sale_management",
     ],
 
     "data": [
@@ -49,10 +49,10 @@
         "views/sab_customer_status_views.xml",
         "views/sab_customer_portal_templates.xml",
         "wizard/sab_calculation_import_views.xml",
-        "wizard/sab_datanorm_import_views.xml"
+        "wizard/sab_datanorm_import_views.xml",
     ],
 
-    "installable": true,
-    "application": false,
-    "auto_install": false
+    "installable": True,
+    "application": False,
+    "auto_install": False,
 }
