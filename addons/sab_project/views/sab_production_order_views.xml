@@ -47,8 +47,10 @@
                         <list default_order="sequence">
                             <field name="sequence" widget="handle" string="Reihenfolge"/>
                             <field name="name"/>
+                            <field name="work_area_id"/>
                             <field name="state"/>
-                            <field name="responsible_user_id"/>
+                            <field name="responsible_employee_id" domain="[('active', '=', True), ('mobile_access', '=', True), ('user_id', '!=', False), ('work_area_ids', 'in', work_area_id)]"/>
+                            <field name="responsible_user_id" column_invisible="True"/>
                             <field name="started_at" readonly="1" optional="show"/>
                             <field name="paused_at" readonly="1" optional="hide"/>
                             <field name="finished_at" readonly="1" optional="show"/>
