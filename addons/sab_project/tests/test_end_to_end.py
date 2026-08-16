@@ -1,0 +1,105 @@
+from odoo.tests.common import TransactionCase
+
+
+class TestSabEndToEnd(TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.env.ref("sab_project.group_sab_customer_release").write({
+            "user_ids": [(4, cls.env.user.id)],
+        })
+        cls.partner = cls.env["res.partner"].create({"name": "E2E Kunde"})
+        cls.manufacturer = cls.env["sab.manufacturer"].create({"name": "E2E Hersteller"})
+        cls.supplier = cls.env["sab.supplier"].create({"name": "E2E Lieferant"})
+        cls.product = cls.env["sab.product"].create({
+            "name": "E2E Leistungsschalter",
+            "manufacturer_id": cls.manufacturer.id,
+            "manufacturer_article_number": "E2E-100",
+            "mechanical_time_minutes": 10.0,
+            "wiring_time_minutes": 20.0,
+            "testing_time_minutes": 5.0,
+        })
+        cls.supplier_product = cls.env["sab.supplier.product"].create({
+            "supplier_id": cls.supplier.id,
+            "product_id": cls.product.id,
+            "supplier_article_number": "SUP-E2E-100",
+            "purchase_price": 25.0,
+            "preferred": True,
+        })
+        cls.calculation_item = cls.env["sab.calculation.item"].create({
+            "name": "E2E Kalkulationsartikel",
+            "quotation_text": "E2E Schaltschrankposition",
+            "product_line_ids": [(0, 0, {
+                "product_id": cls.product.id,
+                "quantity": 2.0,
+                "unit": "pcs",
+            })],
+        })
+
+    def test_complete_project_flow(self):
+        project = self.env["project.project"].create({
+            "name": "E2E NSHV",
+            "partner_id": self.partner.id,
+        })
+        self.assertRegex(project.sab_project_reference, r"^A\d{2}\.\d{4}$")
+
+        order = self.env["sale.order"].create({
+            "partner_id": self.partner.id,
+            "sab_project_id": project.id,
+            "sab_calculation_line_ids": [(0, 0, {
+                "calculation_item_id": self.calculation_item.id,
+                "quantity": 3.0,
+            })],
+        })
+        self.assertTrue(order.sab_offer_reference.startswith(project.sab_project_reference + "-"))
+        self.assertGreater(order.sab_calculated_hours, 0.0)
+
+        order.state = "sale"
+        bom_action = order.action_generate_sab_bom()
+        bom = self.env["sab.project.bom"].browse(bom_action["res_id"])
+        self.assertAlmostEqual(bom.line_ids.quantity, 6.0)
+        bom.action_release()
+
+        bom.action_generate_purchase_requirements()
+        requirement = bom.purchase_requirement_ids
+        self.assertEqual(len(requirement), 1)
+        requirement.action_mark_ordered()
+        requirement.action_mark_received()
+        self.assertEqual(requirement.state, "received")
+        self.assertTrue(requirement.stock_movement_id)
+        self.assertAlmostEqual(self.product.stock_on_hand, 6.0)
+
+        production_action = bom.action_create_production_order()
+        production = self.env["sab.production.order"].browse(production_action["res_id"])
+        self.assertTrue(production.step_ids)
+        for step in production.step_ids.sorted("sequence"):
+            step.action_start()
+            step.action_done()
+        production.action_mark_done()
+        self.assertEqual(production.state, "done")
+        self.assertAlmostEqual(production.progress_percent, 100.0)
+
+        first_step = production.step_ids.sorted("sequence")[:1]
+        time_entry = self.env["sab.time.entry"].create({
+            "production_step_id": first_step.id,
+            "project_id": project.id,
+            "name": "E2E Ist-Zeit",
+            "hours": 1.5,
+            "hourly_cost": 80.0,
+        })
+        time_entry.action_confirm()
+        self.assertAlmostEqual(project.sab_required_hours, 1.5)
+
+        status_action = project.action_open_sab_customer_status()
+        status = self.env["sab.customer.project.status"].browse(status_action["res_id"])
+        status.invalidate_recordset(["suggested_milestone"])
+        self.assertEqual(status.suggested_milestone, "ready")
+        status.action_apply_suggestion()
+        self.assertFalse(status.released)
+        status.action_release()
+        self.assertTrue(status.released)
+
+        controlling = self.env["sab.project.controlling"].create({"project_id": project.id})
+        self.assertAlmostEqual(controlling.actual_hours, 1.5)
+        self.assertAlmostEqual(controlling.actual_labor_cost, 120.0)
