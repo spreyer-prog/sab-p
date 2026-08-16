@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_sab_employee_steps_own_or_free" model="ir.rule">
+        <field name="name">SAB-P Mitarbeiter: eigene oder freie Arbeit</field>
+        <field name="model_id" ref="model_sab_production_step"/>
+        <field name="groups" eval="[(4, ref('sab_project.group_sab_employee'))]"/>
+        <field name="domain_force">['|', ('responsible_user_id', '=', user.id), ('responsible_user_id', '=', False)]</field>
+    </record>
+
+    <record id="rule_sab_employee_time_own" model="ir.rule">
+        <field name="name">SAB-P Mitarbeiter: eigene Zeiten</field>
+        <field name="model_id" ref="model_sab_time_entry"/>
+        <field name="groups" eval="[(4, ref('sab_project.group_sab_employee'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_sab_employee_feedback_own" model="ir.rule">
+        <field name="name">SAB-P Mitarbeiter: eigene Rückmeldungen</field>
+        <field name="model_id" ref="model_sab_employee_feedback"/>
+        <field name="groups" eval="[(4, ref('sab_project.group_sab_employee'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_sab_manager_steps_all" model="ir.rule">
+        <field name="name">SAB-P Projektleitung: alle Arbeitsschritte</field>
+        <field name="model_id" ref="model_sab_production_step"/>
+        <field name="groups" eval="[(4, ref('project.group_project_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_sab_manager_time_all" model="ir.rule">
+        <field name="name">SAB-P Projektleitung: alle Zeiten</field>
+        <field name="model_id" ref="model_sab_time_entry"/>
+        <field name="groups" eval="[(4, ref('project.group_project_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_sab_manager_feedback_all" model="ir.rule">
+        <field name="name">SAB-P Projektleitung: alle Rückmeldungen</field>
+        <field name="model_id" ref="model_sab_employee_feedback"/>
+        <field name="groups" eval="[(4, ref('project.group_project_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>
