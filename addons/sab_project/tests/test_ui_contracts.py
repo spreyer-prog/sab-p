@@ -10,7 +10,12 @@ class TestSabUiContracts(TransactionCase):
         view = self.env.ref("sab_project.sab_project_overview_list")
 
         self.assertEqual(action.res_model, "project.project")
-        self.assertTrue(action.view_ids.filtered(lambda item: item.view_id == view and item.view_mode == "list"))
+        self.assertEqual(action.view_mode, "list,form")
+        # In Odoo 19 the XML `views` field is resolved through the action's
+        # computed views definition; it does not need to create persistent
+        # ir.actions.act_window.view rows in action.view_ids.
+        self.assertIn((view.id, "list"), action.views)
+        self.assertIn((False, "form"), action.views)
 
     def test_project_number_is_mandatory_first_overview_column(self):
         view = self.env.ref("sab_project.sab_project_overview_list")
