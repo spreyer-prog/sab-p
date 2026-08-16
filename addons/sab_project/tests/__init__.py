@@ -14,3 +14,4 @@ from . import test_security_permissions
 from . import test_employee_record_rules
 from . import test_ui_contracts
 from . import test_end_to_end
+from . import test_portal_visibility
