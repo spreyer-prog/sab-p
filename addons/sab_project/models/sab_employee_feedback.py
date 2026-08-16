@@ -71,11 +71,7 @@ class SabEmployeeFeedback(models.Model):
                 raise ValidationError(_("Das Foto muss vor der Kundenfreigabe intern bearbeitet/freigegeben sein."))
             if not record.project_id.partner_id:
                 raise ValidationError(_("Dem Projekt muss ein Kunde zugeordnet sein."))
-            record.write({
-                "customer_visible": True,
-                "customer_released_at": fields.Datetime.now(),
-                "customer_released_by_id": self.env.user.id,
-            })
+            record.write({"customer_visible": True, "customer_released_at": fields.Datetime.now(), "customer_released_by_id": self.env.user.id})
         return True
 
     def action_withdraw_customer_release(self):
@@ -83,8 +79,11 @@ class SabEmployeeFeedback(models.Model):
         return True
 
     def write(self, vals):
+        vals = dict(vals)
         if vals.get("customer_visible"):
             for record in self:
                 if record.feedback_type != "photo" or not record.photo or record.state != "processed":
                     raise ValidationError(_("Nur intern bearbeitete Foto-Rückmeldungen dürfen im Kundenportal sichtbar sein."))
+        if "customer_caption" in vals and "customer_visible" not in vals:
+            vals["customer_visible"] = False
         return super().write(vals)
