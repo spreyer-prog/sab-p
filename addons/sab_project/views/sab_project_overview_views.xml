@@ -10,7 +10,8 @@
                   decoration-danger="sab_status == 'lost'"
                   decoration-info="sab_status == 'customer_awarded'"
                   default_order="sab_project_reference desc">
-                <field name="sab_project_reference" string="Projekt-Nr." optional="show"/>
+                <!-- Verbindliche erste Spalte: nicht optional ausblendbar. -->
+                <field name="sab_project_reference" string="Projekt-Nr."/>
                 <field name="sab_request_date" string="Datum" optional="show"/>
                 <field name="sab_status"
                        string="Status"
@@ -40,9 +41,7 @@
         <field name="view_mode">list,form</field>
         <field name="views" eval="[(ref('sab_project_overview_list'), 'list'), (False, 'form')]"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Neues SAB-P Projekt anlegen
-            </p>
+            <p class="o_view_nocontent_smiling_face">Neues SAB-P Projekt anlegen</p>
         </field>
     </record>
 
