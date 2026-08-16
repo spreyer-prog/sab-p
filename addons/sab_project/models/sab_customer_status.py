@@ -37,6 +37,17 @@ class SabCustomerProjectStatus(models.Model):
         if not self.env.user.has_group("sab_project.group_sab_customer_release"):
             raise AccessError(_("Sie haben keine Berechtigung für Kundenportal-Freigaben."))
 
+    def is_portal_visible_to(self, partner):
+        """Return True only for an explicitly released status of the same commercial customer."""
+        self.ensure_one()
+        commercial_partner = partner.commercial_partner_id if partner else self.env["res.partner"]
+        return bool(
+            self.released
+            and self.partner_id
+            and commercial_partner
+            and self.partner_id.commercial_partner_id == commercial_partner
+        )
+
     @api.depends("milestone")
     def _compute_progress(self):
         order = [key for key, _label in CUSTOMER_MILESTONES]
