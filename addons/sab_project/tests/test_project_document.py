@@ -33,6 +33,10 @@ class TestSabProjectDocument(TransactionCase):
 
         document.action_release_to_customer()
         self.assertTrue(document.customer_visible)
+        document.write({"customer_note": "Neue Kundeninformation"})
+        self.assertFalse(document.customer_visible)
+        document.action_release_to_customer()
+        self.assertTrue(document.customer_visible)
 
         action = document.action_create_revision()
         revision = self.env["sab.project.document"].browse(action["res_id"])
