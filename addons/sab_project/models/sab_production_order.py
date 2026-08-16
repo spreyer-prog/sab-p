@@ -211,6 +211,25 @@ class SabProductionStep(models.Model):
             return
         raise ValidationError(_("Für Ihren Benutzer ist kein aktiver SAB-P Mitarbeiter mit App-Zugriff hinterlegt."))
 
+    def _start_parent_order_if_needed(self):
+        """Start the parent order after step-level permission checks have succeeded.
+
+        Employees intentionally have read-only ACLs on production orders. The
+        narrow sudo write here only performs the state/timestamp transition that
+        is an unavoidable consequence of starting or finishing the first step.
+        """
+        for record in self:
+            production = record.production_order_id
+            if production.state != "planned":
+                continue
+            if production.bom_id.state != "released":
+                raise ValidationError(_("Die Fertigung kann nur mit einer freigegebenen Stückliste gestartet werden."))
+            production.sudo().write({
+                "state": "in_progress",
+                "started_at": production.started_at or fields.Datetime.now(),
+            })
+        return True
+
     def action_claim(self):
         self._ensure_editable(); self._ensure_user_can_work()
         for record in self:
@@ -224,8 +243,7 @@ class SabProductionStep(models.Model):
             if record.state not in ("pending", "paused"):
                 raise ValidationError(_("Nur offene oder pausierte Arbeitsschritte können gestartet werden."))
             record.write({"state": "in_progress", "started_at": record.started_at or fields.Datetime.now(), "paused_at": False})
-            if record.production_order_id.state == "planned":
-                record.production_order_id.write({"state": "in_progress", "started_at": record.production_order_id.started_at or fields.Datetime.now()})
+            record._start_parent_order_if_needed()
         return True
 
     def action_pause(self):
@@ -252,8 +270,7 @@ class SabProductionStep(models.Model):
             if record.state not in ("pending", "in_progress", "paused"):
                 raise ValidationError(_("Nur offene, laufende oder pausierte Arbeitsschritte können fertiggemeldet werden."))
             record.write({"state": "done", "started_at": record.started_at or fields.Datetime.now(), "paused_at": False, "finished_at": fields.Datetime.now()})
-            if record.production_order_id.state == "planned":
-                record.production_order_id.action_start()
+            record._start_parent_order_if_needed()
         return True
 
     def action_skip(self):
