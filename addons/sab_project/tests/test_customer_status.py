@@ -1,3 +1,5 @@
+import base64
+
 from odoo.tests.common import TransactionCase
 
 
@@ -47,3 +49,25 @@ class TestSabCustomerStatus(TransactionCase):
         status.action_apply_suggestion()
         self.assertEqual(status.milestone, "planning")
         self.assertFalse(status.released)
+
+    def test_customer_change_withdraws_existing_portal_releases(self):
+        status = self.env["sab.customer.project.status"].create({"project_id": self.project.id})
+        status.action_release()
+
+        document = self.env["sab.project.document"].create({
+            "name": "Kundenplan",
+            "project_id": self.project.id,
+            "document_type": "drawing",
+            "file_name": "plan.pdf",
+            "file_data": base64.b64encode(b"plan"),
+        })
+        document.action_release()
+        document.action_release_to_customer()
+        self.assertTrue(status.released)
+        self.assertTrue(document.customer_visible)
+
+        new_partner = self.env["res.partner"].create({"name": "Neuer Portalkunde"})
+        self.project.partner_id = new_partner
+
+        self.assertFalse(status.released)
+        self.assertFalse(document.customer_visible)
