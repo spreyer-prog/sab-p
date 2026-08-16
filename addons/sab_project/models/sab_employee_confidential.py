@@ -42,10 +42,6 @@ class SabEmployeeConfidentialNote(models.Model):
     follow_up_date = fields.Date(string="Wiedervorlage")
     salary_review_relevant = fields.Boolean(string="Für nächstes Gehaltsgespräch berücksichtigen")
     active = fields.Boolean(string="Aktiv", default=True)
-    create_uid = fields.Many2one(string="Angelegt von", readonly=True)
-    create_date = fields.Datetime(string="Angelegt am", readonly=True)
-    write_uid = fields.Many2one(string="Zuletzt geändert von", readonly=True)
-    write_date = fields.Datetime(string="Zuletzt geändert am", readonly=True)
 
     @api.model
     def _check_confidential_access(self):
