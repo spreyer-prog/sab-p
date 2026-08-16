@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="rule_sab_employee_steps_own_or_free" model="ir.rule">
-        <field name="name">SAB-P Mitarbeiter: eigene oder freie Arbeit</field>
+        <field name="name">SAB-P Mitarbeiter: eigene oder passende freie Arbeit</field>
         <field name="model_id" ref="model_sab_production_step"/>
         <field name="groups" eval="[(4, ref('sab_project.group_sab_employee'))]"/>
-        <field name="domain_force">['|', ('responsible_user_id', '=', user.id), ('responsible_user_id', '=', False)]</field>
+        <field name="domain_force">['|', ('responsible_user_id', '=', user.id), '&amp;', ('responsible_user_id', '=', False), '|', ('work_area_id', '=', False), ('work_area_id.employee_ids.user_id', '=', user.id)]</field>
     </record>
 
     <record id="rule_sab_employee_time_own" model="ir.rule">
