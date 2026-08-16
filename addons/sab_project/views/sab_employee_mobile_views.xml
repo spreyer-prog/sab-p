@@ -5,13 +5,7 @@
         <field name="model">sab.production.step</field>
         <field name="arch" type="xml">
             <kanban string="Meine Arbeit" default_group_by="state" class="o_kanban_mobile">
-                <field name="production_order_id"/>
-                <field name="project_id"/>
-                <field name="delivery_date"/>
-                <field name="name"/>
-                <field name="state"/>
-                <field name="responsible_user_id"/>
-                <field name="started_at"/>
+                <field name="production_order_id"/><field name="project_id"/><field name="delivery_date"/><field name="name"/><field name="state"/><field name="responsible_user_id"/><field name="started_at"/><field name="paused_at"/>
                 <templates>
                     <t t-name="card">
                         <div class="oe_kanban_global_click">
@@ -21,11 +15,12 @@
                             <div t-if="record.delivery_date.raw_value"><strong>Liefertermin:</strong> <field name="delivery_date"/></div>
                             <div class="mt-2"><field name="state" widget="badge"/></div>
                             <div class="mt-3 d-flex gap-2 flex-wrap">
-                                <button name="action_claim" type="object" string="Übernehmen" class="btn btn-secondary" invisible="responsible_user_id or state not in ('pending', 'in_progress')"/>
-                                <button name="action_start" type="object" string="Start" class="btn btn-primary" invisible="state != 'pending'"/>
-                                <button name="action_open_time_entry" type="object" string="Zeit erfassen" class="btn btn-outline-primary" invisible="state not in ('pending', 'in_progress')"/>
-                                <button name="action_open_feedback" type="object" string="Rückmeldung" class="btn btn-outline-secondary" invisible="state not in ('pending', 'in_progress')"/>
-                                <button name="action_done" type="object" string="Fertig" class="btn btn-success" invisible="state not in ('pending', 'in_progress')"/>
+                                <button name="action_claim" type="object" string="Übernehmen" class="btn btn-secondary" invisible="responsible_user_id or state not in ('pending', 'in_progress', 'paused')"/>
+                                <button name="action_start" type="object" string="Start / Fortsetzen" class="btn btn-primary" invisible="state not in ('pending', 'paused')"/>
+                                <button name="action_pause" type="object" string="Pause" class="btn btn-warning" invisible="state != 'in_progress'"/>
+                                <button name="action_open_time_entry" type="object" string="Zeit erfassen" class="btn btn-outline-primary" invisible="state not in ('pending', 'in_progress', 'paused')"/>
+                                <button name="action_open_feedback" type="object" string="Rückmeldung" class="btn btn-outline-secondary" invisible="state not in ('pending', 'in_progress', 'paused')"/>
+                                <button name="action_done" type="object" string="Fertig" class="btn btn-success" invisible="state not in ('pending', 'in_progress', 'paused')"/>
                             </div>
                         </div>
                     </t>
@@ -35,85 +30,36 @@
     </record>
 
     <record id="view_sab_employee_step_form" model="ir.ui.view">
-        <field name="name">sab.production.step.employee.form</field>
-        <field name="model">sab.production.step</field>
+        <field name="name">sab.production.step.employee.form</field><field name="model">sab.production.step</field>
         <field name="arch" type="xml">
             <form string="Meine Arbeit">
                 <header>
-                    <button name="action_claim" type="object" string="Arbeit übernehmen" class="btn-secondary" invisible="responsible_user_id or state not in ('pending', 'in_progress')"/>
-                    <button name="action_start" type="object" string="Start" class="btn-primary" invisible="state != 'pending'"/>
-                    <button name="action_open_time_entry" type="object" string="Zeit erfassen" class="btn-secondary" invisible="state not in ('pending', 'in_progress')"/>
-                    <button name="action_open_feedback" type="object" string="Rückmeldung / Foto / Material" class="btn-secondary" invisible="state not in ('pending', 'in_progress')"/>
-                    <button name="action_done" type="object" string="Fertig melden" class="btn-primary" invisible="state not in ('pending', 'in_progress')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,done"/>
+                    <button name="action_claim" type="object" string="Arbeit übernehmen" class="btn-secondary" invisible="responsible_user_id or state not in ('pending', 'in_progress', 'paused')"/>
+                    <button name="action_start" type="object" string="Start / Fortsetzen" class="btn-primary" invisible="state not in ('pending', 'paused')"/>
+                    <button name="action_pause" type="object" string="Pause" class="btn-warning" invisible="state != 'in_progress'"/>
+                    <button name="action_open_time_entry" type="object" string="Zeit erfassen" class="btn-secondary" invisible="state not in ('pending', 'in_progress', 'paused')"/>
+                    <button name="action_open_feedback" type="object" string="Rückmeldung / Foto / Material" class="btn-secondary" invisible="state not in ('pending', 'in_progress', 'paused')"/>
+                    <button name="action_done" type="object" string="Fertig melden" class="btn-primary" invisible="state not in ('pending', 'in_progress', 'paused')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,paused,done"/>
                 </header>
                 <sheet>
-                    <group>
-                        <field name="name" readonly="1"/>
-                        <field name="project_id" readonly="1"/>
-                        <field name="production_order_id" readonly="1"/>
-                        <field name="delivery_date" readonly="1"/>
-                        <field name="responsible_user_id" readonly="1"/>
-                        <field name="started_at" readonly="1"/>
-                        <field name="finished_at" readonly="1"/>
-                    </group>
-                    <group string="Kurznotiz">
-                        <field name="note" placeholder="Bemerkung zum Arbeitsschritt ..."/>
-                    </group>
+                    <group><field name="name" readonly="1"/><field name="project_id" readonly="1"/><field name="production_order_id" readonly="1"/><field name="delivery_date" readonly="1"/><field name="responsible_user_id" readonly="1"/><field name="started_at" readonly="1"/><field name="paused_at" readonly="1"/><field name="finished_at" readonly="1"/></group>
+                    <group string="Kurznotiz"><field name="note" placeholder="Bemerkung zum Arbeitsschritt ..."/></group>
                 </sheet>
             </form>
         </field>
     </record>
 
     <record id="view_sab_employee_time_entry_form" model="ir.ui.view">
-        <field name="name">sab.time.entry.employee.form</field>
-        <field name="model">sab.time.entry</field>
+        <field name="name">sab.time.entry.employee.form</field><field name="model">sab.time.entry</field>
         <field name="arch" type="xml">
-            <form string="Arbeitszeit erfassen">
-                <header>
-                    <button name="action_confirm" type="object" string="Zeit buchen" class="btn-primary" invisible="state != 'draft'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
-                </header>
-                <sheet>
-                    <group>
-                        <field name="production_step_id" readonly="1"/>
-                        <field name="project_id" readonly="1"/>
-                        <field name="user_id" readonly="1"/>
-                        <field name="work_date" readonly="state == 'confirmed'"/>
-                        <field name="activity_type" readonly="state == 'confirmed'"/>
-                        <field name="name" readonly="1"/>
-                        <field name="hours" readonly="state == 'confirmed'"/>
-                    </group>
-                    <group string="Bemerkung">
-                        <field name="note"/>
-                    </group>
-                </sheet>
-            </form>
+            <form string="Arbeitszeit erfassen"><header><button name="action_confirm" type="object" string="Zeit buchen" class="btn-primary" invisible="state != 'draft'"/><field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/></header><sheet><group><field name="production_step_id" readonly="1"/><field name="project_id" readonly="1"/><field name="user_id" readonly="1"/><field name="work_date" readonly="state == 'confirmed'"/><field name="activity_type" readonly="state == 'confirmed'"/><field name="name" readonly="1"/><field name="hours" readonly="state == 'confirmed'"/></group><group string="Bemerkung"><field name="note"/></group></sheet></form>
         </field>
     </record>
 
-    <record id="action_sab_employee_my_steps" model="ir.actions.act_window">
-        <field name="name">Meine Arbeit</field>
-        <field name="res_model">sab.production.step</field>
-        <field name="view_mode">kanban,form</field>
-        <field name="domain">[('responsible_user_id', '=', uid), ('state', 'in', ('pending', 'in_progress'))]</field>
-        <field name="context">{'search_default_my_work': 1}</field>
-    </record>
-
-    <record id="action_sab_employee_open_steps" model="ir.actions.act_window">
-        <field name="name">Freie Arbeit</field>
-        <field name="res_model">sab.production.step</field>
-        <field name="view_mode">kanban,form</field>
-        <field name="domain">[('responsible_user_id', '=', False), ('state', '=', 'pending'), ('production_state', 'in', ('planned', 'in_progress'))]</field>
-    </record>
-
-    <record id="action_sab_employee_my_time_entries" model="ir.actions.act_window">
-        <field name="name">Meine Zeiten</field>
-        <field name="res_model">sab.time.entry</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('user_id', '=', uid)]</field>
-        <field name="context">{'default_user_id': uid}</field>
-    </record>
+    <record id="action_sab_employee_my_steps" model="ir.actions.act_window"><field name="name">Meine Arbeit</field><field name="res_model">sab.production.step</field><field name="view_mode">kanban,form</field><field name="domain">[('responsible_user_id', '=', uid), ('state', 'in', ('pending', 'in_progress', 'paused'))]</field><field name="context">{'search_default_my_work': 1}</field></record>
+    <record id="action_sab_employee_open_steps" model="ir.actions.act_window"><field name="name">Freie Arbeit</field><field name="res_model">sab.production.step</field><field name="view_mode">kanban,form</field><field name="domain">[('responsible_user_id', '=', False), ('state', '=', 'pending'), ('production_state', 'in', ('planned', 'in_progress'))]</field></record>
+    <record id="action_sab_employee_my_time_entries" model="ir.actions.act_window"><field name="name">Meine Zeiten</field><field name="res_model">sab.time.entry</field><field name="view_mode">list,form</field><field name="domain">[('user_id', '=', uid)]</field><field name="context">{'default_user_id': uid}</field></record>
 
     <menuitem id="sab_employee_mobile_root_menu" name="Mitarbeiter" parent="sab_calculation_root_menu" sequence="160"/>
     <menuitem id="sab_employee_my_steps_menu" name="Meine Arbeit" parent="sab_employee_mobile_root_menu" action="action_sab_employee_my_steps" sequence="10"/>
