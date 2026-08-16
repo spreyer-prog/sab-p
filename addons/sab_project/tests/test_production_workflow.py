@@ -16,6 +16,29 @@ class TestSabProductionWorkflow(TransactionCase):
         with self.assertRaises(ValidationError):
             self.env["sab.production.order"].create({"name": "FA gesperrt", "bom_id": self.bom.id})
 
+    def test_default_steps_receive_work_areas(self):
+        self.bom.state = "released"
+        production = self.env["sab.production.order"].create({"name": "FA Bereiche", "bom_id": self.bom.id})
+        steps = production.step_ids.sorted("sequence")
+        self.assertEqual(steps[0].work_area_id, self.env.ref("sab_project.sab_work_area_mechanical_fabrication"))
+        self.assertEqual(steps[1].work_area_id, self.env.ref("sab_project.sab_work_area_mechanical_assembly"))
+        self.assertEqual(steps[5].work_area_id, self.env.ref("sab_project.sab_work_area_electrical"))
+        self.assertEqual(steps[6].work_area_id, self.env.ref("sab_project.sab_work_area_testing"))
+
+    def test_wrong_work_area_employee_assignment_is_rejected(self):
+        self.bom.state = "released"
+        production = self.env["sab.production.order"].create({"name": "FA Qualifikation", "bom_id": self.bom.id})
+        step = production.step_ids.sorted("sequence")[1]
+        user = self.env["res.users"].with_context(no_reset_password=True).create({"name": "Nur Elektrik", "login": "only.electrical@test.local"})
+        employee = self.env["sab.employee.profile"].create({
+            "name": "Nur Elektrik",
+            "login": "only.electrical@test.local",
+            "user_id": user.id,
+            "work_area_ids": [(6, 0, [self.env.ref("sab_project.sab_work_area_electrical").id])],
+        })
+        with self.assertRaises(ValidationError):
+            step.write({"responsible_employee_id": employee.id})
+
     def test_employee_can_claim_unassigned_step(self):
         self.bom.state = "released"
         production = self.env["sab.production.order"].create({"name": "FA Mitarbeiter", "bom_id": self.bom.id})
