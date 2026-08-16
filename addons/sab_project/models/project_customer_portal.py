@@ -12,7 +12,7 @@ class ProjectProjectCustomerPortal(models.Model):
         copy=False,
     )
     sab_customer_status_count = fields.Integer(
-        string="Kundenstatus",
+        string="Anzahl Kundenstatus",
         compute="_compute_sab_customer_status_count",
     )
 
