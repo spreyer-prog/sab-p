@@ -8,6 +8,7 @@
                 <field name="project_id"/>
                 <field name="partner_id"/>
                 <field name="milestone"/>
+                <field name="suggested_milestone" optional="show"/>
                 <field name="progress_percent"/>
                 <field name="released"/>
                 <field name="released_at" optional="show"/>
@@ -22,6 +23,7 @@
         <field name="arch" type="xml">
             <form string="Kundenstatus">
                 <header>
+                    <button name="action_apply_suggestion" type="object" string="Internen Stand übernehmen" class="btn-secondary" invisible="suggested_milestone == milestone"/>
                     <button name="action_release" type="object" string="Für Kunden freigeben" class="btn-primary" invisible="released"/>
                     <button name="action_withdraw" type="object" string="Freigabe zurückziehen" invisible="not released"/>
                 </header>
@@ -29,6 +31,7 @@
                     <group col="4">
                         <field name="project_id"/>
                         <field name="partner_id" readonly="1"/>
+                        <field name="suggested_milestone" readonly="1"/>
                         <field name="milestone"/>
                         <field name="progress_percent" readonly="1"/>
                         <field name="released" readonly="1"/>
