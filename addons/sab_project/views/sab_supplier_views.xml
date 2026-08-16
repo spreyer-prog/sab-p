@@ -6,6 +6,7 @@
         <field name="model">sab.supplier</field>
         <field name="arch" type="xml">
             <list string="Lieferanten">
+                <header><button name="%(action_sab_supplier_import)d" type="action" string="Lieferanten importieren" class="btn-primary"/></header>
                 <field name="supplier_number"/>
                 <field name="name"/>
                 <field name="partner_id" optional="show"/>
@@ -22,6 +23,9 @@
         <field name="model">sab.supplier</field>
         <field name="arch" type="xml">
             <form string="Lieferant">
+                <header>
+                    <button name="%(action_sab_supplier_price_import)d" type="action" string="Preis-/Rabattliste importieren" class="btn-primary" context="{'default_supplier_id': id}"/>
+                </header>
                 <sheet>
                     <group string="Stammdaten" col="4">
                         <field name="supplier_number"/>
