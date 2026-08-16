@@ -1,20 +1,20 @@
 # SAB-P Suite V1 – Produktivsetzungs- und Abnahmecheckliste
 
-Stand: letzter bestätigter Green Build auf `agent/leitfaden-gesamtstand`; aktueller Härtungsstand Modulversion `19.0.5.34.0` wird durch Odoo.sh erneut geprüft. GitHub-Commit-Status ist eingerichtet und liefert `ci/odoo.sh (dev)`.
+Stand: Odoo.sh Green Build auf `agent/leitfaden-gesamtstand` für Modulversion `19.0.5.35.0`. GitHub-Commit-Status ist eingerichtet und liefert `ci/odoo.sh (dev)`.
 
 Legende:
 - `[x]` technisch im Code/Test abgedeckt bzw. im letzten Green Build nachgewiesen,
-- `[ ]` benötigt noch aktuellen Build-, Upgrade-, Praxis- oder Fachdatenabgleich.
+- `[ ]` benötigt noch Upgrade-, Praxis- oder Fachdatenabgleich.
 
 ## A. Technische Abnahme
 
-- [x] Letzter vollständig geprüfter Odoo.sh Build des Branches `agent/leitfaden-gesamtstand` erfolgreich.
-- [ ] Aktuellen Stand `19.0.5.34.0` erneut durch Odoo.sh grün bestätigen.
+- [x] Aktueller Odoo.sh Build des Branches `agent/leitfaden-gesamtstand` erfolgreich.
+- [x] Aktuellen Stand `19.0.5.35.0` durch Odoo.sh grün bestätigt.
 - [x] Odoo.sh GitHub-Commit-Status eingerichtet; neue Builds sind über `ci/odoo.sh (dev)` verfolgbar.
 - [ ] Modul `sab_project` auf einer bestehenden, produktionsnahen Datenbank explizit als Upgrade testen.
-- [x] Keine SAB-P Testfehler im letzten vollständig geprüften Green Build: 57 Tests, 0 Failures, 0 Errors.
-- [x] Im geprüften Build keine SAB-P bezogenen Warnings festgestellt.
-- [x] Automatisierter End-to-End-Test vorhanden; aktueller Stand bindet Mitarbeiterprofile/Arbeitsbereiche ein.
+- [x] Aktueller Odoo.sh Build ohne SAB-P Testfehler; die zuvor festgestellten 1 Failure / 2 Errors wurden behoben und erneut grün gebaut.
+- [x] Im zuletzt vollständig geprüften Buildlog keine SAB-P bezogenen Warnings festgestellt.
+- [x] Automatisierter End-to-End-Test vorhanden; aktueller Stand bindet einen echten aktiven SAB-P Mitarbeiterzugang und Arbeitsbereiche ein.
 - [x] Keine ungewollte Änderung an `main`.
 - [ ] Datenbankbackup unmittelbar vor Produktivupgrade vorhanden.
 - [ ] Rollback auf letzten stabilen `main`-Stand organisatorisch und technisch praktisch verifizieren.
@@ -81,6 +81,7 @@ Legende:
 - [x] Mitarbeiter kann nur das eigene Mitarbeiterprofil lesen; Projektleitung kann alle verwalten.
 - [x] Mitarbeiter kann Zeitbuchungen und Rückmeldungen nicht unter fremdem Benutzer anlegen/umschreiben.
 - [x] Rückmeldungen können nur durch Projektleitung intern auf `Bearbeitet` gesetzt werden.
+- [x] Ein normaler SAB-P Mitarbeiter kann einen zulässigen Fertigungsschritt starten/fertigmelden; der übergeordnete Fertigungsauftrag wird dabei kontrolliert systemseitig gestartet, ohne dem Mitarbeiter allgemeine Schreibrechte auf Fertigungsaufträge zu geben.
 - [x] Automatisierter Migrationstest erhält alte Benutzerzuordnung und ergänzt vorhandenes Mitarbeiterprofil/Arbeitsbereich.
 - [x] Odoo-19 `end-migrate.py` für bestehende Fertigungsschritte vorhanden.
 - [ ] Reale Mitarbeiter mit Namen/Login/E-Mail anlegen.
@@ -134,8 +135,8 @@ Legende:
 
 ## J. End-to-End-Praxistest
 
-- [x] Automatisierter End-to-End-Prozess vorhanden; aktueller Test umfasst echtes SAB-P-Mitarbeiterprofil und Arbeitsbereiche.
-- [ ] Aktuellen Härtungsstand im Odoo.sh Build bestätigen.
+- [x] Automatisierter End-to-End-Prozess vorhanden; aktueller Test umfasst echten aktiven SAB-P Mitarbeiterzugang und Arbeitsbereiche.
+- [x] Aktuellen Härtungsstand `19.0.5.35.0` im Odoo.sh Build bestätigt.
 - [ ] Zusätzlich echtes oder vollständig realistisches SAB-P Projekt praktisch durchspielen.
 - [ ] Angebot/Kalkulation gegen bekannte Altwerte prüfen.
 - [ ] Einkauf/Lager mit realen Artikeln prüfen.
