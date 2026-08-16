@@ -37,6 +37,6 @@
         name="Einstellungen"
         parent="sab_project_root_menu"
         sequence="90"
-        groups="project.group_project_manager"/>
+        groups="project.group_project_manager,sab_project.group_sab_confidential_hr"/>
 
 </odoo>
