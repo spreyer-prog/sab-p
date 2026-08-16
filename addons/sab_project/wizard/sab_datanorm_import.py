@@ -1,5 +1,6 @@
 import base64
 import io
+import re
 import zipfile
 from collections import Counter
 from datetime import datetime
@@ -96,6 +97,18 @@ class SabDatanormImport(models.TransientModel):
             "MTR": "m",
             "KGM": "kg",
         }.get((value or "").strip().upper(), "other")
+
+    @staticmethod
+    def _space_units_from_text(*values):
+        """Liest Angaben wie '1 PLE' oder '2,5 PLE' aus DATANORM-Texten."""
+        text = " ".join(value or "" for value in values)
+        match = re.search(r"(?<!\d)(\d+(?:[,.]\d+)?)\s*PLE\b", text, re.IGNORECASE)
+        if not match:
+            return False
+        try:
+            return float(match.group(1).replace(",", "."))
+        except ValueError:
+            return False
 
     @staticmethod
     def _record_counts(lines):
@@ -203,12 +216,16 @@ class SabDatanormImport(models.TransientModel):
 
                 if product:
                     if self._needs_write(product, vals_product):
-                        # Technische Zeiten und Platzeinheiten bleiben unangetastet.
+                        # Technische Zeiten und Platzeinheiten bestehender SAB-P
+                        # Produkte bleiben unangetastet.
                         product.write(vals_product)
                         updated_products += 1
                     else:
                         unchanged_products += 1
                 elif self.create_missing_products:
+                    space_units = self._space_units_from_text(short_text, type_name)
+                    if space_units is not False:
+                        vals_product["space_units"] = space_units
                     product = Product.create(vals_product)
                     product_map[manufacturer_article] = product
                     created_products += 1
@@ -223,6 +240,7 @@ class SabDatanormImport(models.TransientModel):
                     "supplier_article_number": article_number,
                     "datanorm_number": article_number,
                     "datanorm_price": datanorm_price,
+                    "list_price": datanorm_price,
                     "datanorm_price_code": datanorm_price_code,
                     "unit": self._unit_from_datanorm(unit),
                     "valid_from": source_date,
@@ -242,6 +260,9 @@ class SabDatanormImport(models.TransientModel):
                     else:
                         unchanged_supplier += 1
                 else:
+                    # Bei neuen Datensätzen den EK explizit neutral halten,
+                    # solange die DATANORM-Preisübernahme nicht freigegeben ist.
+                    vals_supplier.setdefault("purchase_price", 0.0)
                     supplier_product = SupplierProduct.create(vals_supplier)
                     supplier_map[article_number] = supplier_product
                     created_supplier += 1
