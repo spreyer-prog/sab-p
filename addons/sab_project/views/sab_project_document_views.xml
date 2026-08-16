@@ -11,8 +11,9 @@
                 <field name="version"/>
                 <field name="file_name"/>
                 <field name="state"/>
-                <field name="released_at" optional="show"/>
-                <field name="released_by_id" optional="show"/>
+                <field name="customer_visible" optional="show"/>
+                <field name="released_at" optional="hide"/>
+                <field name="released_by_id" optional="hide"/>
             </list>
         </field>
     </record>
@@ -23,7 +24,9 @@
         <field name="arch" type="xml">
             <form string="SAB-P Projektdokument">
                 <header>
-                    <button name="action_release" type="object" string="Dokument freigeben" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_release" type="object" string="Dokument intern freigeben" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_release_to_customer" type="object" string="Für Kundenportal freigeben" class="btn-secondary" invisible="state != 'released' or customer_visible" groups="project.group_project_manager"/>
+                    <button name="action_withdraw_customer_release" type="object" string="Kundenfreigabe zurückziehen" invisible="not customer_visible" groups="project.group_project_manager"/>
                     <button name="action_create_revision" type="object" string="Neue Revision" invisible="state != 'released'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,released,obsolete"/>
                 </header>
@@ -39,7 +42,14 @@
                         <field name="released_at" readonly="1"/>
                         <field name="released_by_id" readonly="1"/>
                     </group>
-                    <group>
+                    <group string="Kundenportal">
+                        <field name="customer_visible" readonly="1"/>
+                        <field name="customer_title"/>
+                        <field name="customer_note"/>
+                        <field name="customer_released_at" readonly="1" invisible="not customer_visible"/>
+                        <field name="customer_released_by_id" readonly="1" invisible="not customer_visible"/>
+                    </group>
+                    <group string="Intern">
                         <field name="note"/>
                     </group>
                     <notebook invisible="not revision_ids">
@@ -50,6 +60,7 @@
                                     <field name="name"/>
                                     <field name="file_name"/>
                                     <field name="state"/>
+                                    <field name="customer_visible"/>
                                     <field name="released_at"/>
                                 </list>
                             </field>
