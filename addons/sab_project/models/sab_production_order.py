@@ -229,7 +229,8 @@ class SabProductionStep(models.Model):
     def action_pause(self):
         self._ensure_editable(); self._ensure_user_can_work()
         for record in self:
-            if record.state != "in_progress": raise ValidationError(_("Nur laufende Arbeitsschritte können pausiert werden."))
+            if record.state != "in_progress":
+                raise ValidationError(_("Nur laufende Arbeitsschritte können pausiert werden."))
             record.write({"state": "paused", "paused_at": fields.Datetime.now()})
         return True
 
@@ -249,13 +250,21 @@ class SabProductionStep(models.Model):
             if record.state not in ("pending", "in_progress", "paused"):
                 raise ValidationError(_("Nur offene, laufende oder pausierte Arbeitsschritte können fertiggemeldet werden."))
             record.write({"state": "done", "started_at": record.started_at or fields.Datetime.now(), "paused_at": False, "finished_at": fields.Datetime.now()})
-            if record.production_order_id.state == "planned": record.production_order_id.action_start()
+            if record.production_order_id.state == "planned":
+                record.production_order_id.action_start()
         return True
 
     def action_skip(self):
         self._ensure_editable(); self._ensure_user_can_work()
-        for record in self: record.write({"state": "skipped", "paused_at": False, "finished_at": fields.Datetime.now()})
+        for record in self:
+            record.write({"state": "skipped", "paused_at": False, "finished_at": fields.Datetime.now()})
         return True
 
     def write(self, vals):
-        if any(record.production_order_id.state in ("done", "cancel")
+        if any(record.production_order_id.state in ("done", "cancel") for record in self):
+            raise ValidationError(_("Fertigungsschritte eines abgeschlossenen oder stornierten Fertigungsauftrags sind gesperrt."))
+        vals = dict(vals)
+        if "responsible_employee_id" in vals:
+            employee = self.env["sab.employee.profile"].sudo().browse(vals.get("responsible_employee_id")).exists() if vals.get("responsible_employee_id") else False
+            vals["responsible_user_id"] = employee.user_id.id if employee and employee.user_id else False
+        return super().write(vals)
