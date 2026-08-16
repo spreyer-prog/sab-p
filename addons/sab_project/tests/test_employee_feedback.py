@@ -50,6 +50,11 @@ class TestSabEmployeeFeedback(TransactionCase):
         self.assertTrue(feedback.customer_visible)
         self.assertTrue(feedback.customer_released_at)
 
+        feedback.write({"customer_caption": "Aktueller Fertigungsstand"})
+        self.assertFalse(feedback.customer_visible)
+        feedback.action_release_to_customer()
+        self.assertTrue(feedback.customer_visible)
+
         feedback.action_withdraw_customer_release()
         self.assertFalse(feedback.customer_visible)
 
