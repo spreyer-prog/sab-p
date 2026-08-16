@@ -1,30 +1,49 @@
-SAB-P Projekt- und Angebotsnummern – Installation
+SAB-P Suite V1 – Installation / Upgrade auf Odoo.sh
 
-1. Diese ZIP-Datei nach C:\Odoo\sab-p entpacken.
-   Danach muss der Ordner so liegen:
-   C:\Odoo\sab-p\addons\sab_project
+Entwicklungsregel
+-----------------
+- Entwicklung und Tests erfolgen auf: agent/leitfaden-gesamtstand
+- main bleibt bis zur vollständigen V1-Abnahme unverändert.
+- Kein direkter Entwicklungs-Push auf main.
 
-2. In VS Code ein Terminal im Repository öffnen und ausführen:
+Odoo.sh Entwicklungs-/Testablauf
+--------------------------------
+1. Änderungen werden ausschließlich auf agent/leitfaden-gesamtstand committed/gepusht.
+2. Odoo.sh startet für den Branch einen neuen Build.
+3. Build vollständig auswerten:
+   - Modulinstallation/-upgrade muss durchlaufen.
+   - SAB-P Tests müssen ohne Fehler laufen.
+   - SAB-P bezogene Warnings werden vor Produktivfreigabe bereinigt.
+4. Entwicklungs-/Staging-Datenbank öffnen.
+5. Modul "SAB-P Projekt- und Angebotsnummern" aktualisieren.
+6. Smoke-Test durchführen:
+   - neues Projekt anlegen,
+   - Axx.xxxx Projektnummer prüfen,
+   - Angebot direkt aus Projekt anlegen,
+   - Angebotsnummer -01 prüfen,
+   - Mitarbeiteransicht öffnen,
+   - Kundenstatus/Portal prüfen.
+7. Danach vollständige Checkliste in docs/PRODUKTIVSETZUNG_CHECKLISTE.md abarbeiten.
 
-   git status
-   git add addons/sab_project
-   git commit -m "Add SAB project and quotation numbering"
-   git push origin main
-
-3. Odoo.sh startet danach automatisch einen neuen Build.
-
-4. Nach erfolgreichem Build:
-   - Entwicklungsdatenbank öffnen
-   - Apps öffnen
-   - "Apps-Liste aktualisieren" ausführen
-   - nach "SAB-P Projekt- und Angebotsnummern" suchen
-   - Modul installieren
-
-Ergebnis:
+Nummerierung
+------------
+Standardbeispiele:
 - Projekte: A26.0001, A26.0002 ...
 - Jahreswechsel: A27.0001 ...
 - Angebote je Projekt: A26.0001-01, -02, -03 ...
-- Vergebene Nummern sind eindeutig und nicht änderbar.
 
-Wichtiger Hinweis:
-Die Version startet bewusst bei 0001, nicht bei 0000.
+Die tatsächlichen Präfixe, Stellen und Startwerte sind konfigurierbar. Eine bereits vergebene Projekt- oder Angebotsnummer ist bewusst nicht änderbar.
+
+Produktivsetzung
+----------------
+Ein Merge nach main erfolgt erst, wenn:
+- der finale Odoo.sh Build erfolgreich ist,
+- alle SAB-P Tests grün sind,
+- End-to-End- und Rollen-/Portaltests bestanden sind,
+- das Handbuch dem getesteten Stand entspricht,
+- reale Kalkulations-/DATANORM-/Lager-Abnahmepunkte erledigt sind,
+- unmittelbar vorher ein verwertbares Odoo.sh Backup vorhanden ist.
+
+Rollback
+--------
+Der letzte stabile main-Commit bleibt bis zur Abnahme die Rückfallbasis. Bei einem fehlgeschlagenen Produktivupgrade werden Fehler im Entwicklungsbranch korrigiert; keine unkontrollierten manuellen Datenbankreparaturen im Produktivsystem.
