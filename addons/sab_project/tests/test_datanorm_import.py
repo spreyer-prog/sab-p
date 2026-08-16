@@ -16,6 +16,11 @@ ARTICLE_WITH_TYPE = (
     "er flache Tasten, Modular Metall Reihe;PCE;1;1;714;V2;;;080CPN;;;;"
     "1SFA170190R8000;080CPN;7320500520642;;5;;;;;;;;;"
 )
+ARTICLE_WITH_SPACE_UNITS = (
+    "A;N;2CDS251001R0164;Leitungsschutzschalter 1-polig 16A 1 PLE;"
+    "S201-B16;PCE;1;1;1250;V2;;;S201-B16;;;;"
+    "2CDS251001R0164;S201-B16;4016779467604;;5;;;;;;;;;"
+)
 Z_RECORD = "Z;N;1SFA170190R8000;11;2;CU;3;+;1;1;2;15100;20000;10;"
 END = "E;"
 
@@ -84,19 +89,33 @@ class TestSabDatanormImport(TransactionCase):
         ])
         self.assertEqual(len(supplier_product), 1)
         self.assertAlmostEqual(supplier_product.datanorm_price, 7.14)
+        self.assertAlmostEqual(supplier_product.list_price, 7.14)
         self.assertEqual(supplier_product.datanorm_price_code, "V2")
         self.assertAlmostEqual(supplier_product.purchase_price, 0.0)
         self.assertEqual(supplier_product.datanorm_type_name, "080CPN")
         self.assertEqual(supplier_product.ean, "7320500520642")
         self.assertIn("Z-Preis-/Zuschlagssätze erkannt: 1", wizard.result_text)
 
-        # Erst die explizite Lieferantenfreigabe macht den DATANORM-Preis
-        # kalkulationswirksam.
         self.supplier.datanorm_price_as_purchase_price = True
         wizard = self._wizard(payload)
         wizard.action_import()
         supplier_product.invalidate_recordset()
         self.assertAlmostEqual(supplier_product.purchase_price, 7.14)
+
+    def test_imports_space_units_from_article_text_for_new_products(self):
+        payload = "\n".join([HEADER, ARTICLE_WITH_SPACE_UNITS, END]).encode("cp1252")
+        wizard = self._wizard(payload)
+        wizard.action_import()
+        product = self.env["sab.product"].search([
+            ("manufacturer_article_number", "=", "2CDS251001R0164")
+        ], limit=1)
+        self.assertTrue(product)
+        self.assertAlmostEqual(product.space_units, 1.0)
+        supplier_product = self.env["sab.supplier.product"].search([
+            ("supplier_id", "=", self.supplier.id),
+            ("supplier_article_number", "=", "2CDS251001R0164"),
+        ], limit=1)
+        self.assertAlmostEqual(supplier_product.list_price, 12.50)
 
     def test_record_count_and_units(self):
         counts = self.env["sab.datanorm.import"]._record_counts([
