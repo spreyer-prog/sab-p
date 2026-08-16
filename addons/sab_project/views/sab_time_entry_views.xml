@@ -11,8 +11,8 @@
                 <field name="activity_type"/>
                 <field name="name"/>
                 <field name="hours"/>
-                <field name="hourly_cost" optional="show"/>
-                <field name="cost_total" optional="show"/>
+                <field name="hourly_cost" optional="show" groups="project.group_project_manager"/>
+                <field name="cost_total" optional="show" groups="project.group_project_manager"/>
                 <field name="state"/>
             </list>
         </field>
@@ -35,8 +35,8 @@
                         <field name="activity_type" readonly="state == 'confirmed'"/>
                         <field name="name" colspan="4"/>
                         <field name="hours" readonly="state == 'confirmed'"/>
-                        <field name="hourly_cost" readonly="state == 'confirmed'"/>
-                        <field name="cost_total" readonly="1"/>
+                        <field name="hourly_cost" readonly="state == 'confirmed'" groups="project.group_project_manager"/>
+                        <field name="cost_total" readonly="1" groups="project.group_project_manager"/>
                     </group>
                     <group><field name="note"/></group>
                 </sheet>
@@ -51,5 +51,10 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="sab_time_entry_menu" name="Zeitbuchungen" parent="sab_calculation_root_menu" action="action_sab_time_entry" sequence="140"/>
+    <menuitem id="sab_time_entry_menu"
+              name="Zeitbuchungen"
+              parent="sab_calculation_root_menu"
+              action="action_sab_time_entry"
+              sequence="140"
+              groups="project.group_project_manager"/>
 </odoo>
