@@ -9,4 +9,9 @@
         <field name="name">SAB-P Kundenfreigaben</field>
         <field name="comment">Darf Kundenstatus, Projektdokumente und Fertigungsfotos für das Kundenportal freigeben. Diese Rolle verleiht keine Projektleiterrechte.</field>
     </record>
+
+    <record id="group_sab_confidential_hr" model="res.groups">
+        <field name="name">SAB-P Vertrauliche Personalakte</field>
+        <field name="comment">Exklusiver Zugriff auf vertrauliche Personalnotizen, Fehlzeiten-/Verspätungsereignisse sowie Beurteilungs- und Gehaltsgesprächsnotizen. Diese Rolle ist ausschließlich der Geschäftsführung bzw. ausdrücklich autorisierten Personalverantwortlichen zuzuweisen.</field>
+    </record>
 </odoo>
