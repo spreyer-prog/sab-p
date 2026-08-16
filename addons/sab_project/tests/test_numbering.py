@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import patch
 
 from odoo.tests.common import TransactionCase
@@ -27,11 +28,11 @@ class TestSabNumbering(TransactionCase):
         counter = self.env["sab.project.year.counter"].sudo()
         counter.search([("year", "in", [2026, 2027])]).unlink()
 
-        with patch("odoo.fields.Date.context_today", return_value="2026-12-31"):
+        with patch("odoo.fields.Date.context_today", return_value=date(2026, 12, 31)):
             project_2026_1 = Project.create({"name": "Jahresende 1"})
             project_2026_2 = Project.create({"name": "Jahresende 2"})
 
-        with patch("odoo.fields.Date.context_today", return_value="2027-01-01"):
+        with patch("odoo.fields.Date.context_today", return_value=date(2027, 1, 1)):
             project_2027_1 = Project.create({"name": "Jahresanfang 1"})
             project_2027_2 = Project.create({"name": "Jahresanfang 2"})
 
@@ -41,6 +42,28 @@ class TestSabNumbering(TransactionCase):
         self.assertEqual(project_2027_2.sab_project_reference, "A27.0002")
         self.assertEqual(counter.search([("year", "=", 2026)]).next_number, 3)
         self.assertEqual(counter.search([("year", "=", 2027)]).next_number, 3)
+
+    def test_configurable_project_and_offer_number_format(self):
+        params = self.env["ir.config_parameter"].sudo()
+        params.set_param("sab_project.project_prefix", "P")
+        params.set_param("sab_project.year_digits", "4")
+        params.set_param("sab_project.project_separator", "/")
+        params.set_param("sab_project.project_digits", "5")
+        params.set_param("sab_project.project_start_number", "42")
+        params.set_param("sab_project.offer_separator", ".")
+        params.set_param("sab_project.offer_digits", "3")
+
+        self.env["sab.project.year.counter"].sudo().search([("year", "=", 2028)]).unlink()
+        with patch("odoo.fields.Date.context_today", return_value=date(2028, 1, 2)):
+            project = self.env["project.project"].create({"name": "Konfiguriertes Projekt"})
+
+        self.assertEqual(project.sab_project_reference, "P2028/00042")
+        quotation = self.env["sale.order"].create({
+            "partner_id": self.partner.id,
+            "sab_project_id": project.id,
+        })
+        self.assertEqual(quotation.sab_offer_reference, "P2028/00042.001")
+        self.assertEqual(quotation.name, "P2028/00042.001")
 
     def test_project_status_default(self):
         project = self.env["project.project"].create({"name": "Statusprojekt"})
