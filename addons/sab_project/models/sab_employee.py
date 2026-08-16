@@ -12,6 +12,14 @@ class SabWorkArea(models.Model):
     code = fields.Char(string="Code", required=True, index=True)
     sequence = fields.Integer(string="Reihenfolge", default=10)
     active = fields.Boolean(default=True)
+    employee_ids = fields.Many2many(
+        comodel_name="sab.employee.profile",
+        relation="sab_employee_work_area_rel",
+        column1="work_area_id",
+        column2="employee_id",
+        string="Freigegebene Mitarbeiter",
+        readonly=True,
+    )
 
     _code_unique = models.Constraint("UNIQUE(code)", "Der Arbeitsbereich-Code muss eindeutig sein.")
 
@@ -71,8 +79,6 @@ class SabEmployeeProfile(models.Model):
                     raise ValidationError(_("Der Login ist bereits einem anderen SAB-P Mitarbeiter zugeordnet."))
                 user = existing
             else:
-                # Einladung wird bewusst separat ausgelöst, damit das Anlegen eines
-                # Mitarbeiterstamms nicht ungefragt eine E-Mail verschickt.
                 user = self.env["res.users"].sudo().with_context(no_reset_password=True).create({
                     "name": self.name,
                     "login": self.login,
