@@ -1,3 +1,4 @@
+from odoo.exceptions import AccessError
 from odoo.tests.common import TransactionCase
 
 
@@ -25,9 +26,8 @@ class TestSabEmployeeProductionStart(TransactionCase):
         employee.action_create_or_update_user()
         user = employee.user_id
 
-        self.assertFalse(
-            self.env["sab.production.order"].with_user(user).check_access_rights("write", raise_exception=False)
-        )
+        with self.assertRaises(AccessError):
+            self.env["sab.production.order"].with_user(user).check_access("write")
         step.with_user(user).action_start()
 
         production.invalidate_recordset(["state", "started_at"])
