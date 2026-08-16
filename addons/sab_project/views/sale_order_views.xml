@@ -5,38 +5,21 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-
             <xpath expr="//header" position="inside">
-                <button name="action_create_sab_revision"
-                        type="object"
-                        string="Neue Revision"
-                        class="btn-secondary"
-                        invisible="not sab_project_id"/>
-                <button name="action_generate_sab_bom"
-                        type="object"
-                        string="Stückliste erzeugen"
-                        class="btn-primary"
-                        invisible="not sab_project_id or state not in ('sale', 'done')"/>
+                <button name="action_create_sab_revision" type="object" string="Neue Revision" class="btn-secondary" invisible="not sab_project_id"/>
+                <button name="action_generate_sab_bom" type="object" string="Stückliste erzeugen" class="btn-primary" invisible="not sab_project_id or state not in ('sale', 'done')"/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="sab_project_id"
-                       required="state in ('draft', 'sent')"
-                       readonly="state not in ('draft', 'sent')"/>
-                <field name="sab_offer_reference"
-                       readonly="1"
-                       invisible="not sab_offer_reference"/>
-                <field name="sab_revision_of_id"
-                       readonly="1"
-                       invisible="not sab_revision_of_id"/>
-                <field name="sab_revision_reason"
-                       invisible="not sab_revision_of_id"/>
+                <field name="sab_project_id" required="state in ('draft', 'sent')" readonly="state not in ('draft', 'sent')"/>
+                <field name="sab_offer_reference" readonly="1" invisible="not sab_offer_reference"/>
+                <field name="sab_revision_of_id" readonly="1" invisible="not sab_revision_of_id"/>
+                <field name="sab_revision_reason" invisible="not sab_revision_of_id"/>
             </xpath>
 
             <xpath expr="//notebook" position="inside">
                 <page string="SAB-P Kalkulation" name="sab_calculation">
-                    <field name="sab_calculation_line_ids" nolabel="1"
-                           readonly="state not in ('draft', 'sent')">
+                    <field name="sab_calculation_line_ids" nolabel="1" readonly="state not in ('draft', 'sent')">
                         <list editable="bottom" default_order="sequence">
                             <field name="sequence" widget="handle" string="Pos."/>
                             <field name="calculation_item_id"/>
@@ -67,7 +50,7 @@
                         <field name="sab_hourly_rate" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_time_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_difficulty_factor" readonly="state not in ('draft', 'sent')"/>
-                        <field name="sab_planning_surcharge_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_planning_surcharge_factor" string="Planungszuschlag – Formelabgleich offen" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_packaging_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_skonto_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_margin_factor" readonly="state not in ('draft', 'sent')"/>
@@ -85,11 +68,11 @@
                     <div class="alert alert-info" role="alert">
                         Der kalkulatorische Netto-Richtwert dient dem Vergleich mit der SAB-P Kalkulation.
                         Er überschreibt die Verkaufspreise der Odoo-Angebotspositionen nicht automatisch.
+                        Der Planungszuschlag wird bis zum 1:1-Abgleich mit der bisherigen SAB-P Kalkulation als Snapshot gespeichert, aber bewusst noch nicht in den Richtwert eingerechnet.
                         Nach Auftragsbestätigung wird die Stückliste aus den im Angebot gespeicherten Komponenten-Snapshots erzeugt.
                     </div>
                 </page>
             </xpath>
-
         </field>
     </record>
 </odoo>
