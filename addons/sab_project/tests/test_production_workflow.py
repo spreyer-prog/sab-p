@@ -1,4 +1,4 @@
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -100,7 +100,9 @@ class TestSabProductionWorkflow(TransactionCase):
         mechanical_step.invalidate_recordset(["responsible_employee_id", "responsible_user_id"])
         self.assertEqual(mechanical_step.responsible_employee_id, employee)
         self.assertEqual(mechanical_step.responsible_user_id, employee.user_id)
-        with self.assertRaises(ValidationError):
+        # The record rule is deliberately the first security barrier: an employee
+        # cannot even read/operate a free step outside their qualified work areas.
+        with self.assertRaises(AccessError):
             electrical_step.with_user(employee.user_id).action_claim()
 
     def test_employee_can_claim_unassigned_step(self):
