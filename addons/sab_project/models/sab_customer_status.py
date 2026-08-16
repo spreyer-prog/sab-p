@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 
 CUSTOMER_MILESTONES = [
@@ -33,6 +33,10 @@ class SabCustomerProjectStatus(models.Model):
 
     _project_unique = models.Constraint("UNIQUE(project_id)", "Für dieses Projekt existiert bereits ein Kundenstatus.")
 
+    def _check_release_permission(self):
+        if not self.env.user.has_group("sab_project.group_sab_customer_release"):
+            raise AccessError(_("Sie haben keine Berechtigung für Kundenportal-Freigaben."))
+
     @api.depends("milestone")
     def _compute_progress(self):
         order = [key for key, _label in CUSTOMER_MILESTONES]
@@ -44,13 +48,7 @@ class SabCustomerProjectStatus(models.Model):
                 position = 0
             record.progress_percent = round(position * 100 / maximum)
 
-    @api.depends(
-        "project_id.sab_sale_order_ids.state",
-        "project_id.sab_sale_order_ids.sab_bom_ids.state",
-        "project_id.sab_sale_order_ids.sab_bom_ids.production_order_ids.state",
-        "project_id.sab_sale_order_ids.sab_bom_ids.production_order_ids.step_ids.state",
-        "project_id.sab_sale_order_ids.sab_bom_ids.production_order_ids.step_ids.name",
-    )
+    @api.depends("project_id.sab_sale_order_ids.state", "project_id.sab_sale_order_ids.sab_bom_ids.state", "project_id.sab_sale_order_ids.sab_bom_ids.production_order_ids.state", "project_id.sab_sale_order_ids.sab_bom_ids.production_order_ids.step_ids.state", "project_id.sab_sale_order_ids.sab_bom_ids.production_order_ids.step_ids.name")
     def _compute_suggested_milestone(self):
         for record in self:
             project = record.project_id
@@ -85,6 +83,7 @@ class SabCustomerProjectStatus(models.Model):
         return True
 
     def action_release(self):
+        self._check_release_permission()
         for record in self:
             if not record.project_id.partner_id:
                 raise ValidationError(_("Vor der Kundenfreigabe muss dem Projekt ein Kunde zugeordnet sein."))
@@ -92,10 +91,13 @@ class SabCustomerProjectStatus(models.Model):
         return True
 
     def action_withdraw(self):
+        self._check_release_permission()
         self.write({"released": False})
         return True
 
     def write(self, vals):
+        if vals.get("released"):
+            self._check_release_permission()
         if "milestone" in vals and "released" not in vals:
             vals = dict(vals, released=False)
         return super().write(vals)
