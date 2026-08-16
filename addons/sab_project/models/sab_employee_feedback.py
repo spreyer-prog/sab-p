@@ -31,6 +31,18 @@ class SabEmployeeFeedback(models.Model):
         if not self.env.user.has_group("sab_project.group_sab_customer_release"):
             raise AccessError(_("Sie haben keine Berechtigung für Kundenportal-Freigaben."))
 
+    def is_portal_visible_to(self, partner):
+        self.ensure_one()
+        commercial_partner = partner.commercial_partner_id if partner else self.env["res.partner"]
+        return bool(
+            self.feedback_type == "photo"
+            and self.state == "processed"
+            and self.customer_visible
+            and self.project_id.partner_id
+            and commercial_partner
+            and self.project_id.partner_id.commercial_partner_id == commercial_partner
+        )
+
     @api.constrains("feedback_type", "photo", "material_product_id", "material_quantity")
     def _check_feedback_content(self):
         for record in self:
