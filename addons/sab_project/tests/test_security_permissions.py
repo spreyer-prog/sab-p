@@ -15,11 +15,23 @@ class TestSabSecurityPermissions(TransactionCase):
         cls.env.ref("base.group_user").write({"user_ids": [(4, cls.normal_user.id), (4, cls.other_employee.id), (4, cls.release_user.id)]})
         cls.env.ref("sab_project.group_sab_employee").write({"user_ids": [(4, cls.normal_user.id), (4, cls.other_employee.id)]})
         cls.env.ref("sab_project.group_sab_customer_release").write({"user_ids": [(4, cls.release_user.id)]})
+        all_areas = cls.env["sab.work.area"].search([]).ids
+        cls.normal_profile = cls.env["sab.employee.profile"].create({
+            "name": "SAB Mitarbeiter ohne Freigabe", "login": cls.normal_user.login,
+            "user_id": cls.normal_user.id, "work_area_ids": [(6, 0, all_areas)], "mobile_access": True,
+        })
+        cls.other_profile = cls.env["sab.employee.profile"].create({
+            "name": "SAB anderer Mitarbeiter", "login": cls.other_employee.login,
+            "user_id": cls.other_employee.id, "work_area_ids": [(6, 0, all_areas)], "mobile_access": True,
+        })
 
         cls.partner = cls.env["res.partner"].create({"name": "Sicherheitskunde"})
         cls.project = cls.env["project.project"].create({"name": "Sicherheitsprojekt", "partner_id": cls.partner.id})
         cls.status = cls.env["sab.customer.project.status"].create({"project_id": cls.project.id})
-        cls.document = cls.env["sab.project.document"].create({"name": "Freigabetest", "project_id": cls.project.id, "document_type": "test_report", "file_name": "test.pdf", "file_data": base64.b64encode(b"test")})
+        cls.document = cls.env["sab.project.document"].create({
+            "name": "Freigabetest", "project_id": cls.project.id, "document_type": "test_report",
+            "file_name": "test.pdf", "file_data": base64.b64encode(b"test"),
+        })
         cls.document.action_release()
 
         cls.order = cls.env["sale.order"].create({"partner_id": cls.partner.id, "sab_project_id": cls.project.id})
@@ -37,6 +49,19 @@ class TestSabSecurityPermissions(TransactionCase):
         self.assertTrue(self.release_user.has_group("sab_project.group_sab_customer_release"))
         self.assertFalse(self.release_user.has_group("project.group_project_manager"))
 
+    def test_non_employee_internal_user_has_no_employee_workflow_access(self):
+        with self.assertRaises(AccessError):
+            self.env["sab.production.step"].with_user(self.release_user).check_access_rights("read")
+        with self.assertRaises(AccessError):
+            self.env["sab.time.entry"].with_user(self.release_user).check_access_rights("read")
+        with self.assertRaises(AccessError):
+            self.env["sab.employee.feedback"].with_user(self.release_user).check_access_rights("read")
+
+    def test_employee_can_read_only_own_profile(self):
+        self.normal_profile.with_user(self.normal_user).check_access("read")
+        with self.assertRaises(AccessError):
+            self.other_profile.with_user(self.normal_user).check_access("read")
+
     def test_normal_internal_user_cannot_publish_customer_content(self):
         with self.assertRaises(AccessError):
             self.status.with_user(self.normal_user).action_release()
@@ -49,7 +74,7 @@ class TestSabSecurityPermissions(TransactionCase):
         self.document.with_user(self.release_user).action_release_to_customer()
         self.assertTrue(self.document.customer_visible)
 
-    def test_employee_sees_only_own_or_free_steps(self):
+    def test_employee_sees_only_own_or_matching_free_steps(self):
         visible = self.env["sab.production.step"].with_user(self.normal_user).search([
             ("production_order_id", "=", self.production.id),
         ])
