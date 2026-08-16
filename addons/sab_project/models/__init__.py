@@ -15,6 +15,7 @@ from . import sab_offer_calculation_line
 from . import sab_offer_calculation_component
 from . import sab_calculation_change_log
 from . import sab_project_bom
+from . import sab_employee
 from . import sab_production_order
 from . import sab_purchase_requirement
 from . import sab_stock_movement
