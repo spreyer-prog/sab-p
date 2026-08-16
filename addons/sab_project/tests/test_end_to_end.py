@@ -26,11 +26,12 @@ class TestSabEndToEnd(TransactionCase):
         })
         cls.production_employee = cls.env["sab.employee.profile"].create({
             "name": "E2E Fertigungsmitarbeiter",
-            "login": cls.env.user.login,
-            "user_id": cls.env.user.id,
+            "login": "e2e.production@test.local",
+            "email": "e2e.production@example.invalid",
             "mobile_access": True,
             "work_area_ids": [Command.set(cls.env["sab.work.area"].search([]).ids)],
         })
+        cls.production_employee.action_create_or_update_user()
 
     def test_complete_project_flow(self):
         project = self.env["project.project"].create({"name": "E2E NSHV", "partner_id": self.partner.id})
@@ -62,9 +63,11 @@ class TestSabEndToEnd(TransactionCase):
         self.assertTrue(production.step_ids)
         self.assertTrue(all(production.step_ids.mapped("work_area_id")))
         for step in production.step_ids.sorted("sequence"):
-            step.action_start(); step.action_done()
+            employee_step = step.with_user(self.production_employee.user_id)
+            employee_step.action_start(); employee_step.action_done()
+            step.invalidate_recordset(["responsible_employee_id", "responsible_user_id"])
             self.assertEqual(step.responsible_employee_id, self.production_employee)
-            self.assertEqual(step.responsible_user_id, self.env.user)
+            self.assertEqual(step.responsible_user_id, self.production_employee.user_id)
         production.action_mark_done()
         self.assertEqual(production.state, "done")
         self.assertAlmostEqual(production.progress_percent, 100.0)
