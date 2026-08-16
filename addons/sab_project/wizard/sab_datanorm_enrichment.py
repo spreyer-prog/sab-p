@@ -12,8 +12,9 @@ class SabDatanormImportEnrichment(models.TransientModel):
     )
 
     @classmethod
-    def _space_units_from_text(cls, text):
-        text = text or ""
+    def _space_units_from_text(cls, *values):
+        """Liest PLE/TE nur dann, wenn sie in den DATANORM-Texten enthalten sind."""
+        text = " ".join(value or "" for value in values)
         for pattern in cls.SPACE_PATTERNS:
             match = pattern.search(text)
             if match:
@@ -67,9 +68,10 @@ class SabDatanormImportEnrichment(models.TransientModel):
             supplier_product = supplier_map.get(article_number)
             if supplier_product:
                 vals = {"list_price": datanorm_price}
-                # Die Rabattbasis folgt dem aktuellen Listenpreis; ein vorhandener
-                # Rabatt bleibt erhalten und berechnet damit automatisch den Netto-EK neu.
-                vals["purchase_price"] = datanorm_price
+                # Vorhandenen echten EK nicht überschreiben. Nur ohne EK dient
+                # der Listenpreis als kalkulatorischer Fallback.
+                if not supplier_product.purchase_price:
+                    vals["purchase_price"] = datanorm_price
                 supplier_product.write(vals)
                 enriched_prices += 1
 
