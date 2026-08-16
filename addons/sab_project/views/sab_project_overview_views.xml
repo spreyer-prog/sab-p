@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- A26.xxxx auch in der normalen Odoo-Projektliste sichtbar machen. -->
+    <record id="sab_standard_project_list_inherit" model="ir.ui.view">
+        <field name="name">project.project.list.sab.reference</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="sab_project_reference" string="Projekt-Nr." readonly="1"/>
+            </field>
+        </field>
+    </record>
+
     <record id="sab_project_overview_list" model="ir.ui.view">
         <field name="name">project.project.list.sab.overview</field>
         <field name="model">project.project</field>
@@ -11,7 +24,7 @@
                   decoration-info="sab_status == 'customer_awarded'"
                   default_order="sab_project_reference desc">
                 <!-- Verbindliche erste Spalte: nicht optional ausblendbar. -->
-                <field name="sab_project_reference" string="Projekt-Nr."/>
+                <field name="sab_project_reference" string="Projekt-Nr." readonly="1"/>
                 <field name="sab_request_date" string="Datum" optional="show"/>
                 <field name="sab_status"
                        string="Status"
