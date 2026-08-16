@@ -9,6 +9,9 @@ class TestSabEmployeeFeedback(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env.ref("sab_project.group_sab_customer_release").write({
+            "user_ids": [(4, cls.env.user.id)],
+        })
         cls.partner = cls.env["res.partner"].create({"name": "Kunde Mitarbeiter-App"})
         cls.project = cls.env["project.project"].create({"name": "Projekt Mitarbeiter-App", "partner_id": cls.partner.id})
         cls.order = cls.env["sale.order"].create({"partner_id": cls.partner.id, "sab_project_id": cls.project.id})
