@@ -58,4 +58,4 @@ class TestSabUiContracts(TransactionCase):
         self.assertIn("('responsible_user_id', '=', False)", action.domain)
         self.assertIn("('state', '=', 'pending')", action.domain)
         self.assertNotIn("work_area_ids", action.domain)
-        self.assertIn("nur freie arbeitsschritte", action.help.lower())
+        self.assertIn("nur freie arbeitsschritte", str(action.help).lower())
