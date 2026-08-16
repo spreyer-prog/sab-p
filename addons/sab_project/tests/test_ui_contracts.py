@@ -20,3 +20,13 @@ class TestSabUiContracts(TransactionCase):
         self.assertTrue(fields)
         self.assertEqual(fields[0].get("name"), "sab_project_reference")
         self.assertIsNone(fields[0].get("optional"))
+
+    def test_standard_odoo_project_list_is_extended_with_project_number(self):
+        inherited = self.env.ref("sab_project.sab_standard_project_list_inherit")
+        standard = self.env.ref("project.view_project")
+        self.assertEqual(inherited.inherit_id, standard)
+
+        arch = etree.fromstring(inherited.arch_db.encode("utf-8"))
+        inserted = arch.xpath("//field[@name='name']/field[@name='sab_project_reference']")
+        self.assertEqual(len(inserted), 1)
+        self.assertEqual(inserted[0].get("string"), "Projekt-Nr.")
