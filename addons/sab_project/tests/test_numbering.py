@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from odoo.tests.common import TransactionCase
 
 
@@ -19,6 +21,26 @@ class TestSabNumbering(TransactionCase):
         offer_2 = self.env["sale.order"].create({"partner_id": self.partner.id, "sab_project_id": project_1.id})
         self.assertEqual(offer_1.name, f"{project_1.sab_project_reference}-01")
         self.assertEqual(offer_2.name, f"{project_1.sab_project_reference}-02")
+
+    def test_project_number_resets_for_new_calendar_year(self):
+        Project = self.env["project.project"]
+        counter = self.env["sab.project.year.counter"].sudo()
+        counter.search([("year", "in", [2026, 2027])]).unlink()
+
+        with patch("odoo.fields.Date.context_today", return_value="2026-12-31"):
+            project_2026_1 = Project.create({"name": "Jahresende 1"})
+            project_2026_2 = Project.create({"name": "Jahresende 2"})
+
+        with patch("odoo.fields.Date.context_today", return_value="2027-01-01"):
+            project_2027_1 = Project.create({"name": "Jahresanfang 1"})
+            project_2027_2 = Project.create({"name": "Jahresanfang 2"})
+
+        self.assertEqual(project_2026_1.sab_project_reference, "A26.0001")
+        self.assertEqual(project_2026_2.sab_project_reference, "A26.0002")
+        self.assertEqual(project_2027_1.sab_project_reference, "A27.0001")
+        self.assertEqual(project_2027_2.sab_project_reference, "A27.0002")
+        self.assertEqual(counter.search([("year", "=", 2026)]).next_number, 3)
+        self.assertEqual(counter.search([("year", "=", 2027)]).next_number, 3)
 
     def test_project_status_default(self):
         project = self.env["project.project"].create({"name": "Statusprojekt"})
