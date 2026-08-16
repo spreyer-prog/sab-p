@@ -1,32 +1,35 @@
 # SAB-P Suite V1 – Produktivsetzungs- und Abnahmecheckliste
 
-Stand: technischer Green Build auf `agent/leitfaden-gesamtstand`, Modulversion `19.0.5.22.0`.
+Stand: technischer Green Build auf `agent/leitfaden-gesamtstand`, Basis-Modulversion `19.0.5.22.0`; nachfolgende Härtungstests müssen im nächsten Odoo.sh Build erneut grün bestätigt werden.
 
 Legende:
-- `[x]` technisch durch automatisierten Odoo.sh-Test bzw. Branchprüfung nachgewiesen,
+- `[x]` technisch durch automatisierten Test bzw. Branchprüfung nachgewiesen,
 - `[ ]` benötigt noch realen Upgrade-/Praxis-/Fachdatenabgleich.
 
 ## A. Technische Abnahme
 
-- [x] Neuester geprüfter Odoo.sh Build des Branches `agent/leitfaden-gesamtstand` erfolgreich.
+- [x] Letzter vollständig geprüfter Odoo.sh Build des Branches `agent/leitfaden-gesamtstand` erfolgreich.
+- [ ] Neuester Härtungsstand nach Nummernkreis-Erweiterung erneut durch Odoo.sh grün bestätigen.
 - [ ] Modul `sab_project` auf einer bestehenden, produktionsnahen Datenbank explizit als Upgrade testen.
-- [x] Keine SAB-P Testfehler im geprüften Green Build: 57 Tests, 0 Failures, 0 Errors.
+- [x] Keine SAB-P Testfehler im letzten vollständig geprüften Green Build: 57 Tests, 0 Failures, 0 Errors.
 - [x] Im geprüften Build keine SAB-P bezogenen Warnings festgestellt.
 - [x] Automatisierter End-to-End-Test läuft vollständig durch.
-- [x] Keine ungewollte Änderung an `main`; Entwicklungsbranch liegt vor `main`, nicht dahinter.
+- [x] Keine ungewollte Änderung an `main`.
 - [ ] Datenbankbackup unmittelbar vor Produktivupgrade vorhanden.
 - [ ] Rollback auf letzten stabilen `main`-Stand organisatorisch und technisch praktisch verifizieren.
 
 ## B. Nummernkreise
 
-- [ ] Projektpräfix fachlich final geprüft.
-- [ ] Jahresdarstellung fachlich final geprüft.
-- [ ] Projektstellenanzahl fachlich final geprüft.
-- [ ] Angebotsstellenanzahl fachlich final geprüft.
-- [ ] Startnummer für Produktivbetrieb fachlich final geprüft.
-- [ ] Vorhandene Altprojekte ohne SAB-P Nummer für die reale Datenbank bewertet/nachnummeriert.
+- [ ] Projektpräfix für Produktivbetrieb fachlich final bestätigen.
+- [ ] Jahresdarstellung für Produktivbetrieb fachlich final bestätigen.
+- [ ] Projektstellenanzahl für Produktivbetrieb fachlich final bestätigen.
+- [ ] Angebotsstellenanzahl für Produktivbetrieb fachlich final bestätigen.
+- [ ] Startnummer für Produktivbetrieb fachlich final bestätigen.
+- [ ] Vorhandene Altprojekte ohne SAB-P Nummer für die reale Datenbank bewerten/nachnummerieren.
 - [x] Automatischer Test: neues Projekt erhält erwartete `Axx.xxxx` Nummer.
 - [x] Automatischer Test: erstes/zweites Angebot erhalten `-01`/`-02`.
+- [x] Automatischer Test vorhanden: Kalenderjahreswechsel führt zu getrenntem Jahreszähler und Reset `A26.000x` → `A27.0001`.
+- [x] Automatischer Test vorhanden: Präfix, 2-/4-stelliges Jahr, Trennzeichen, Projektstellen, Startnummer, Angebotstrennzeichen und Angebotsstellen sind konfigurierbar.
 - [x] Projektnummer ist in der SAB-P Projektübersicht verpflichtend erste Spalte.
 - [x] Projektnummer ist zusätzlich in der normalen Odoo-Projektliste eingebunden.
 
@@ -44,11 +47,10 @@ Legende:
 ## D. DATANORM
 
 - [ ] Vollständiges reales ABB-DATANORM-Paket praktisch importieren.
-- [x] Automatischer Test: Wiederholungsimport/Importlogik erhält technische SAB-P Daten und Rohpreis getrennt.
-- [x] Automatischer Test: ABB-ZIP bevorzugt KurztextinklTyp-Datei.
-- [ ] Lieferanten-EK-Freigabe mit realen Preisdateien praktisch prüfen.
-- [ ] Z-Sätze im realen ABB-Paket identifizieren und bewerten.
-- [ ] Falls Z-Sätze/NE-Metall/Staffelpreise preiswirksam benötigt werden: fachliche Regel dokumentieren und umsetzen.
+- [x] Wiederholungsimport und Schutz technischer SAB-P Werte automatisiert geprüft.
+- [ ] Lieferanten-EK-Freigabe praktisch mit realem Lieferanten prüfen.
+- [ ] Z-Sätze im realen Paket identifizieren.
+- [ ] Falls Z-Sätze/NE-Metall preiswirksam benötigt werden: fachliche Regel dokumentieren und umsetzen.
 
 ## E. Einkauf und Lager
 
@@ -56,8 +58,8 @@ Legende:
 - [x] Optionale Positionen werden nicht automatisch disponiert.
 - [x] Wareneingang erzeugt genau einen Lagerzugang.
 - [x] Reservierung/Freigabe/Entnahme automatisiert geprüft.
-- [x] Bestands- und Reservierungslogik automatisiert geprüft.
-- [x] Historische/gewichtete Lagerbewertung im Test geprüft.
+- [x] Reservierter Bestand kann nicht ungewollt entnommen werden.
+- [x] Historische Lagerbewertung automatisiert geprüft.
 - [ ] Lageranfangsbestände je Produkt festlegen/importieren.
 - [ ] Anfangsbewertung der Lagerbestände fachlich freigeben.
 
@@ -66,21 +68,21 @@ Legende:
 - [ ] Reale Mitarbeiterrollen festlegen.
 - [ ] Gruppe `SAB-P Mitarbeiter` realen Benutzern zuweisen.
 - [x] Record Rules: Mitarbeiter sieht nur eigene/freie Arbeit.
-- [x] Automatischer Test: freie Arbeit kann übernommen werden.
-- [x] Start funktioniert im Workflow-Test.
-- [x] Pause/Fortsetzen funktioniert im Workflow-Test.
-- [x] Fertigmeldung funktioniert im Workflow-Test.
-- [x] Zeitbuchung ist technisch integriert und getestet.
-- [x] Fahrtzeit ist als eigene Tätigkeit vorgesehen.
-- [x] Foto-/Rückmeldung ist technisch getestet.
-- [x] Materialbedarfsmeldung ist technisch geprüft.
-- [x] Bestätigte Zeitbuchungen sind geschützt.
-- [x] Abgeschlossene Fertigungsstände sind gegen unzulässige Änderungen geschützt.
-- [ ] Smartphone- und Tabletansicht praktisch mit realen Geräten testen.
+- [x] Übernehmen automatisiert geprüft.
+- [x] Start automatisiert geprüft.
+- [x] Pause/Fortsetzen automatisiert geprüft.
+- [x] Fertigmeldung automatisiert geprüft.
+- [x] Zeitbuchung automatisiert geprüft.
+- [x] Fahrtzeit ist als Tätigkeitsart vorhanden.
+- [x] Foto-/Rückmeldung technisch geprüft.
+- [x] Materialbedarfsmeldung technisch geprüft.
+- [x] Gebuchte Zeiten sind geschützt.
+- [x] Abgeschlossene Fertigungsaufträge sind geschützt.
+- [ ] Smartphone- und Tabletansicht praktisch testen.
 
 ## G. Dokumente
 
-- [ ] Dokumentarten fachlich auf Vollständigkeit für SAB-P prüfen.
+- [ ] Dokumentarten fachlich vollständig bestätigen.
 - [ ] Pflichtdokumente je Projektstatus festlegen.
 - [x] Interne Dokumentfreigabe technisch geprüft.
 - [x] Revision erzeugt neuen Stand und erhält Historie.
@@ -90,59 +92,43 @@ Legende:
 
 ## H. Kundenportal
 
-- [ ] Portalzugang für realen Testkunden A anlegen.
-- [ ] Portalzugang für realen Testkunden B anlegen.
-- [x] Automatischer Test: Kunde A sieht nur Inhalte von Kunde A.
-- [x] Serverseitige Prüfung verhindert Zugriff auf fremde Projekte.
-- [x] Serverseitige Prüfung verhindert fremden Dokumentzugriff.
-- [x] Serverseitige Prüfung verhindert fremden Fotozugriff.
+- [ ] Portalzugang für realen Testkunde A anlegen.
+- [ ] Portalzugang für realen Testkunde B anlegen.
+- [x] Automatisierter Kunde-A/Kunde-B-Datentrennungstest vorhanden.
+- [x] Fremde Projekt-/Dokument-/Fotozugriffe werden serverseitig geprüft.
 - [x] Nur freigegebener Kundenstatus wird bereitgestellt.
 - [x] Nur freigegebene Dokumente werden bereitgestellt.
-- [x] Nur intern bearbeitete und anschließend freigegebene Fotos werden bereitgestellt.
-- [x] Kundenfreigabe ist von Mitarbeiter- und Projektleiterrechten getrennt.
-- [ ] Portal mit zwei echten Portalbenutzern praktisch aus Kundensicht testen.
-- [ ] Smartphone-/Tabletansicht des Portals praktisch testen.
+- [x] Nur intern bearbeitete und freigegebene Fotos werden bereitgestellt.
+- [x] Interne Kalkulations-/EK-/Margendaten werden vom Portal nicht bereitgestellt.
+- [ ] Browser-/Smartphone-/Tabletansicht praktisch mit zwei realen Portalkonten testen.
 
 ## I. Nachkalkulation / Reporting
 
-- [x] Automatischer Test: bestätigte Ist-Stunden fließen in Projekt/Nachkalkulation ein.
-- [x] Ist-Lohnkostenlogik technisch vorhanden und im End-to-End-Prozess enthalten.
-- [x] Materialentnahmen sind mit Lagerbewegungen gekoppelt.
-- [x] Historische Materialbewertung technisch getestet.
-- [ ] Deckungsbeitrag mit realem Musterprojekt gegenprüfen.
+- [x] Ist-Stunden aus bestätigten Zeitbuchungen technisch geprüft.
+- [x] Ist-Lohnkosten technisch berechnet.
+- [x] Materialentnahmen mit Lagerbewegungen verknüpft.
+- [x] Historische Materialbewertung technisch geprüft.
+- [ ] Deckungsbeitrag mit realem Musterprojekt fachlich gegenprüfen.
 - [ ] Management-Grenzwerte für positiv/kritisch/negativ fachlich festlegen.
-- [ ] Listen-, Pivot- und Diagrammansicht praktisch im Browser prüfen.
+- [ ] Listen-, Pivot- und Diagrammansicht praktisch prüfen.
 
 ## J. End-to-End-Praxistest
 
-Automatisiert nachgewiesen:
-
-- [x] Projekt anlegen und nummerieren.
-- [x] Angebot erstellen und kalkulieren.
-- [x] Auftrag bestätigen.
-- [x] Stückliste erzeugen/freigeben.
-- [x] Einkaufsbedarf erzeugen.
-- [x] Wareneingang/Lager buchen.
-- [x] Fertigungsauftrag erzeugen.
-- [x] Fertigungs-/Zeitprozess integrieren.
-- [x] Kundenstatus integrieren.
-- [x] Nachkalkulationswerte erzeugen.
-
-Noch als echter Praxistest:
-
-- [ ] Ein vollständig realistisches SAB-P Kundenprojekt manuell durchspielen.
-- [ ] Fertigung auf Smartphone/Tablet rückmelden.
-- [ ] Reale Zeiten/Fotos/Materialmeldungen erfassen.
-- [ ] Reale Projektdokumente freigeben.
-- [ ] Kundenportal aus zwei realen Kundenzugängen prüfen.
-- [ ] Nachkalkulation gegen Alt-/Sollwerte fachlich abnehmen.
+- [x] Automatisierter End-to-End-Prozess vorhanden und im letzten Green Build bestanden.
+- [ ] Zusätzlich echtes oder vollständig realistisches SAB-P Projekt praktisch durchspielen.
+- [ ] Angebot/Kalkulation gegen bekannte Altwerte prüfen.
+- [ ] Einkauf/Lager mit realen Artikeln prüfen.
+- [ ] Fertigung mobil praktisch rückmelden.
+- [ ] Dokumente/Kundenstatus praktisch freigeben.
+- [ ] Kundenportal aus realer Kundensicht prüfen.
+- [ ] Nachkalkulation gegen reale Erwartungswerte prüfen.
 
 ## K. Merge / Go-live
 
-- [ ] Handbuch nach Abschluss der realen Praxistests final gegen den getesteten Softwarestand abgleichen.
+- [ ] Handbuch nach praktischem UI-Test final gegen tatsächliche Bezeichnungen prüfen.
 - [ ] Produktivbackup vorhanden.
-- [ ] Verantwortliche für Rollback benennen.
-- [ ] Branch-Abnahme dokumentieren.
+- [ ] Verantwortliche für Rollback benannt.
+- [ ] Branch-Abnahme dokumentiert.
 - [ ] Erst danach Merge von `agent/leitfaden-gesamtstand` nach `main`.
 - [ ] Produktivupgrade kontrolliert ausführen.
-- [ ] Smoke-Test nach Upgrade: Projekt, A26-Projektnummer, Angebot, Mitarbeiteransicht, Portal, Dokumentdownload.
+- [ ] Smoke-Test nach Upgrade: Projekt/A26-Nummer, Angebot, Mitarbeiteransicht, Portal, Dokumentdownload.
