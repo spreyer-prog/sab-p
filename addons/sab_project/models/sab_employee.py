@@ -23,10 +23,12 @@ class SabEmployeeProfile(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
     name = fields.Char(string="Name", required=True, tracking=True)
-    login = fields.Char(string="Login", required=True, tracking=True, help="Anmeldename für den späteren Odoo-Zugang.")
+    login = fields.Char(string="Login", required=True, tracking=True, help="Anmeldename für den Odoo-Zugang.")
     email = fields.Char(string="E-Mail", tracking=True)
     active = fields.Boolean(string="Aktiv", default=True, tracking=True)
     user_id = fields.Many2one(comodel_name="res.users", string="Odoo-Benutzer", readonly=True, copy=False, ondelete="restrict", tracking=True)
+    user_state = fields.Selection(related="user_id.state", string="Zugangsstatus", readonly=True)
+    last_login = fields.Datetime(related="user_id.login_date", string="Letzte Anmeldung", readonly=True)
     work_area_ids = fields.Many2many(comodel_name="sab.work.area", relation="sab_employee_work_area_rel", column1="employee_id", column2="work_area_id", string="Arbeitsbereiche", tracking=True)
     mobile_access = fields.Boolean(string="Mitarbeiter-App", default=True, tracking=True)
     customer_release_access = fields.Boolean(string="Kundenfreigaben", default=False, tracking=True)
@@ -47,11 +49,7 @@ class SabEmployeeProfile(models.Model):
         release_group = self.env.ref("sab_project.group_sab_customer_release")
         manager_group = self.env.ref("project.group_project_manager")
         commands = []
-        desired = {
-            employee_group: self.mobile_access,
-            release_group: self.customer_release_access,
-            manager_group: self.project_manager_access,
-        }
+        desired = {employee_group: self.mobile_access, release_group: self.customer_release_access, manager_group: self.project_manager_access}
         for group, enabled in desired.items():
             if enabled and group not in user.group_ids:
                 commands.append(Command.link(group.id))
@@ -73,7 +71,9 @@ class SabEmployeeProfile(models.Model):
                     raise ValidationError(_("Der Login ist bereits einem anderen SAB-P Mitarbeiter zugeordnet."))
                 user = existing
             else:
-                user = self.env["res.users"].sudo().create({
+                # Einladung wird bewusst separat ausgelöst, damit das Anlegen eines
+                # Mitarbeiterstamms nicht ungefragt eine E-Mail verschickt.
+                user = self.env["res.users"].sudo().with_context(no_reset_password=True).create({
                     "name": self.name,
                     "login": self.login,
                     "email": self.email or False,
@@ -82,17 +82,21 @@ class SabEmployeeProfile(models.Model):
                 })
             self.user_id = user
 
-        values = {
-            "name": self.name,
-            "login": self.login,
-            "email": self.email or False,
-            "active": self.active,
-        }
+        values = {"name": self.name, "login": self.login, "email": self.email or False, "active": self.active}
         commands = self._desired_group_commands(user)
         if commands:
             values["group_ids"] = commands
         user.sudo().write(values)
         return True
+
+    def action_send_invitation(self):
+        self.ensure_one()
+        if not self.user_id:
+            self.action_create_or_update_user()
+        if not self.email:
+            raise ValidationError(_("Für die Einladung muss beim Mitarbeiter eine E-Mail-Adresse hinterlegt sein."))
+        self.action_create_or_update_user()
+        return self.user_id.sudo().with_context(create_user=True).action_reset_password()
 
     def action_apply_permissions(self):
         for record in self:
