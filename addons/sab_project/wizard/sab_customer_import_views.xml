@@ -13,6 +13,7 @@
                         <field name="create_contacts"/>
                         <field name="create_invoice_addresses"/>
                         <field name="create_delivery_addresses"/>
+                        <field name="import_bank_data"/>
                     </group>
                     <group string="Ergebnis" invisible="not result_text">
                         <field name="result_text" readonly="1" nolabel="1"/>
@@ -25,11 +26,26 @@
             </form>
         </field>
     </record>
+
     <record id="action_sab_customer_import" model="ir.actions.act_window">
         <field name="name">Kundenstamm importieren</field>
         <field name="res_model">sab.customer.import</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
+
+    <record id="view_sab_partner_list_customer_import" model="ir.ui.view">
+        <field name="name">res.partner.list.sab.customer.import</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="%(action_sab_customer_import)d" type="action" string="Kunden importieren" class="btn-primary" display="always" groups="project.group_project_manager"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+
     <menuitem id="sab_customer_import_menu" name="Kunden importieren" parent="sab_project_configuration_menu" action="action_sab_customer_import" sequence="35" groups="project.group_project_manager"/>
 </odoo>
