@@ -63,23 +63,11 @@ class SabProjectDocument(models.Model):
     released_at = fields.Datetime(string="Freigegeben am", readonly=True)
     released_by_id = fields.Many2one(comodel_name="res.users", string="Freigegeben von", readonly=True)
 
-    customer_visible = fields.Boolean(
-        string="Für Kundenportal freigegeben",
-        default=False,
-        copy=False,
-        tracking=True,
-    )
-    customer_title = fields.Char(
-        string="Bezeichnung im Kundenportal",
-        help="Optional. Wenn leer, wird die Dokumentbezeichnung verwendet.",
-    )
+    customer_visible = fields.Boolean(string="Für Kundenportal freigegeben", default=False, copy=False, tracking=True)
+    customer_title = fields.Char(string="Bezeichnung im Kundenportal", help="Optional. Wenn leer, wird die Dokumentbezeichnung verwendet.")
     customer_note = fields.Text(string="Hinweis für Kunden")
     customer_released_at = fields.Datetime(string="Kundenfreigabe am", readonly=True)
-    customer_released_by_id = fields.Many2one(
-        comodel_name="res.users",
-        string="Kundenfreigabe von",
-        readonly=True,
-    )
+    customer_released_by_id = fields.Many2one(comodel_name="res.users", string="Kundenfreigabe von", readonly=True)
 
     def action_release(self):
         for record in self:
@@ -87,11 +75,7 @@ class SabProjectDocument(models.Model):
                 continue
             if not record.file_data:
                 raise ValidationError(_("Ein Dokument ohne Datei kann nicht freigegeben werden."))
-            record.write({
-                "state": "released",
-                "released_at": fields.Datetime.now(),
-                "released_by_id": self.env.user.id,
-            })
+            record.write({"state": "released", "released_at": fields.Datetime.now(), "released_by_id": self.env.user.id})
         return True
 
     def action_release_to_customer(self):
@@ -100,11 +84,7 @@ class SabProjectDocument(models.Model):
                 raise ValidationError(_("Nur intern freigegebene Dokumente dürfen für Kunden freigegeben werden."))
             if not record.project_id.partner_id:
                 raise ValidationError(_("Dem Projekt muss vor der Kundenfreigabe ein Kunde zugeordnet sein."))
-            record.write({
-                "customer_visible": True,
-                "customer_released_at": fields.Datetime.now(),
-                "customer_released_by_id": self.env.user.id,
-            })
+            record.write({"customer_visible": True, "customer_released_at": fields.Datetime.now(), "customer_released_by_id": self.env.user.id})
         return True
 
     def action_withdraw_customer_release(self):
@@ -126,21 +106,17 @@ class SabProjectDocument(models.Model):
             "customer_released_by_id": False,
         })
         self.write({"state": "obsolete", "customer_visible": False})
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Dokumentrevision"),
-            "res_model": "sab.project.document",
-            "res_id": revision.id,
-            "view_mode": "form",
-            "target": "current",
-        }
+        return {"type": "ir.actions.act_window", "name": _("Dokumentrevision"), "res_model": "sab.project.document", "res_id": revision.id, "view_mode": "form", "target": "current"}
 
     def write(self, vals):
+        vals = dict(vals)
         protected = {"project_id", "document_type", "version", "file_data", "file_name"}
         if any(record.state in ("released", "obsolete") for record in self) and protected.intersection(vals):
             raise ValidationError(_("Freigegebene oder überholte Dokumentstände dürfen nicht verändert werden. Erstellen Sie eine Revision."))
         if vals.get("customer_visible") and any(record.state != "released" for record in self):
             raise ValidationError(_("Nur intern freigegebene Dokumente dürfen im Kundenportal sichtbar sein."))
+        if {"customer_title", "customer_note"}.intersection(vals) and "customer_visible" not in vals:
+            vals["customer_visible"] = False
         return super().write(vals)
 
     def unlink(self):
