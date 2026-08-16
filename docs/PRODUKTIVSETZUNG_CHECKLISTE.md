@@ -16,6 +16,7 @@ Legende:
 - [x] Im zuletzt vollständig geprüften Buildlog keine SAB-P bezogenen Warnings festgestellt.
 - [x] Automatisierter End-to-End-Test vorhanden; aktueller Stand bindet einen echten aktiven SAB-P Mitarbeiterzugang und Arbeitsbereiche ein.
 - [x] Keine ungewollte Änderung an `main`.
+- [x] Stabiler Code-Referenzpunkt vor V1-Merge dokumentiert: `main` Commit `28056e70766fdbb9072b23b2a9679dcdb307a902`; Rollback-Vorgehen in `docs/ROLLBACK_PLAN.md` festgehalten.
 - [ ] Datenbankbackup unmittelbar vor Produktivupgrade vorhanden.
 - [ ] Rollback auf letzten stabilen `main`-Stand organisatorisch und technisch praktisch verifizieren.
 
@@ -129,6 +130,7 @@ Legende:
 - [x] Ist-Lohnkosten technisch berechnet.
 - [x] Materialentnahmen mit Lagerbewegungen verknüpft.
 - [x] Historische Materialbewertung technisch geprüft.
+- [x] Listen-, Pivot- und Diagrammansicht technisch vorhanden; UI-Vertragstest schützt zentrale Kennzahlen und View-Modi.
 - [ ] Deckungsbeitrag mit realem Musterprojekt fachlich gegenprüfen.
 - [ ] Management-Grenzwerte für positiv/kritisch/negativ fachlich festlegen.
 - [ ] Listen-, Pivot- und Diagrammansicht praktisch prüfen.
@@ -150,7 +152,8 @@ Legende:
 - [ ] Handbuch nach praktischem UI-Test final gegen tatsächliche Bezeichnungen prüfen.
 - [ ] Produktivbackup vorhanden.
 - [ ] Verantwortliche für Rollback benannt.
-- [ ] Branch-Abnahme dokumentiert.
+- [x] Branch-Abnahme technisch dokumentiert in `docs/BRANCH_ABNAHME.md`.
+- [x] Rollback-Referenz und Wiederherstellungsablauf dokumentiert in `docs/ROLLBACK_PLAN.md`; praktische Wiederherstellung bleibt offen.
 - [ ] Erst danach Merge von `agent/leitfaden-gesamtstand` nach `main`.
 - [ ] Produktivupgrade kontrolliert ausführen.
 - [ ] Smoke-Test nach Upgrade: Projekt/A26-Nummer, Angebot, Mitarbeiterverwaltung, Mitarbeiter-App, Portal, Dokumentdownload.
