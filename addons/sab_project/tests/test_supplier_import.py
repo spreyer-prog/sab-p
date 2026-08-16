@@ -57,7 +57,8 @@ class TestSabSupplierImport(TransactionCase):
         self.assertEqual(suppliers.partner_id.city, "Leverkusen")
 
     def test_supplier_list_has_visible_import_button(self):
-        view = self.env.ref("sab_project.view_sab_supplier_tree_import_button")
+        # Der Import-Button ist direkt Bestandteil der produktiven Lieferantenliste.
+        view = self.env.ref("sab_project.view_sab_supplier_tree")
         arch = etree.fromstring(view.arch_db.encode("utf-8"))
         buttons = arch.xpath("//header/button[@string='Lieferanten importieren']")
         self.assertEqual(len(buttons), 1)
