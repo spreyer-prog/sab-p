@@ -9,6 +9,7 @@ access_sab_service_type_manager,sab.service.type manager,model_sab_service_type,
 access_sab_work_area_user,sab.work.area user,model_sab_work_area,base.group_user,1,0,0,0
 access_sab_work_area_manager,sab.work.area manager,model_sab_work_area,project.group_project_manager,1,1,1,1
 access_sab_employee_profile_manager,sab.employee.profile manager,model_sab_employee_profile,project.group_project_manager,1,1,1,1
+access_sab_employee_profile_hr_read,sab.employee.profile hr read,model_sab_employee_profile,sab_project.group_sab_confidential_hr,1,0,0,0
 access_sab_employee_confidential_note_hr,sab.employee.confidential.note hr,model_sab_employee_confidential_note,sab_project.group_sab_confidential_hr,1,1,1,1
 access_sab_calculation_item_user,sab.calculation.item user,model_sab_calculation_item,base.group_user,1,1,1,0
 access_sab_calculation_item_line_user,sab.calculation.item.line user,model_sab_calculation_item_line,base.group_user,1,1,1,1
