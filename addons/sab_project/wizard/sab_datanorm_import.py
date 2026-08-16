@@ -22,10 +22,7 @@ class SabDatanormImport(models.TransientModel):
         required=True,
         help="Bezugsquelle, unter der die DATANORM-Artikel geführt werden.",
     )
-    create_missing_products = fields.Boolean(
-        string="Fehlende Produkte anlegen",
-        default=True,
-    )
+    create_missing_products = fields.Boolean(string="Fehlende Produkte anlegen", default=True)
     result_text = fields.Text(string="Importprotokoll", readonly=True)
 
     MAX_UNCOMPRESSED_BYTES = 150 * 1024 * 1024
@@ -41,26 +38,13 @@ class SabDatanormImport(models.TransientModel):
 
     @classmethod
     def _select_zip_member(cls, archive):
-        candidates = [
-            info
-            for info in archive.infolist()
-            if not info.is_dir()
-            and info.filename.lower().endswith((".001", ".dat", ".txt"))
-        ]
+        candidates = [info for info in archive.infolist() if not info.is_dir() and info.filename.lower().endswith((".001", ".dat", ".txt"))]
         if not candidates:
             raise UserError("Das ZIP enthält keine unterstützte DATANORM-Datei.")
-
-        candidates.sort(
-            key=lambda info: (
-                "kurztextinkltyp" not in info.filename.lower(),
-                info.filename.lower(),
-            )
-        )
+        candidates.sort(key=lambda info: ("kurztextinkltyp" not in info.filename.lower(), info.filename.lower()))
         selected = candidates[0]
         if selected.file_size > cls.MAX_UNCOMPRESSED_BYTES:
-            raise UserError(
-                "Die entpackte DATANORM-Datei ist größer als 150 MB und wird aus Sicherheitsgründen nicht verarbeitet."
-            )
+            raise UserError("Die entpackte DATANORM-Datei ist größer als 150 MB und wird aus Sicherheitsgründen nicht verarbeitet.")
         return selected
 
     def _read_payload(self):
@@ -68,17 +52,12 @@ class SabDatanormImport(models.TransientModel):
         raw = base64.b64decode(self.file_data or b"")
         if not raw:
             raise UserError("Es wurde keine Datei hochgeladen.")
-
         if zipfile.is_zipfile(io.BytesIO(raw)):
             with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                 member = self._select_zip_member(archive)
-                payload = archive.read(member)
-                return self._decode_bytes(payload), member.filename
-
+                return self._decode_bytes(archive.read(member)), member.filename
         if len(raw) > self.MAX_UNCOMPRESSED_BYTES:
-            raise UserError(
-                "Die DATANORM-Datei ist größer als 150 MB und wird aus Sicherheitsgründen nicht verarbeitet."
-            )
+            raise UserError("Die DATANORM-Datei ist größer als 150 MB und wird aus Sicherheitsgründen nicht verarbeitet.")
         return self._decode_bytes(raw), self.file_name or "DATANORM-Datei"
 
     @staticmethod
@@ -92,15 +71,10 @@ class SabDatanormImport(models.TransientModel):
 
     @staticmethod
     def _unit_from_datanorm(value):
-        return {
-            "PCE": "pcs",
-            "MTR": "m",
-            "KGM": "kg",
-        }.get((value or "").strip().upper(), "other")
+        return {"PCE": "pcs", "MTR": "m", "KGM": "kg"}.get((value or "").strip().upper(), "other")
 
     @staticmethod
     def _space_units_from_text(*values):
-        """Liest Angaben wie '1 PLE' oder '2,5 PLE' aus DATANORM-Texten."""
         text = " ".join(value or "" for value in values)
         match = re.search(r"(?<!\d)(\d+(?:[,.]\d+)?)\s*PLE\b", text, re.IGNORECASE)
         if not match:
@@ -120,7 +94,6 @@ class SabDatanormImport(models.TransientModel):
 
     @staticmethod
     def _needs_write(record, vals):
-        """Vergleicht ORM-Werte typgerecht und verhindert unnötige Writes."""
         for field_name, value in vals.items():
             field = record._fields[field_name]
             current = record[field_name]
@@ -148,34 +121,19 @@ class SabDatanormImport(models.TransientModel):
             try:
                 source_date = datetime.strptime(header[3], "%Y%m%d").date()
             except ValueError:
-                source_date = False
+                pass
 
         record_counts = self._record_counts(lines)
-
         Manufacturer = self.env["sab.manufacturer"]
         Product = self.env["sab.product"]
         SupplierProduct = self.env["sab.supplier.product"]
-
-        manufacturer = Manufacturer.search(
-            [("name", "=ilike", manufacturer_name)], limit=1
-        )
+        manufacturer = Manufacturer.search([("name", "=ilike", manufacturer_name)], limit=1)
         if not manufacturer:
             manufacturer = Manufacturer.create({"name": manufacturer_name})
 
-        product_map = {
-            record.manufacturer_article_number: record
-            for record in Product.search([
-                ("manufacturer_id", "=", manufacturer.id),
-                ("manufacturer_article_number", "!=", False),
-            ])
-        }
-        supplier_map = {
-            record.supplier_article_number: record
-            for record in SupplierProduct.search([
-                ("supplier_id", "=", self.supplier_id.id),
-                ("supplier_article_number", "!=", False),
-            ])
-        }
+        product_map = {r.manufacturer_article_number: r for r in Product.search([("manufacturer_id", "=", manufacturer.id), ("manufacturer_article_number", "!=", False)])}
+        supplier_map = {r.supplier_article_number: r for r in SupplierProduct.search([("supplier_id", "=", self.supplier_id.id), ("supplier_article_number", "!=", False)])}
+        use_datanorm_price = bool(self.supplier_id.datanorm_price_as_purchase_price)
 
         created_products = updated_products = unchanged_products = 0
         created_supplier = updated_supplier = unchanged_supplier = 0
@@ -184,24 +142,19 @@ class SabDatanormImport(models.TransientModel):
         for raw_line in lines[1:]:
             if not raw_line.startswith("A;"):
                 continue
-
+            parts = raw_line.split(";")
+            if len(parts) < 21:
+                skipped += 1
+                continue
             try:
-                parts = raw_line.split(";")
-                if len(parts) < 21:
-                    skipped += 1
-                    continue
-
                 article_number = parts[2].strip()
-                short_text = " ".join(
-                    value.strip() for value in parts[3:5] if value.strip()
-                ).strip()
+                short_text = " ".join(value.strip() for value in parts[3:5] if value.strip()).strip()
                 unit = parts[5].strip()
                 datanorm_price = self._parse_price(parts[8].strip())
                 datanorm_price_code = parts[9].strip()
                 type_name = parts[12].strip()
                 manufacturer_article = parts[16].strip() or article_number
                 ean = parts[18].strip()
-
                 if not manufacturer_article or not article_number:
                     skipped += 1
                     continue
@@ -213,11 +166,8 @@ class SabDatanormImport(models.TransientModel):
                     "datanorm_number": article_number,
                     "name": short_text or type_name or manufacturer_article,
                 }
-
                 if product:
                     if self._needs_write(product, vals_product):
-                        # Technische Zeiten und Platzeinheiten bestehender SAB-P
-                        # Produkte bleiben unangetastet.
                         product.write(vals_product)
                         updated_products += 1
                     else:
@@ -247,10 +197,7 @@ class SabDatanormImport(models.TransientModel):
                     "datanorm_type_name": type_name,
                     "ean": ean,
                 }
-
-                # Nur nach ausdrücklicher Lieferantenfreigabe beeinflusst der
-                # DATANORM-Preis den kalkulationswirksamen Einkaufspreis.
-                if self.supplier_id.datanorm_price_as_purchase_price:
+                if use_datanorm_price:
                     vals_supplier["purchase_price"] = datanorm_price
 
                 if supplier_product:
@@ -260,44 +207,23 @@ class SabDatanormImport(models.TransientModel):
                     else:
                         unchanged_supplier += 1
                 else:
-                    # Bei neuen Datensätzen den EK explizit neutral halten,
-                    # solange die DATANORM-Preisübernahme nicht freigegeben ist.
-                    vals_supplier.setdefault("purchase_price", 0.0)
+                    # Bei Neuanlage ist der EK immer eindeutig: DATANORM-Preis nur
+                    # bei aktivierter Freigabe, ansonsten exakt 0,00 EUR.
+                    vals_supplier["purchase_price"] = datanorm_price if use_datanorm_price else 0.0
                     supplier_product = SupplierProduct.create(vals_supplier)
                     supplier_map[article_number] = supplier_product
                     created_supplier += 1
-
-            except Exception:
+            except (UserError, ValueError, TypeError, IndexError):
                 errors += 1
 
         z_count = record_counts.get("Z", 0)
-        price_mode = (
-            "JA – DATANORM-Preis wird als EK übernommen"
-            if self.supplier_id.datanorm_price_as_purchase_price
-            else "NEIN – DATANORM-Preis wird nur als Quelldatum gespeichert"
-        )
-
+        price_mode = "JA – DATANORM-Preis wird als EK übernommen" if use_datanorm_price else "NEIN – DATANORM-Preis wird nur als Quelldatum gespeichert"
         self.result_text = (
-            f"DATANORM 5: {manufacturer_name}\n"
-            f"Quelle: {source_file_name}\n"
-            f"Datenstand: {source_date or '-'}\n"
-            f"Preisübernahme in EK: {price_mode}\n"
-            f"A-Artikelsätze erkannt: {record_counts.get('A', 0)}\n"
+            f"DATANORM 5: {manufacturer_name}\nQuelle: {source_file_name}\nDatenstand: {source_date or '-'}\n"
+            f"Preisübernahme in EK: {price_mode}\nA-Artikelsätze erkannt: {record_counts.get('A', 0)}\n"
             f"Z-Preis-/Zuschlagssätze erkannt: {z_count} (noch nicht preiswirksam importiert)\n\n"
-            f"Produkte neu: {created_products}\n"
-            f"Produkte aktualisiert: {updated_products}\n"
-            f"Produkte unverändert: {unchanged_products}\n"
-            f"Lieferantenartikel neu: {created_supplier}\n"
-            f"Lieferantenartikel aktualisiert: {updated_supplier}\n"
-            f"Lieferantenartikel unverändert: {unchanged_supplier}\n"
-            f"Übersprungen: {skipped}\n"
-            f"Fehler: {errors}"
+            f"Produkte neu: {created_products}\nProdukte aktualisiert: {updated_products}\nProdukte unverändert: {unchanged_products}\n"
+            f"Lieferantenartikel neu: {created_supplier}\nLieferantenartikel aktualisiert: {updated_supplier}\n"
+            f"Lieferantenartikel unverändert: {unchanged_supplier}\nÜbersprungen: {skipped}\nFehler: {errors}"
         )
-
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": self._name,
-            "res_id": self.id,
-            "view_mode": "form",
-            "target": "new",
-        }
+        return {"type": "ir.actions.act_window", "res_model": self._name, "res_id": self.id, "view_mode": "form", "target": "new"}
