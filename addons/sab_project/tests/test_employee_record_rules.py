@@ -45,3 +45,8 @@ class TestSabEmployeeRecordRules(TransactionCase):
         visible = self.env["sab.employee.feedback"].with_user(self.employee_a).search([("project_id", "=", self.project.id)])
         self.assertIn(self.feedback_a, visible)
         self.assertNotIn(self.feedback_b, visible)
+
+    def test_employee_does_not_receive_time_cost_fields(self):
+        fields = self.env["sab.time.entry"].with_user(self.employee_a).fields_get()
+        self.assertNotIn("hourly_cost", fields)
+        self.assertNotIn("cost_total", fields)
