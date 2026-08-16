@@ -32,11 +32,17 @@ class SabSupplierProduct(models.Model):
     datanorm_type_name = fields.Char(string="Herstellertyp", index=True)
     ean = fields.Char(string="EAN", index=True)
 
-    datanorm_price = fields.Float(
-        string="DATANORM-Preis",
+    list_price = fields.Float(
+        string="Listenpreis",
         digits=(16, 4),
         default=0.0,
-        help="Preiswert aus dem DATANORM-A-Satz, unabhängig von seiner kalkulatorischen Verwendung.",
+        help="Hersteller-/Lieferantenlistenpreis vor individuellen Rabatten.",
+    )
+    datanorm_price = fields.Float(
+        string="DATANORM-Rohpreis",
+        digits=(16, 4),
+        default=0.0,
+        help="Originaler Preiswert aus dem DATANORM-A-Satz. Er wird zusätzlich als Listenpreis gespeichert.",
     )
     datanorm_price_code = fields.Char(
         string="DATANORM-Preiskennzeichen",
@@ -44,9 +50,10 @@ class SabSupplierProduct(models.Model):
     )
 
     purchase_price = fields.Float(
-        string="Einkaufspreis",
+        string="Rabattbasis / EK vor Rabatt",
         digits=(16, 4),
         default=0.0,
+        help="Basis für die Rabattberechnung. Beim Rabattlistenimport wird hierfür standardmäßig der Listenpreis verwendet.",
     )
     discount_percent = fields.Float(
         string="Rabatt (%)",
