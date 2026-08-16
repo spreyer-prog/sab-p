@@ -42,10 +42,15 @@ class SabCustomerImport(models.TransientModel):
         reference = self._external_reference(row)
         vat = (row.get("USt-IdNr.") or "").strip()
         name = (row.get("Name/Firma") or "").strip()
+
+        # Eine vorhandene Kunden-/Debitorennummer ist die führende Identität.
+        # Wenn sie nicht gefunden wird, darf nicht über den Firmennamen auf einen
+        # anderen Debitor zusammengeführt werden. Gleiche Firmennamen mit
+        # unterschiedlichen Debitorenkonten müssen getrennte Kunden bleiben.
         if reference:
             partner = Partner.search([("ref", "=", reference), ("parent_id", "=", False)], limit=1)
-            if partner:
-                return partner
+            return partner
+
         if vat:
             partner = Partner.search([("vat", "=", vat), ("parent_id", "=", False)], limit=1)
             if partner:
