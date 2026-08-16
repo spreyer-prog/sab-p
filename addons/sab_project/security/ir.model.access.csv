@@ -8,6 +8,7 @@ access_sab_service_type_user,sab.service.type user,model_sab_service_type,base.g
 access_sab_service_type_manager,sab.service.type manager,model_sab_service_type,project.group_project_manager,1,1,1,1
 access_sab_work_area_user,sab.work.area user,model_sab_work_area,base.group_user,1,0,0,0
 access_sab_work_area_manager,sab.work.area manager,model_sab_work_area,project.group_project_manager,1,1,1,1
+access_sab_employee_profile_employee_read,sab.employee.profile employee read,model_sab_employee_profile,sab_project.group_sab_employee,1,0,0,0
 access_sab_employee_profile_manager,sab.employee.profile manager,model_sab_employee_profile,project.group_project_manager,1,1,1,1
 access_sab_employee_profile_hr_read,sab.employee.profile hr read,model_sab_employee_profile,sab_project.group_sab_confidential_hr,1,0,0,0
 access_sab_employee_confidential_note_hr,sab.employee.confidential.note hr,model_sab_employee_confidential_note,sab_project.group_sab_confidential_hr,1,1,1,1
@@ -22,14 +23,18 @@ access_sab_offer_calculation_line_user,sab.offer.calculation.line user,model_sab
 access_sab_offer_calculation_component_user,sab.offer.calculation.component user,model_sab_offer_calculation_component,base.group_user,1,1,1,1
 access_sab_project_bom_user,sab.project.bom user,model_sab_project_bom,base.group_user,1,1,1,1
 access_sab_project_bom_line_user,sab.project.bom.line user,model_sab_project_bom_line,base.group_user,1,1,1,1
-access_sab_production_order_user,sab.production.order user,model_sab_production_order,base.group_user,1,1,1,1
-access_sab_production_step_user,sab.production.step user,model_sab_production_step,base.group_user,1,1,1,1
+access_sab_production_order_employee,sab.production.order employee,model_sab_production_order,sab_project.group_sab_employee,1,0,0,0
+access_sab_production_order_manager,sab.production.order manager,model_sab_production_order,project.group_project_manager,1,1,1,1
+access_sab_production_step_employee,sab.production.step employee,model_sab_production_step,sab_project.group_sab_employee,1,1,0,0
+access_sab_production_step_manager,sab.production.step manager,model_sab_production_step,project.group_project_manager,1,1,1,1
 access_sab_purchase_requirement_user,sab.purchase.requirement user,model_sab_purchase_requirement,base.group_user,1,1,1,1
 access_sab_stock_movement_user,sab.stock.movement user,model_sab_stock_movement,base.group_user,1,1,1,0
 access_sab_project_document_user,sab.project.document user,model_sab_project_document,base.group_user,1,1,1,1
-access_sab_time_entry_user,sab.time.entry user,model_sab_time_entry,base.group_user,1,1,1,1
+access_sab_time_entry_employee,sab.time.entry employee,model_sab_time_entry,sab_project.group_sab_employee,1,1,1,0
+access_sab_time_entry_manager,sab.time.entry manager,model_sab_time_entry,project.group_project_manager,1,1,1,1
 access_sab_project_controlling_user,sab.project.controlling user,model_sab_project_controlling,base.group_user,1,1,1,1
-access_sab_employee_feedback_user,sab.employee.feedback user,model_sab_employee_feedback,base.group_user,1,1,1,0
+access_sab_employee_feedback_employee,sab.employee.feedback employee,model_sab_employee_feedback,sab_project.group_sab_employee,1,1,1,0
+access_sab_employee_feedback_manager,sab.employee.feedback manager,model_sab_employee_feedback,project.group_project_manager,1,1,1,1
 access_sab_customer_project_status_user,sab.customer.project.status user,model_sab_customer_project_status,base.group_user,1,1,1,1
 access_sab_calculation_change_log_user,sab.calculation.change.log user,model_sab_calculation_change_log,base.group_user,1,0,0,0
 access_sab_calculation_import,sab.calculation.import,model_sab_calculation_import,base.group_user,1,1,1,1
