@@ -64,11 +64,7 @@ class SabProductionOrder(models.Model):
                 commands = []
                 for sequence, name, work_area_xmlid in DEFAULT_PRODUCTION_STEPS:
                     work_area = self.env.ref(work_area_xmlid, raise_if_not_found=False)
-                    commands.append((0, 0, {
-                        "sequence": sequence,
-                        "name": name,
-                        "work_area_id": work_area.id if work_area else False,
-                    }))
+                    commands.append((0, 0, {"sequence": sequence, "name": name, "work_area_id": work_area.id if work_area else False}))
                 vals["step_ids"] = commands
             prepared.append(vals)
         return super().create(prepared)
@@ -131,7 +127,7 @@ class SabProductionStep(models.Model):
     @api.constrains("responsible_employee_id", "work_area_id")
     def _check_employee_qualification(self):
         for record in self:
-            employee = record.responsible_employee_id
+            employee = record.responsible_employee_id.sudo()
             if not employee:
                 continue
             if not employee.active or not employee.mobile_access or not employee.user_id or not employee.user_id.active:
@@ -142,12 +138,14 @@ class SabProductionStep(models.Model):
     @api.onchange("responsible_employee_id")
     def _onchange_responsible_employee_id(self):
         for record in self:
-            record.responsible_user_id = record.responsible_employee_id.user_id if record.responsible_employee_id else False
+            employee = record.responsible_employee_id.sudo()
+            record.responsible_user_id = employee.user_id if employee else False
 
     @api.onchange("work_area_id")
     def _onchange_work_area_id(self):
         for record in self:
-            if record.responsible_employee_id and record.work_area_id not in record.responsible_employee_id.work_area_ids:
+            employee = record.responsible_employee_id.sudo()
+            if employee and record.work_area_id not in employee.work_area_ids:
                 record.responsible_employee_id = False
                 record.responsible_user_id = False
 
@@ -173,11 +171,7 @@ class SabProductionStep(models.Model):
                 raise ValidationError(_("Fertigungsschritte benötigen eine freigegebene Stückliste."))
 
     def _employee_for_user(self, user):
-        return self.env["sab.employee.profile"].sudo().search([
-            ("user_id", "=", user.id),
-            ("active", "=", True),
-            ("mobile_access", "=", True),
-        ], limit=1)
+        return self.env["sab.employee.profile"].sudo().search([("user_id", "=", user.id), ("active", "=", True), ("mobile_access", "=", True)], limit=1)
 
     def _ensure_user_can_work(self):
         if self.env.user.has_group("project.group_project_manager"):
