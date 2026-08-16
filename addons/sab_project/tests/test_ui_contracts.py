@@ -59,3 +59,19 @@ class TestSabUiContracts(TransactionCase):
         self.assertIn("('state', '=', 'pending')", action.domain)
         self.assertNotIn("work_area_ids", action.domain)
         self.assertIn("nur freie arbeitsschritte", str(action.help).lower())
+
+    def test_controlling_action_exposes_list_pivot_graph_and_form(self):
+        action = self.env.ref("sab_project.action_sab_project_controlling")
+        self.assertEqual(action.res_model, "sab.project.controlling")
+        self.assertEqual(action.view_mode, "list,pivot,graph,form")
+
+        list_arch = etree.fromstring(self.env.ref("sab_project.view_sab_project_controlling_list").arch_db.encode("utf-8"))
+        pivot_arch = etree.fromstring(self.env.ref("sab_project.view_sab_project_controlling_pivot").arch_db.encode("utf-8"))
+        graph_arch = etree.fromstring(self.env.ref("sab_project.view_sab_project_controlling_graph").arch_db.encode("utf-8"))
+
+        self.assertTrue(list_arch.xpath("/list/field[@name='contribution_margin']"))
+        self.assertTrue(list_arch.xpath("/list/field[@name='contribution_margin_percent']"))
+        for measure in ("offer_amount", "actual_direct_cost", "contribution_margin", "actual_hours", "calculated_hours"):
+            self.assertTrue(pivot_arch.xpath(f"/pivot/field[@name='{measure}'][@type='measure']"))
+        for measure in ("offer_amount", "actual_direct_cost", "contribution_margin"):
+            self.assertTrue(graph_arch.xpath(f"/graph/field[@name='{measure}'][@type='measure']"))
