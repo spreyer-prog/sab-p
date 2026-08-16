@@ -11,3 +11,4 @@ from . import test_time_entry
 from . import test_employee_feedback
 from . import test_customer_status
 from . import test_security_permissions
+from . import test_end_to_end
