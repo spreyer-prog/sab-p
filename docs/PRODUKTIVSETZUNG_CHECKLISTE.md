@@ -9,7 +9,7 @@ Legende:
 ## A. Technische Abnahme
 
 - [x] Letzter vollständig geprüfter Odoo.sh Build des Branches `agent/leitfaden-gesamtstand` erfolgreich.
-- [ ] Neuester Härtungsstand nach Nummernkreis-Erweiterung erneut durch Odoo.sh grün bestätigen.
+- [ ] Neuester Härtungsstand erneut durch Odoo.sh grün bestätigen.
 - [ ] Modul `sab_project` auf einer bestehenden, produktionsnahen Datenbank explizit als Upgrade testen.
 - [x] Keine SAB-P Testfehler im letzten vollständig geprüften Green Build: 57 Tests, 0 Failures, 0 Errors.
 - [x] Im geprüften Build keine SAB-P bezogenen Warnings festgestellt.
@@ -29,7 +29,7 @@ Legende:
 - [x] Automatischer Test: neues Projekt erhält erwartete `Axx.xxxx` Nummer.
 - [x] Automatischer Test: erstes/zweites Angebot erhalten `-01`/`-02`.
 - [x] Automatischer Test vorhanden: Kalenderjahreswechsel führt zu getrenntem Jahreszähler und Reset `A26.000x` → `A27.0001`.
-- [x] Automatischer Test vorhanden: Präfix, 2-/4-stelliges Jahr, Trennzeichen, Projektstellen, Startnummer, Angebotstrennzeichen und Angebotsstellen sind konfigurierbar.
+- [x] Automatischer Test vorhanden: Präfix, Jahr, Trennzeichen, Stellen und Startnummer sind konfigurierbar.
 - [x] Projektnummer ist in der SAB-P Projektübersicht verpflichtend erste Spalte.
 - [x] Projektnummer ist zusätzlich in der normalen Odoo-Projektliste eingebunden.
 
@@ -40,7 +40,7 @@ Legende:
 - [ ] Musterprojekt aus Alt-Excel 1:1 in Odoo nachgerechnet.
 - [ ] Material-EK stimmt im realen Musterprojekt.
 - [ ] Mechanik-/Verdrahtungs-/Prüfzeiten stimmen im realen Musterprojekt.
-- [ ] Planungs-/Hilfsmaterial-/Zeit-/Schwierigkeits-/Verpackungs-/Skonto-/Marge-/Rabattfaktoren fachlich geprüft.
+- [ ] Kalkulationsfaktoren fachlich geprüft.
 - [ ] Kalkulatorischer Netto-Richtwert gegen Altsystem bewertet.
 - [x] Snapshot-Verhalten mit nachträglicher Stammdatenänderung automatisiert geprüft.
 
@@ -63,10 +63,19 @@ Legende:
 - [ ] Lageranfangsbestände je Produkt festlegen/importieren.
 - [ ] Anfangsbewertung der Lagerbestände fachlich freigeben.
 
-## F. Fertigung und Mitarbeiteroberfläche
+## F. Mitarbeiterverwaltung, Fertigung und Mitarbeiteroberfläche
 
-- [ ] Reale Mitarbeiterrollen festlegen.
-- [ ] Gruppe `SAB-P Mitarbeiter` realen Benutzern zuweisen.
+- [x] Eigene SAB-P Mitarbeiterverwaltung technisch angelegt.
+- [x] Mitarbeiterstammdaten enthalten Name, Login, E-Mail, Aktivstatus und verknüpften Odoo-Benutzer.
+- [x] Arbeitsbereiche als eigene Stammdaten angelegt, u. a. Mechanische Fertigung, Mechanischer Aufbau, Elektrische Verdrahtung, Prüfung, Endkontrolle und Service/Montage.
+- [x] Mitarbeiter können einem oder mehreren Arbeitsbereichen zugeordnet werden.
+- [x] Rollenfelder für Mitarbeiter-App, Projektleiter und Kundenfreigaben vorhanden.
+- [x] Odoo-Zugang kann aus dem SAB-P Mitarbeiterdatensatz angelegt bzw. aktualisiert werden.
+- [ ] Fertigungsschritte technisch auf passende Arbeitsbereiche/Mitarbeiter filtern und automatisiert testen.
+- [ ] Reale Mitarbeiter mit Namen/Login/E-Mail anlegen.
+- [ ] Reale Arbeitsbereiche je Mitarbeiter zuweisen.
+- [ ] Reale Rechteverteilung je Mitarbeiter festlegen.
+- [ ] Erstzugang/Passwort bzw. Einladung je realem Benutzer praktisch durchführen.
 - [x] Record Rules: Mitarbeiter sieht nur eigene/freie Arbeit.
 - [x] Übernehmen automatisiert geprüft.
 - [x] Start automatisiert geprüft.
