@@ -39,3 +39,26 @@ class ProjectProjectCustomerPortal(models.Model):
             "view_mode": "form",
             "target": "current",
         }
+
+    def write(self, vals):
+        old_partner_ids = {project.id: project.partner_id.id for project in self}
+        result = super().write(vals)
+
+        if "partner_id" in vals:
+            changed_projects = self.filtered(
+                lambda project: old_partner_ids.get(project.id) != project.partner_id.id
+            )
+            if changed_projects:
+                # Ein Kundenwechsel darf niemals bestehende Portal-Freigaben auf
+                # einen anderen Kunden übertragen. Freigaben werden deshalb
+                # automatisch zurückgezogen und müssen bewusst neu erteilt werden.
+                changed_projects.mapped("sab_customer_status_ids").write({"released": False})
+                self.env["sab.project.document"].search([
+                    ("project_id", "in", changed_projects.ids),
+                    ("customer_visible", "=", True),
+                ]).write({"customer_visible": False})
+                self.env["sab.employee.feedback"].search([
+                    ("project_id", "in", changed_projects.ids),
+                    ("customer_visible", "=", True),
+                ]).write({"customer_visible": False})
+        return result
