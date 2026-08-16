@@ -31,17 +31,4 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
-
-    <record id="view_sab_supplier_tree_import_button" model="ir.ui.view">
-        <field name="name">sab.supplier.tree.import.button</field>
-        <field name="model">sab.supplier</field>
-        <field name="inherit_id" ref="sab_project.view_sab_supplier_tree"/>
-        <field name="arch" type="xml">
-            <xpath expr="//list" position="inside">
-                <header>
-                    <button name="%(action_sab_supplier_import)d" type="action" string="Lieferanten importieren" class="btn-primary" display="always" groups="project.group_project_manager"/>
-                </header>
-            </xpath>
-        </field>
-    </record>
 </odoo>
