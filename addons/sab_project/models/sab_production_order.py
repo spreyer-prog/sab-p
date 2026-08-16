@@ -114,6 +114,8 @@ class SabProductionStep(models.Model):
 
     @api.constrains("responsible_employee_id", "work_area_id")
     def _check_employee_qualification(self):
+        if self.env.context.get("sab_legacy_migration"):
+            return
         for record in self:
             employee = record.responsible_employee_id.sudo()
             if not employee:
@@ -261,7 +263,7 @@ class SabProductionStep(models.Model):
         return True
 
     def write(self, vals):
-        if any(record.production_order_id.state in ("done", "cancel") for record in self):
+        if not self.env.context.get("sab_legacy_migration") and any(record.production_order_id.state in ("done", "cancel") for record in self):
             raise ValidationError(_("Fertigungsschritte eines abgeschlossenen oder stornierten Fertigungsauftrags sind gesperrt."))
         vals = dict(vals)
         if "responsible_employee_id" in vals:
