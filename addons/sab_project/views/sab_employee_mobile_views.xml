@@ -5,11 +5,12 @@
         <field name="model">sab.production.step</field>
         <field name="arch" type="xml">
             <kanban string="Meine Arbeit" default_group_by="state" class="o_kanban_mobile">
-                <field name="production_order_id"/><field name="project_id"/><field name="delivery_date"/><field name="name"/><field name="state"/><field name="responsible_user_id"/><field name="started_at"/><field name="paused_at"/>
+                <field name="production_order_id"/><field name="project_id"/><field name="delivery_date"/><field name="name"/><field name="work_area_id"/><field name="state"/><field name="responsible_user_id"/><field name="started_at"/><field name="paused_at"/>
                 <templates>
                     <t t-name="card">
                         <div class="oe_kanban_global_click">
                             <div class="fw-bold fs-5"><field name="name"/></div>
+                            <div t-if="record.work_area_id.raw_value"><strong>Arbeitsbereich:</strong> <field name="work_area_id"/></div>
                             <div class="mt-2"><strong>Projekt:</strong> <field name="project_id"/></div>
                             <div><strong>Auftrag:</strong> <field name="production_order_id"/></div>
                             <div t-if="record.delivery_date.raw_value"><strong>Liefertermin:</strong> <field name="delivery_date"/></div>
@@ -43,7 +44,7 @@
                     <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,paused,done"/>
                 </header>
                 <sheet>
-                    <group><field name="name" readonly="1"/><field name="project_id" readonly="1"/><field name="production_order_id" readonly="1"/><field name="delivery_date" readonly="1"/><field name="responsible_user_id" readonly="1"/><field name="started_at" readonly="1"/><field name="paused_at" readonly="1"/><field name="finished_at" readonly="1"/></group>
+                    <group><field name="name" readonly="1"/><field name="work_area_id" readonly="1"/><field name="project_id" readonly="1"/><field name="production_order_id" readonly="1"/><field name="delivery_date" readonly="1"/><field name="responsible_user_id" readonly="1"/><field name="started_at" readonly="1"/><field name="paused_at" readonly="1"/><field name="finished_at" readonly="1"/></group>
                     <group string="Kurznotiz"><field name="note" placeholder="Bemerkung zum Arbeitsschritt ..."/></group>
                 </sheet>
             </form>
