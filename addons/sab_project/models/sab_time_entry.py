@@ -10,19 +10,8 @@ class SabTimeEntry(models.Model):
 
     name = fields.Char(string="Tätigkeit", required=True, tracking=True)
     project_id = fields.Many2one(comodel_name="project.project", string="Projekt", required=True, ondelete="cascade", index=True, tracking=True)
-    production_step_id = fields.Many2one(
-        comodel_name="sab.production.step",
-        string="Fertigungsschritt",
-        ondelete="set null",
-        index=True,
-        tracking=True,
-    )
-    production_order_id = fields.Many2one(
-        related="production_step_id.production_order_id",
-        string="Fertigungsauftrag",
-        store=True,
-        readonly=True,
-    )
+    production_step_id = fields.Many2one(comodel_name="sab.production.step", string="Fertigungsschritt", ondelete="set null", index=True, tracking=True)
+    production_order_id = fields.Many2one(related="production_step_id.production_order_id", string="Fertigungsauftrag", store=True, readonly=True)
     user_id = fields.Many2one(comodel_name="res.users", string="Mitarbeiter", required=True, default=lambda self: self.env.user, index=True, tracking=True)
     work_date = fields.Date(string="Datum", required=True, default=fields.Date.context_today, index=True)
     activity_type = fields.Selection(
@@ -39,8 +28,21 @@ class SabTimeEntry(models.Model):
         string="Tätigkeitsart", required=True, default="service", index=True,
     )
     hours = fields.Float(string="Stunden", required=True, digits=(16, 2), tracking=True)
-    hourly_cost = fields.Float(string="Kostensatz / h", required=True, digits=(16, 2), default=lambda self: self._default_hourly_cost(), tracking=True)
-    cost_total = fields.Float(string="Kosten gesamt", compute="_compute_cost_total", store=True, digits=(16, 2))
+    hourly_cost = fields.Float(
+        string="Kostensatz / h",
+        required=True,
+        digits=(16, 2),
+        default=lambda self: self._default_hourly_cost(),
+        tracking=True,
+        groups="project.group_project_manager",
+    )
+    cost_total = fields.Float(
+        string="Kosten gesamt",
+        compute="_compute_cost_total",
+        store=True,
+        digits=(16, 2),
+        groups="project.group_project_manager",
+    )
     state = fields.Selection(selection=[("draft", "Entwurf"), ("confirmed", "Gebucht")], string="Status", required=True, default="draft", tracking=True, index=True)
     note = fields.Text(string="Bemerkung")
 
