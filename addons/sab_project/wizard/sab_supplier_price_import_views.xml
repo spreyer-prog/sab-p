@@ -12,7 +12,7 @@
                         <field name="file_data" filename="file_name"/>
                     </group>
                     <group string="Unterstützte Formate">
-                        <label string="CSV, XLSX oder ZIP mit CSV/XLSX. Erkannte Spalten: Artikelnummer, Listenpreis, Rabatt, Netto-EK und Platzeinheiten."/>
+                        <div class="o_form_label">CSV, XLSX oder ZIP mit CSV/XLSX. Erkannte Spalten: Artikelnummer, Listenpreis, Rabatt, Netto-EK und Platzeinheiten.</div>
                     </group>
                     <group string="Ergebnis" invisible="not result_text">
                         <field name="result_text" readonly="1" nolabel="1"/>
