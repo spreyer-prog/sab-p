@@ -8,6 +8,7 @@
             <list string="Lieferanten">
                 <field name="supplier_number"/>
                 <field name="name"/>
+                <field name="partner_id" optional="show"/>
                 <field name="datanorm_identifier"/>
                 <field name="datanorm_price_as_purchase_price" optional="show"/>
                 <field name="website"/>
@@ -22,25 +23,20 @@
         <field name="arch" type="xml">
             <form string="Lieferant">
                 <sheet>
-
                     <group string="Stammdaten" col="4">
                         <field name="supplier_number"/>
                         <field name="active"/>
                         <field name="name" colspan="4"/>
+                        <field name="partner_id"/>
                         <field name="website"/>
                     </group>
-
                     <group string="DATANORM" col="4">
                         <field name="datanorm_identifier"/>
                         <field name="datanorm_price_as_purchase_price"/>
                     </group>
-
                     <notebook>
-                        <page string="Notizen">
-                            <field name="note"/>
-                        </page>
+                        <page string="Notizen"><field name="note"/></page>
                     </notebook>
-
                 </sheet>
             </form>
         </field>
@@ -52,12 +48,6 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem
-        id="sab_supplier_menu"
-        name="Lieferanten"
-        parent="sab_calculation_root_menu"
-        action="action_sab_supplier"
-        sequence="40"
-    />
+    <menuitem id="sab_supplier_menu" name="Lieferanten" parent="sab_calculation_root_menu" action="action_sab_supplier" sequence="40"/>
 
 </odoo>
