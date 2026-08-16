@@ -25,17 +25,20 @@ class TestSabProductionWorkflow(TransactionCase):
         self.assertEqual(steps[5].work_area_id, self.env.ref("sab_project.sab_work_area_electrical"))
         self.assertEqual(steps[6].work_area_id, self.env.ref("sab_project.sab_work_area_testing"))
 
+    def _legacy_employee(self, suffix):
+        login = f"legacy.production.{suffix}@test.local"
+        user = self.env["res.users"].with_context(no_reset_password=True).create({"name": f"Alt Mitarbeiter {suffix}", "login": login})
+        employee = self.env["sab.employee.profile"].create({
+            "name": f"Alt Mitarbeiter {suffix}", "login": login, "user_id": user.id,
+            "work_area_ids": [(6, 0, [self.env.ref("sab_project.sab_work_area_mechanical_fabrication").id])],
+        })
+        return user, employee
+
     def test_legacy_step_migration_preserves_user_and_adds_profile_and_area(self):
         self.bom.state = "released"
         production = self.env["sab.production.order"].create({"name": "FA Altbestand", "bom_id": self.bom.id})
         step = production.step_ids.sorted("sequence")[0]
-        user = self.env["res.users"].with_context(no_reset_password=True).create({
-            "name": "Alt Mitarbeiter", "login": "legacy.production@test.local"
-        })
-        employee = self.env["sab.employee.profile"].create({
-            "name": "Alt Mitarbeiter", "login": "legacy.production@test.local", "user_id": user.id,
-            "work_area_ids": [(6, 0, [self.env.ref("sab_project.sab_work_area_mechanical_fabrication").id])],
-        })
+        user, employee = self._legacy_employee("open")
         self.env.cr.execute(
             "UPDATE sab_production_step SET work_area_id = NULL, responsible_employee_id = NULL, responsible_user_id = %s WHERE id = %s",
             [user.id, step.id],
@@ -44,7 +47,26 @@ class TestSabProductionWorkflow(TransactionCase):
         self.assertFalse(step.work_area_id)
         self.assertFalse(step.responsible_employee_id)
         self.assertEqual(step.responsible_user_id, user)
+        step.action_migrate_legacy_assignment()
+        self.assertEqual(step.work_area_id, self.env.ref("sab_project.sab_work_area_mechanical_fabrication"))
+        self.assertEqual(step.responsible_employee_id, employee)
+        self.assertEqual(step.responsible_user_id, user)
 
+    def test_legacy_step_migration_also_works_on_closed_production(self):
+        self.bom.state = "released"
+        production = self.env["sab.production.order"].create({"name": "FA Historisch", "bom_id": self.bom.id})
+        step = production.step_ids.sorted("sequence")[0]
+        user, employee = self._legacy_employee("closed")
+        self.env.cr.execute(
+            "UPDATE sab_production_step SET work_area_id = NULL, responsible_employee_id = NULL, responsible_user_id = %s WHERE id = %s",
+            [user.id, step.id],
+        )
+        self.env.cr.execute("UPDATE sab_production_order SET state = 'done' WHERE id = %s", [production.id])
+        production.invalidate_recordset(["state"])
+        step.invalidate_recordset(["work_area_id", "responsible_employee_id", "responsible_user_id"])
+        self.assertEqual(production.state, "done")
+        with self.assertRaises(ValidationError):
+            step.write({"note": "normal gesperrt"})
         step.action_migrate_legacy_assignment()
         self.assertEqual(step.work_area_id, self.env.ref("sab_project.sab_work_area_mechanical_fabrication"))
         self.assertEqual(step.responsible_employee_id, employee)
