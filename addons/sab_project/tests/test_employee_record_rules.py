@@ -6,10 +6,26 @@ class TestSabEmployeeRecordRules(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.employee_a = cls.env["res.users"].create({"name": "Mitarbeiter A", "login": "employee.a@test.local"})
-        cls.employee_b = cls.env["res.users"].create({"name": "Mitarbeiter B", "login": "employee.b@test.local"})
+        cls.employee_a = cls.env["res.users"].with_context(no_reset_password=True).create({"name": "Mitarbeiter A", "login": "employee.a@test.local"})
+        cls.employee_b = cls.env["res.users"].with_context(no_reset_password=True).create({"name": "Mitarbeiter B", "login": "employee.b@test.local"})
         cls.env.ref("base.group_user").write({"user_ids": [(4, cls.employee_a.id), (4, cls.employee_b.id)]})
         cls.env.ref("sab_project.group_sab_employee").write({"user_ids": [(4, cls.employee_a.id), (4, cls.employee_b.id)]})
+
+        cls.area_mechanical = cls.env.ref("sab_project.sab_work_area_mechanical_fabrication")
+        cls.area_mechanical_assembly = cls.env.ref("sab_project.sab_work_area_mechanical_assembly")
+        cls.area_device = cls.env.ref("sab_project.sab_work_area_device_assembly")
+        cls.profile_a = cls.env["sab.employee.profile"].create({
+            "name": "Mitarbeiter A",
+            "login": "employee.a@test.local",
+            "user_id": cls.employee_a.id,
+            "work_area_ids": [(6, 0, [cls.area_mechanical.id, cls.area_device.id])],
+        })
+        cls.profile_b = cls.env["sab.employee.profile"].create({
+            "name": "Mitarbeiter B",
+            "login": "employee.b@test.local",
+            "user_id": cls.employee_b.id,
+            "work_area_ids": [(6, 0, [cls.area_mechanical_assembly.id])],
+        })
 
         cls.partner = cls.env["res.partner"].create({"name": "Record-Rule-Kunde"})
         cls.project = cls.env["project.project"].create({"name": "Record-Rule-Projekt", "partner_id": cls.partner.id})
@@ -21,8 +37,9 @@ class TestSabEmployeeRecordRules(TransactionCase):
         cls.step_a = steps[0]
         cls.step_b = steps[1]
         cls.step_free = steps[2]
-        cls.step_a.responsible_user_id = cls.employee_a
-        cls.step_b.responsible_user_id = cls.employee_b
+        cls.step_free_wrong_area = steps[6]
+        cls.step_a.responsible_employee_id = cls.profile_a
+        cls.step_b.responsible_employee_id = cls.profile_b
 
         cls.time_a = cls.env["sab.time.entry"].create({"project_id": cls.project.id, "production_step_id": cls.step_a.id, "user_id": cls.employee_a.id, "name": "Zeit A", "hours": 1.0})
         cls.time_b = cls.env["sab.time.entry"].create({"project_id": cls.project.id, "production_step_id": cls.step_b.id, "user_id": cls.employee_b.id, "name": "Zeit B", "hours": 1.0})
@@ -30,11 +47,12 @@ class TestSabEmployeeRecordRules(TransactionCase):
         cls.feedback_a = cls.env["sab.employee.feedback"].create({"name": "Feedback A", "production_step_id": cls.step_a.id, "user_id": cls.employee_a.id, "feedback_type": "note", "description": "A"})
         cls.feedback_b = cls.env["sab.employee.feedback"].create({"name": "Feedback B", "production_step_id": cls.step_b.id, "user_id": cls.employee_b.id, "feedback_type": "note", "description": "B"})
 
-    def test_employee_sees_only_own_or_free_steps(self):
+    def test_employee_sees_only_own_or_qualified_free_steps(self):
         visible = self.env["sab.production.step"].with_user(self.employee_a).search([("production_order_id", "=", self.production.id)])
         self.assertIn(self.step_a, visible)
         self.assertIn(self.step_free, visible)
         self.assertNotIn(self.step_b, visible)
+        self.assertNotIn(self.step_free_wrong_area, visible)
 
     def test_employee_sees_only_own_times(self):
         visible = self.env["sab.time.entry"].with_user(self.employee_a).search([("project_id", "=", self.project.id)])
