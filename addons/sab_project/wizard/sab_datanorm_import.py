@@ -118,6 +118,7 @@ class SabDatanormImport(models.TransientModel):
 
         created_products = updated_products = unchanged_products = 0
         created_supplier = updated_supplier = unchanged_supplier = skipped = errors = 0
+        error_samples = []
 
         for raw_line in lines[1:]:
             if not raw_line.startswith("A;"):
@@ -126,8 +127,8 @@ class SabDatanormImport(models.TransientModel):
             if len(parts) < 19:
                 skipped += 1
                 continue
+            article_number = parts[2].strip()
             try:
-                article_number = parts[2].strip()
                 short_text = " ".join(v.strip() for v in parts[3:5] if v.strip()).strip()
                 unit = parts[5].strip()
                 datanorm_price = self._parse_price(parts[8].strip())
@@ -159,9 +160,6 @@ class SabDatanormImport(models.TransientModel):
 
                 supplier_product = supplier_map.get(article_number)
                 supplier_vals = {"supplier_id": self.supplier_id.id, "product_id": product.id, "supplier_article_number": article_number, "datanorm_number": article_number, "datanorm_price": datanorm_price, "list_price": datanorm_price, "datanorm_price_code": price_code, "unit": self._unit_from_datanorm(unit), "valid_from": source_date, "datanorm_type_name": type_name, "ean": ean}
-
-                # Fachregel: Ein vorhandener echter EK bleibt bestehen. Fehlt er,
-                # wird der Listenpreis aus der DATANORM-Datei als EK-Fallback genutzt.
                 if not supplier_product or not supplier_product.purchase_price:
                     supplier_vals["purchase_price"] = datanorm_price
                 elif self.supplier_id.datanorm_price_as_purchase_price:
@@ -176,15 +174,18 @@ class SabDatanormImport(models.TransientModel):
                     supplier_product = SupplierProduct.create(supplier_vals)
                     supplier_map[article_number] = supplier_product
                     created_supplier += 1
-            except (UserError, ValueError, TypeError, IndexError):
+            except (UserError, ValueError, TypeError, IndexError) as exc:
                 errors += 1
+                if len(error_samples) < 5:
+                    error_samples.append(f"{article_number}: {type(exc).__name__}: {exc}")
 
-        z_count = counts.get("Z", 0)
+        error_detail = "\n".join(error_samples) if error_samples else "-"
         self.result_text = (
             f"DATANORM 5: {manufacturer_name}\nQuelle: {source_file_name}\nDatenstand: {source_date or '-'}\n"
             "EK-Regel: vorhandenen EK behalten; ohne EK Listenpreis als Fallback verwenden\n"
-            f"A-Artikelsätze erkannt: {counts.get('A', 0)}\nZ-Preis-/Zuschlagssätze erkannt: {z_count} (noch nicht preiswirksam importiert)\n\n"
+            f"A-Artikelsätze erkannt: {counts.get('A', 0)}\nZ-Preis-/Zuschlagssätze erkannt: {counts.get('Z', 0)} (noch nicht preiswirksam importiert)\n\n"
             f"Produkte neu: {created_products}\nProdukte aktualisiert: {updated_products}\nProdukte unverändert: {unchanged_products}\n"
-            f"Lieferantenartikel neu: {created_supplier}\nLieferantenartikel aktualisiert: {updated_supplier}\nLieferantenartikel unverändert: {unchanged_supplier}\nÜbersprungen: {skipped}\nFehler: {errors}"
+            f"Lieferantenartikel neu: {created_supplier}\nLieferantenartikel aktualisiert: {updated_supplier}\nLieferantenartikel unverändert: {unchanged_supplier}\nÜbersprungen: {skipped}\nFehler: {errors}\n"
+            f"Erste Fehlerdetails:\n{error_detail}"
         )
         return {"type": "ir.actions.act_window", "res_model": self._name, "res_id": self.id, "view_mode": "form", "target": "new"}
