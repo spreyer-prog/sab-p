@@ -15,15 +15,8 @@ class TestSabNumbering(TransactionCase):
         self.assertRegex(project_1.sab_project_reference, r"^A\d{2}\.\d{4}$")
         self.assertNotEqual(project_1.sab_project_reference, project_2.sab_project_reference)
 
-        offer_1 = self.env["sale.order"].create({
-            "partner_id": self.partner.id,
-            "sab_project_id": project_1.id,
-        })
-        offer_2 = self.env["sale.order"].create({
-            "partner_id": self.partner.id,
-            "sab_project_id": project_1.id,
-        })
-
+        offer_1 = self.env["sale.order"].create({"partner_id": self.partner.id, "sab_project_id": project_1.id})
+        offer_2 = self.env["sale.order"].create({"partner_id": self.partner.id, "sab_project_id": project_1.id})
         self.assertEqual(offer_1.name, f"{project_1.sab_project_reference}-01")
         self.assertEqual(offer_2.name, f"{project_1.sab_project_reference}-02")
 
@@ -53,13 +46,7 @@ class TestSabNumbering(TransactionCase):
         self.assertEqual(project.sab_inquiry_type_id, custom_type)
 
     def test_project_file_fields(self):
-        project = self.env["project.project"].create({
-            "name": "Projektakte",
-            "sab_commission": "Campus",
-            "sab_offer_identifier": "AV",
-            "sab_customer_order_reference": "PO-1001",
-            "sab_site_address": "Baustelle Köln",
-        })
+        project = self.env["project.project"].create({"name": "Projektakte", "sab_commission": "Campus", "sab_offer_identifier": "AV", "sab_customer_order_reference": "PO-1001", "sab_site_address": "Baustelle Köln"})
         self.assertEqual(project.sab_commission, "Campus")
         self.assertEqual(project.sab_offer_identifier, "AV")
         self.assertEqual(project.sab_customer_order_reference, "PO-1001")
@@ -72,12 +59,7 @@ class TestSabNumbering(TransactionCase):
         self.assertEqual(action["view_mode"], "form")
         self.assertEqual(action["context"]["default_sab_project_id"], project.id)
         self.assertEqual(action["context"]["default_partner_id"], self.partner.id)
-
-        # Odoo wendet default_* beim Öffnen der Formularansicht via default_get an.
-        # Im Unit-Test bilden wir diesen Formularweg explizit nach.
-        defaults = self.env["sale.order"].with_context(**action["context"]).default_get([
-            "sab_project_id", "partner_id"
-        ])
+        defaults = self.env["sale.order"].with_context(**action["context"]).default_get(["sab_project_id", "partner_id"])
         quotation = self.env["sale.order"].create(defaults)
         self.assertEqual(quotation.sab_project_id, project)
         self.assertEqual(quotation.partner_id, self.partner)
@@ -89,6 +71,13 @@ class TestSabNumbering(TransactionCase):
         self.env.cr.execute("UPDATE project_project SET sab_project_reference = NULL WHERE id = %s", [project.id])
         project.invalidate_recordset(["sab_project_reference"])
         self.assertFalse(project.sab_project_reference)
-
         project.action_create_sab_quotation()
         self.assertRegex(project.sab_project_reference, r"^A\d{2}\.\d{4}$")
+
+    def test_project_number_is_forced_visible_in_both_lists(self):
+        sab_view = self.env.ref("sab_project.sab_project_overview_list")
+        standard_inherit = self.env.ref("sab_project.sab_standard_project_list_inherit")
+        self.assertIn('name="sab_project_reference"', sab_view.arch_db)
+        self.assertNotIn('name="sab_project_reference" string="Projekt-Nr." optional="hide"', sab_view.arch_db)
+        self.assertIn('name="sab_project_reference"', standard_inherit.arch_db)
+        self.assertEqual(standard_inherit.inherit_id, self.env.ref("project.view_project"))
