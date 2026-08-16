@@ -18,16 +18,17 @@ Zusätzlich gehören verbindlich zur V1:
 
 ## 2. Aktueller technischer Meilenstein
 
-Stand nach Odoo.sh Build `36472655`:
+Zuletzt bestätigter grüner Odoo.sh-Härtungsstand:
 
-- Modulversion: `19.0.5.22.0`,
-- SAB-P Tests: **57 Tests, 0 Failures, 0 Errors**,
+- Modulversion: `19.0.5.35.0`,
+- GitHub-Commit-Status `ci/odoo.sh (dev)`: eingerichtet und für den dokumentierten Härtungsstand erfolgreich,
 - automatisierter End-to-End-Test: grün,
 - Nummerierungs-/Projektübersichts-Tests einschließlich sichtbarer `A26.xxxx` Projektnummer: grün,
 - Portal-/Kundentrennungstests: grün,
 - Mitarbeiter-/Record-Rule-/Kundenfreigabe-Securitytests: grün,
-- geprüfter Build ohne SAB-P bezogene Warnings,
-- Entwicklungsbranch liegt vor `main`; `main` bleibt unverändert.
+- Mitarbeiterzugang, Arbeitsbereiche, Fremdbenutzer-Schutz für Zeit/Rückmeldung und kontrollierter Fertigungsstart technisch gehärtet,
+- Entwicklungsbranch basiert weiterhin auf `main`; beim dokumentierten Vergleich war er 325 Commits voraus und 0 Commits zurück,
+- `main` blieb auf Commit `28056e70766fdbb9072b23b2a9679dcdb307a902` unverändert.
 
 Damit ist die reine Kernentwicklung der V1 weitgehend abgeschlossen. Ab jetzt gilt: **keine neuen Komfortfunktionen vor Abschluss der Upgrade-, Praxis- und Fachdatenabnahme.**
 
@@ -97,8 +98,9 @@ Damit ist die reine Kernentwicklung der V1 weitgehend abgeschlossen. Ab jetzt gi
 ### 3.6 Fertigung
 
 - Fertigungsauftrag nur aus freigegebener Stückliste,
-- Standard-Fertigungsschritte,
-- Verantwortlicher/Mitarbeiter,
+- Standard-Fertigungsschritte mit Arbeitsbereichen,
+- Mitarbeiterprofil und technischer Benutzer getrennt nachvollziehbar,
+- Auswahl und Übernahme nur bei passendem Arbeitsbereich,
 - Start- und Fertigzeit,
 - Fortschritt,
 - Status **Offen → In Arbeit → Pausiert → Fertig** bzw. **Entfällt**,
@@ -106,7 +108,9 @@ Damit ist die reine Kernentwicklung der V1 weitgehend abgeschlossen. Ab jetzt gi
 - Start / Fortsetzen,
 - Pause,
 - Fertigmeldung,
-- abgeschlossene/stornierte Fertigungsaufträge und Schritte gesperrt.
+- normaler Mitarbeiter kann einen zulässigen Schritt starten; der übergeordnete Auftrag wird kontrolliert systemseitig gestartet, ohne allgemeine Schreibrechte zu vergeben,
+- abgeschlossene/stornierte Fertigungsaufträge und Schritte gesperrt,
+- Upgrade-Helfer für bestehende technische Benutzerzuordnungen und Arbeitsbereiche.
 
 ### 3.7 Dokumente
 
@@ -125,6 +129,7 @@ Damit ist die reine Kernentwicklung der V1 weitgehend abgeschlossen. Ab jetzt gi
 - Fertigungsschrittbezug,
 - Mitarbeiter, Datum, Tätigkeit, Stunden, Kostensatz,
 - Fahrtzeit als eigene Tätigkeit,
+- Mitarbeiter kann keine Zeit unter fremdem Benutzer anlegen oder umschreiben,
 - bestätigte Zeitbuchungen gesperrt,
 - Ist-Stunden werden auf Projekt aktualisiert.
 
@@ -138,12 +143,15 @@ Damit ist die reine Kernentwicklung der V1 weitgehend abgeschlossen. Ab jetzt gi
 - Angebotssumme,
 - Deckungsbeitrag absolut und prozentual,
 - Ergebnisstatus,
-- Listen-, Pivot- und Diagrammansichten.
+- Listen-, Pivot- und Diagrammansichten,
+- UI-Vertragstest schützt View-Modi und zentrale Reporting-Kennzahlen vor versehentlicher Entfernung.
 
 ### 3.10 Mitarbeiter-App / mobile Mitarbeiteroberfläche
 
 Umgesetzt als responsive Odoo-Web-/PWA-orientierte Oberfläche:
 
+- eigene SAB-P Mitarbeiterverwaltung mit Name, Login, E-Mail, Aktivstatus, Rollen und Arbeitsbereichen,
+- Anlegen/Aktualisieren, Einladung, Deaktivieren und Reaktivieren des Odoo-Zugangs,
 - persönliche Mitarbeiteranmeldung über Odoo-Benutzer,
 - **Meine Arbeit**,
 - **Freie Arbeit**,
@@ -158,6 +166,7 @@ Umgesetzt als responsive Odoo-Web-/PWA-orientierte Oberfläche:
 - Materialbedarf melden,
 - eigene Zeiten,
 - eigene Rückmeldungen,
+- Rückmeldung kann nur durch Projektleitung intern als bearbeitet gesetzt werden,
 - Record Rules für eigene/freie Arbeit und eigene Mitarbeiterdaten,
 - kaufmännische Kundenfreigabe von Mitarbeiterrechten getrennt.
 
@@ -196,16 +205,19 @@ Automatisiert geprüft werden u. a.:
 - DATANORM,
 - Angebotskalkulation,
 - Snapshots/Stückliste,
-- Fertigung einschließlich Pause/Fortsetzen,
+- Fertigung einschließlich Pause/Fortsetzen und Arbeitsbereichsprüfung,
+- kontrollierter Fertigungsstart durch normale Mitarbeiter,
 - Einkauf,
 - Lager,
 - Dokumentrevisionen/Kundenfreigabe,
-- Zeiterfassung,
-- Mitarbeiter-Rückmeldungen,
+- Zeiterfassung einschließlich Fremdbenutzer-Schutz,
+- Mitarbeiter-Rückmeldungen einschließlich Fremdbenutzer- und Bearbeitungsstatus-Schutz,
 - Mitarbeiter-Record-Rules,
+- vertrauliche Mitarbeiterdaten,
 - Kundenstatus,
 - Kunden-A/Kunden-B-Trennung,
 - Rollen-/Kundenfreigaberechte,
+- Reporting-View-Verträge für Liste/Pivot/Diagramm,
 - End-to-End-Prozess vom Projekt bis Nachkalkulation/Kundenstatus.
 
 ### 3.14 Dokumentation
@@ -213,7 +225,11 @@ Automatisiert geprüft werden u. a.:
 Im Repository vorhanden:
 
 - `docs/SAB-P_HANDBUCH.md` – Bedienungs- und Systemhandbuch,
-- `docs/PRODUKTIVSETZUNG_CHECKLISTE.md` – verbindliche Abnahme-/Go-live-Checkliste mit aktuellem Green-Build-Status.
+- `docs/PRODUKTIVSETZUNG_CHECKLISTE.md` – verbindliche Abnahme-/Go-live-Checkliste,
+- `docs/MORGEN_TESTABLAUF.md` – praktischer Testablauf,
+- `docs/BUILD_STATUS.md` – Buildstatus-Dokumentation,
+- `docs/BRANCH_ABNAHME.md` – dokumentierter technischer Branch-Abnahmestand und Merge-Gate,
+- `docs/ROLLBACK_PLAN.md` – stabiler Code-Referenzpunkt und Wiederherstellungsablauf.
 
 Screenshots werden erst nach finalem praktischen UI-Abnahmestand ergänzt.
 
@@ -227,10 +243,10 @@ Nach dem Green Build bleiben technisch nur noch Punkte, die nicht seriös durch 
 2. Upgrade-Log erneut auf SAB-P Fehler/Warnings prüfen,
 3. manueller Browser-Smoke-Test der wichtigsten Arbeitswege,
 4. Smartphone-/Tablet-Praxistest der Mitarbeiteroberfläche und des Kundenportals,
-5. Backup-/Rollback-Ablauf unmittelbar vor einem späteren Merge/Produktivupgrade praktisch festlegen und testen,
+5. dokumentierten Backup-/Rollback-Ablauf vor dem späteren Merge/Produktivupgrade praktisch mit einer Datenbankkopie testen,
 6. Handbuch nach dem manuellen Praxistest final gegen tatsächliche UI-Bezeichnungen abgleichen.
 
-Der automatische technische Teststand ist grün und muss bei jeder weiteren Änderung grün bleiben.
+Der automatische technische Teststand muss bei jeder weiteren Änderung grün bleiben.
 
 ---
 
@@ -254,7 +270,7 @@ Diese Punkte werden als Abnahmepunkte markiert und nicht durch Annahmen ersetzt.
 
 ## 6. Verbindliche Reihenfolge bis V1-Fertigstellung
 
-1. **Green Build halten – erledigt für Stand `19.0.5.22.0`.**
+1. **Green Build halten – zuletzt bestätigt für Modulversion `19.0.5.35.0`.**
 2. **Expliziten Modul-Upgrade-Test auf bestehender/produktionsnaher Datenbank grün bekommen.**
 3. **Manuellen Browser-/Mobil-Smoke-Test durchführen.**
 4. **Portal- und Rollenprüfung mit zwei realen getrennten Kundenkonten durchführen.**
@@ -264,7 +280,7 @@ Diese Punkte werden als Abnahmepunkte markiert und nicht durch Annahmen ersetzt.
 8. **Lageranfangsbestände und Anfangsbewertung festlegen.**
 9. **Pflichtdokumente/Rollen/Managementgrenzen fachlich abnehmen.**
 10. **Handbuch und Produktivcheckliste final gegen den praktisch getesteten Stand verifizieren.**
-11. **Odoo.sh Backup-/Rollback-Punkt festlegen und Verantwortliche benennen.**
+11. **Produktivbackup erzeugen, Rollback-Verantwortliche benennen und dokumentierten Wiederherstellungsablauf praktisch verifizieren.**
 12. **Erst nach vollständiger Abnahme Merge in `main`.**
 
 ---
