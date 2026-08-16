@@ -14,12 +14,7 @@ class SabCustomerPortal(http.Controller):
     def _status_for_current_customer(self, status_id):
         partner = self._portal_partner()
         status = request.env["sab.customer.project.status"].sudo().browse(status_id).exists()
-        if (
-            not status
-            or not status.released
-            or not status.partner_id
-            or status.partner_id.commercial_partner_id != partner
-        ):
+        if not status or not status.is_portal_visible_to(partner):
             raise NotFound()
         return status
 
@@ -62,13 +57,7 @@ class SabCustomerPortal(http.Controller):
     def sab_document_download(self, document_id, **kwargs):
         partner = self._portal_partner()
         document = request.env["sab.project.document"].sudo().browse(document_id).exists()
-        if (
-            not document
-            or document.state != "released"
-            or not document.customer_visible
-            or not document.project_id.partner_id
-            or document.project_id.partner_id.commercial_partner_id != partner
-        ):
+        if not document or not document.is_portal_visible_to(partner):
             raise NotFound()
         payload = base64.b64decode(document.file_data or b"")
         mimetype = mimetypes.guess_type(document.file_name or "")[0] or "application/octet-stream"
@@ -82,14 +71,7 @@ class SabCustomerPortal(http.Controller):
     def sab_photo(self, feedback_id, **kwargs):
         partner = self._portal_partner()
         feedback = request.env["sab.employee.feedback"].sudo().browse(feedback_id).exists()
-        if (
-            not feedback
-            or feedback.feedback_type != "photo"
-            or feedback.state != "processed"
-            or not feedback.customer_visible
-            or not feedback.project_id.partner_id
-            or feedback.project_id.partner_id.commercial_partner_id != partner
-        ):
+        if not feedback or not feedback.is_portal_visible_to(partner):
             raise NotFound()
         payload = base64.b64decode(feedback.photo or b"")
         mimetype = mimetypes.guess_type(feedback.photo_filename or "")[0] or "image/jpeg"
