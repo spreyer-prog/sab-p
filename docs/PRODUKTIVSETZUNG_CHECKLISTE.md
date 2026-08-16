@@ -1,6 +1,6 @@
 # SAB-P Suite V1 – Produktivsetzungs- und Abnahmecheckliste
 
-Stand: letzter bestätigter Green Build auf `agent/leitfaden-gesamtstand`; aktueller Härtungsstand Modulversion `19.0.5.31.0` muss im nächsten Odoo.sh Build erneut grün bestätigt werden.
+Stand: letzter bestätigter Green Build auf `agent/leitfaden-gesamtstand`; aktueller Härtungsstand Modulversion `19.0.5.34.0` wird durch Odoo.sh erneut geprüft. GitHub-Commit-Status ist eingerichtet und liefert `ci/odoo.sh (dev)`.
 
 Legende:
 - `[x]` technisch im Code/Test abgedeckt bzw. im letzten Green Build nachgewiesen,
@@ -9,7 +9,8 @@ Legende:
 ## A. Technische Abnahme
 
 - [x] Letzter vollständig geprüfter Odoo.sh Build des Branches `agent/leitfaden-gesamtstand` erfolgreich.
-- [ ] Aktuellen Stand `19.0.5.31.0` erneut durch Odoo.sh grün bestätigen.
+- [ ] Aktuellen Stand `19.0.5.34.0` erneut durch Odoo.sh grün bestätigen.
+- [x] Odoo.sh GitHub-Commit-Status eingerichtet; neue Builds sind über `ci/odoo.sh (dev)` verfolgbar.
 - [ ] Modul `sab_project` auf einer bestehenden, produktionsnahen Datenbank explizit als Upgrade testen.
 - [x] Keine SAB-P Testfehler im letzten vollständig geprüften Green Build: 57 Tests, 0 Failures, 0 Errors.
 - [x] Im geprüften Build keine SAB-P bezogenen Warnings festgestellt.
@@ -78,6 +79,8 @@ Legende:
 - [x] Normaler interner Benutzer erhält keine Mitarbeiter-/Fertigungs-App-Rechte.
 - [x] SAB-P Mitarbeiter erhält nur notwendige Rechte; Projektleitung erhält Vollzugriff.
 - [x] Mitarbeiter kann nur das eigene Mitarbeiterprofil lesen; Projektleitung kann alle verwalten.
+- [x] Mitarbeiter kann Zeitbuchungen und Rückmeldungen nicht unter fremdem Benutzer anlegen/umschreiben.
+- [x] Rückmeldungen können nur durch Projektleitung intern auf `Bearbeitet` gesetzt werden.
 - [x] Automatisierter Migrationstest erhält alte Benutzerzuordnung und ergänzt vorhandenes Mitarbeiterprofil/Arbeitsbereich.
 - [x] Odoo-19 `end-migrate.py` für bestehende Fertigungsschritte vorhanden.
 - [ ] Reale Mitarbeiter mit Namen/Login/E-Mail anlegen.
@@ -132,7 +135,7 @@ Legende:
 ## J. End-to-End-Praxistest
 
 - [x] Automatisierter End-to-End-Prozess vorhanden; aktueller Test umfasst echtes SAB-P-Mitarbeiterprofil und Arbeitsbereiche.
-- [ ] Aktuellen Härtungsstand im nächsten Odoo.sh Build bestätigen.
+- [ ] Aktuellen Härtungsstand im Odoo.sh Build bestätigen.
 - [ ] Zusätzlich echtes oder vollständig realistisches SAB-P Projekt praktisch durchspielen.
 - [ ] Angebot/Kalkulation gegen bekannte Altwerte prüfen.
 - [ ] Einkauf/Lager mit realen Artikeln prüfen.
