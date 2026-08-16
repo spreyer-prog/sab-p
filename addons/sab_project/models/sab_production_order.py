@@ -110,13 +110,7 @@ class SabProductionStep(models.Model):
     name = fields.Char(string="Abteilung / Tätigkeit", required=True)
     work_area_id = fields.Many2one(comodel_name="sab.work.area", string="Arbeitsbereich", ondelete="restrict", index=True)
     state = fields.Selection(selection=[("pending", "Offen"), ("in_progress", "In Arbeit"), ("paused", "Pausiert"), ("done", "Fertig"), ("skipped", "Entfällt")], string="Status", required=True, default="pending", index=True)
-    responsible_employee_id = fields.Many2one(
-        comodel_name="sab.employee.profile",
-        string="Mitarbeiter",
-        ondelete="restrict",
-        index=True,
-        domain="[('active', '=', True), ('mobile_access', '=', True), ('user_id', '!=', False), ('work_area_ids', 'in', work_area_id)]",
-    )
+    responsible_employee_id = fields.Many2one(comodel_name="sab.employee.profile", string="Mitarbeiter", ondelete="restrict", index=True, domain="[('active', '=', True), ('mobile_access', '=', True), ('user_id', '!=', False), ('work_area_ids', 'in', work_area_id)]")
     responsible_user_id = fields.Many2one(comodel_name="res.users", string="Technischer Benutzer", index=True, readonly=True)
     started_at = fields.Datetime(string="Begonnen am", readonly=True)
     paused_at = fields.Datetime(string="Pausiert am", readonly=True)
@@ -187,11 +181,17 @@ class SabProductionStep(models.Model):
 
     def _claim_for_current_employee(self):
         employee = self._employee_for_user(self.env.user)
-        if not employee:
-            raise ValidationError(_("Für Ihren Benutzer ist kein aktiver SAB-P Mitarbeiter mit App-Zugriff hinterlegt."))
-        for record in self:
-            if not record.responsible_employee_id:
-                record.write({"responsible_employee_id": employee.id})
+        if employee:
+            for record in self:
+                if not record.responsible_employee_id:
+                    record.write({"responsible_employee_id": employee.id})
+            return
+        if self.env.user.has_group("project.group_project_manager"):
+            for record in self:
+                if not record.responsible_user_id:
+                    record.write({"responsible_user_id": self.env.user.id})
+            return
+        raise ValidationError(_("Für Ihren Benutzer ist kein aktiver SAB-P Mitarbeiter mit App-Zugriff hinterlegt."))
 
     def action_claim(self):
         self._ensure_editable()
