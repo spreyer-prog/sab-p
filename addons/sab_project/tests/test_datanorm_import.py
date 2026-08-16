@@ -60,7 +60,7 @@ class TestSabDatanormImport(TransactionCase):
         self.assertIn("KurztextinklTyp", source_name)
         self.assertIn("080CPN Schutzabdeckung", text)
 
-    def test_import_preserves_sab_technical_values_and_raw_price(self):
+    def test_import_preserves_sab_technical_values_and_uses_list_price_as_ek_fallback(self):
         manufacturer = self.env["sab.manufacturer"].create({"name": "ABB AG"})
         product = self.env["sab.product"].create({
             "name": "Alttext",
@@ -91,7 +91,9 @@ class TestSabDatanormImport(TransactionCase):
         self.assertAlmostEqual(supplier_product.datanorm_price, 7.14)
         self.assertAlmostEqual(supplier_product.list_price, 7.14)
         self.assertEqual(supplier_product.datanorm_price_code, "V2")
-        self.assertAlmostEqual(supplier_product.purchase_price, 0.0)
+        # Fachregel: Ist kein separater EK vorhanden, dient der Listenpreis
+        # aus der DATANORM-Datei als kalkulatorischer EK-Fallback.
+        self.assertAlmostEqual(supplier_product.purchase_price, 7.14)
         self.assertEqual(supplier_product.datanorm_type_name, "080CPN")
         self.assertEqual(supplier_product.ean, "7320500520642")
         self.assertIn("Z-Preis-/Zuschlagssätze erkannt: 1", wizard.result_text)
@@ -116,6 +118,7 @@ class TestSabDatanormImport(TransactionCase):
             ("supplier_article_number", "=", "2CDS251001R0164"),
         ], limit=1)
         self.assertAlmostEqual(supplier_product.list_price, 12.50)
+        self.assertAlmostEqual(supplier_product.purchase_price, 12.50)
 
     def test_record_count_and_units(self):
         counts = self.env["sab.datanorm.import"]._record_counts([
