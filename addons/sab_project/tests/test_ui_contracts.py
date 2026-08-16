@@ -36,9 +36,26 @@ class TestSabUiContracts(TransactionCase):
         self.assertEqual(len(arch.xpath("//button[@name='action_send_invitation']")), 1)
         self.assertEqual(len(arch.xpath("//field[@name='user_state']")), 1)
         self.assertEqual(len(arch.xpath("//field[@name='last_login']")), 1)
+        self.assertEqual(len(arch.xpath("//field[@name='work_area_ids']")), 1)
 
     def test_production_ui_uses_work_area_and_employee_profile(self):
         view = self.env.ref("sab_project.view_sab_production_order_form")
         arch = etree.fromstring(view.arch_db.encode("utf-8"))
         self.assertTrue(arch.xpath("//field[@name='step_ids']//field[@name='work_area_id']"))
         self.assertTrue(arch.xpath("//field[@name='step_ids']//field[@name='responsible_employee_id']"))
+
+    def test_employee_mobile_ui_uses_employee_profile(self):
+        kanban = self.env.ref("sab_project.view_sab_employee_step_kanban")
+        arch = etree.fromstring(kanban.arch_db.encode("utf-8"))
+        self.assertTrue(arch.xpath("//field[@name='work_area_id']"))
+        self.assertTrue(arch.xpath("//field[@name='responsible_employee_id']"))
+        self.assertEqual(len(arch.xpath("//button[@name='action_claim']")), 1)
+        self.assertEqual(len(arch.xpath("//button[@name='action_open_time_entry']")), 1)
+        self.assertEqual(len(arch.xpath("//button[@name='action_open_feedback']")), 1)
+
+    def test_free_work_action_relies_on_record_rule_for_qualification(self):
+        action = self.env.ref("sab_project.action_sab_employee_open_steps")
+        self.assertIn("('responsible_user_id', '=', False)", action.domain)
+        self.assertIn("('state', '=', 'pending')", action.domain)
+        self.assertNotIn("work_area_ids", action.domain)
+        self.assertIn("nur freie Arbeitsschritte", action.help.lower())
