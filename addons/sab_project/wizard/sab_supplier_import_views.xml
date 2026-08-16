@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_supplier_import_form" model="ir.ui.view">
+        <field name="name">sab.supplier.import.form</field>
+        <field name="model">sab.supplier.import</field>
+        <field name="arch" type="xml">
+            <form string="Lieferantenstamm importieren">
+                <sheet>
+                    <group>
+                        <field name="file_name" invisible="1"/>
+                        <field name="file_data" filename="file_name"/>
+                        <field name="update_existing"/>
+                        <field name="create_contacts"/>
+                        <field name="import_bank_data"/>
+                    </group>
+                    <group string="Ergebnis" invisible="not result_text">
+                        <field name="result_text" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_import" type="object" string="Lieferanten importieren" class="btn-primary"/>
+                    <button string="Schließen" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_supplier_import" model="ir.actions.act_window">
+        <field name="name">Lieferanten importieren</field>
+        <field name="res_model">sab.supplier.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_sab_supplier_tree_import_button" model="ir.ui.view">
+        <field name="name">sab.supplier.tree.import.button</field>
+        <field name="model">sab.supplier</field>
+        <field name="inherit_id" ref="sab_project.view_sab_supplier_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="%(action_sab_supplier_import)d" type="action" string="Lieferanten importieren" class="btn-primary" display="always" groups="project.group_project_manager"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+</odoo>
