@@ -23,7 +23,6 @@
                   decoration-danger="sab_status == 'lost'"
                   decoration-info="sab_status == 'customer_awarded'"
                   default_order="sab_project_reference desc">
-                <!-- Verbindliche erste Spalte: nicht optional ausblendbar. -->
                 <field name="sab_project_reference" string="Projekt-Nr." readonly="1"/>
                 <field name="sab_request_date" string="Datum" optional="show"/>
                 <field name="sab_status"
@@ -52,7 +51,7 @@
         <field name="name">SAB-P Projektübersicht</field>
         <field name="res_model">project.project</field>
         <field name="view_mode">list,form</field>
-        <field name="views" eval="[(ref('sab_project_overview_list'), 'list'), (False, 'form')]"/>
+        <field name="view_id" ref="sab_project_overview_list"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Neues SAB-P Projekt anlegen</p>
         </field>
