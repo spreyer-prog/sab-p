@@ -3,14 +3,14 @@ from odoo.exceptions import ValidationError
 
 
 DEFAULT_PRODUCTION_STEPS = [
-    (10, "Mechanische Fertigung"),
-    (20, "Mechanischer Aufbau"),
-    (30, "Bestückung Geräte"),
-    (40, "Bestückung Klemmen"),
-    (50, "Vorbereitung Verdrahtung"),
-    (60, "Elektrische Fertigung"),
-    (70, "Prüfung"),
-    (80, "Endkontrolle"),
+    (10, "Mechanische Fertigung", "sab_project.sab_work_area_mechanical_fabrication"),
+    (20, "Mechanischer Aufbau", "sab_project.sab_work_area_mechanical_assembly"),
+    (30, "Bestückung Geräte", "sab_project.sab_work_area_device_assembly"),
+    (40, "Bestückung Klemmen", "sab_project.sab_work_area_terminal_assembly"),
+    (50, "Vorbereitung Verdrahtung", "sab_project.sab_work_area_wiring_preparation"),
+    (60, "Elektrische Fertigung", "sab_project.sab_work_area_electrical"),
+    (70, "Prüfung", "sab_project.sab_work_area_testing"),
+    (80, "Endkontrolle", "sab_project.sab_work_area_final_inspection"),
 ]
 
 
@@ -61,7 +61,15 @@ class SabProductionOrder(models.Model):
                 if bom.state != "released":
                     raise ValidationError(_("Ein Fertigungsauftrag darf nur aus einer freigegebenen Stückliste erstellt werden."))
             if not vals.get("step_ids"):
-                vals["step_ids"] = [(0, 0, {"sequence": sequence, "name": name}) for sequence, name in DEFAULT_PRODUCTION_STEPS]
+                commands = []
+                for sequence, name, work_area_xmlid in DEFAULT_PRODUCTION_STEPS:
+                    work_area = self.env.ref(work_area_xmlid, raise_if_not_found=False)
+                    commands.append((0, 0, {
+                        "sequence": sequence,
+                        "name": name,
+                        "work_area_id": work_area.id if work_area else False,
+                    }))
+                vals["step_ids"] = commands
             prepared.append(vals)
         return super().create(prepared)
 
@@ -104,13 +112,56 @@ class SabProductionStep(models.Model):
     production_state = fields.Selection(related="production_order_id.state", string="Fertigungsstatus", readonly=True)
     sequence = fields.Integer(string="Reihenfolge", default=10, index=True)
     name = fields.Char(string="Abteilung / Tätigkeit", required=True)
+    work_area_id = fields.Many2one(comodel_name="sab.work.area", string="Arbeitsbereich", ondelete="restrict", index=True)
     state = fields.Selection(selection=[("pending", "Offen"), ("in_progress", "In Arbeit"), ("paused", "Pausiert"), ("done", "Fertig"), ("skipped", "Entfällt")], string="Status", required=True, default="pending", index=True)
-    responsible_user_id = fields.Many2one(comodel_name="res.users", string="Mitarbeiter", index=True)
+    responsible_employee_id = fields.Many2one(
+        comodel_name="sab.employee.profile",
+        string="Mitarbeiter",
+        ondelete="restrict",
+        index=True,
+        domain="[('active', '=', True), ('mobile_access', '=', True), ('user_id', '!=', False), ('work_area_ids', 'in', work_area_id)]",
+    )
+    responsible_user_id = fields.Many2one(comodel_name="res.users", string="Technischer Benutzer", index=True, readonly=True)
     started_at = fields.Datetime(string="Begonnen am", readonly=True)
     paused_at = fields.Datetime(string="Pausiert am", readonly=True)
     finished_at = fields.Datetime(string="Fertig am", readonly=True)
     checked_by_id = fields.Many2one(comodel_name="res.users", string="Geprüft von")
     note = fields.Char(string="Bemerkung")
+
+    @api.constrains("responsible_employee_id", "work_area_id")
+    def _check_employee_qualification(self):
+        for record in self:
+            employee = record.responsible_employee_id
+            if not employee:
+                continue
+            if not employee.active or not employee.mobile_access or not employee.user_id or not employee.user_id.active:
+                raise ValidationError(_("Der ausgewählte Mitarbeiter besitzt keinen aktiven SAB-P Mitarbeiterzugang."))
+            if record.work_area_id and record.work_area_id not in employee.work_area_ids:
+                raise ValidationError(_("Der Mitarbeiter %s ist nicht für den Arbeitsbereich %s freigegeben.") % (employee.name, record.work_area_id.name))
+
+    @api.onchange("responsible_employee_id")
+    def _onchange_responsible_employee_id(self):
+        for record in self:
+            record.responsible_user_id = record.responsible_employee_id.user_id if record.responsible_employee_id else False
+
+    @api.onchange("work_area_id")
+    def _onchange_work_area_id(self):
+        for record in self:
+            if record.responsible_employee_id and record.work_area_id not in record.responsible_employee_id.work_area_ids:
+                record.responsible_employee_id = False
+                record.responsible_user_id = False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        prepared = []
+        for incoming in vals_list:
+            vals = dict(incoming)
+            employee_id = vals.get("responsible_employee_id")
+            if employee_id:
+                employee = self.env["sab.employee.profile"].sudo().browse(employee_id).exists()
+                vals["responsible_user_id"] = employee.user_id.id if employee and employee.user_id else False
+            prepared.append(vals)
+        return super().create(prepared)
 
     def _ensure_editable(self):
         for record in self:
@@ -121,12 +172,32 @@ class SabProductionStep(models.Model):
             if record.production_order_id.bom_id.state != "released":
                 raise ValidationError(_("Fertigungsschritte benötigen eine freigegebene Stückliste."))
 
+    def _employee_for_user(self, user):
+        return self.env["sab.employee.profile"].sudo().search([
+            ("user_id", "=", user.id),
+            ("active", "=", True),
+            ("mobile_access", "=", True),
+        ], limit=1)
+
     def _ensure_user_can_work(self):
         if self.env.user.has_group("project.group_project_manager"):
             return
+        employee = self._employee_for_user(self.env.user)
+        if not employee:
+            raise ValidationError(_("Für Ihren Benutzer ist kein aktiver SAB-P Mitarbeiter mit App-Zugriff hinterlegt."))
         for record in self:
+            if record.work_area_id and record.work_area_id not in employee.work_area_ids:
+                raise ValidationError(_("Sie sind für den Arbeitsbereich %s nicht freigegeben.") % record.work_area_id.name)
             if record.responsible_user_id and record.responsible_user_id != self.env.user:
                 raise ValidationError(_("Dieser Arbeitsschritt ist einem anderen Mitarbeiter zugewiesen."))
+
+    def _claim_for_current_employee(self):
+        employee = self._employee_for_user(self.env.user)
+        if not employee:
+            raise ValidationError(_("Für Ihren Benutzer ist kein aktiver SAB-P Mitarbeiter mit App-Zugriff hinterlegt."))
+        for record in self:
+            if not record.responsible_employee_id:
+                record.write({"responsible_employee_id": employee.id})
 
     def action_claim(self):
         self._ensure_editable()
@@ -134,17 +205,17 @@ class SabProductionStep(models.Model):
         for record in self:
             if record.state not in ("pending", "in_progress", "paused"):
                 raise ValidationError(_("Nur offene, laufende oder pausierte Arbeitsschritte können übernommen werden."))
-            if not record.responsible_user_id:
-                record.responsible_user_id = self.env.user
+        self._claim_for_current_employee()
         return True
 
     def action_start(self):
         self._ensure_editable()
         self._ensure_user_can_work()
+        self._claim_for_current_employee()
         for record in self:
             if record.state not in ("pending", "paused"):
                 raise ValidationError(_("Nur offene oder pausierte Arbeitsschritte können gestartet werden."))
-            record.write({"state": "in_progress", "responsible_user_id": record.responsible_user_id.id or self.env.user.id, "started_at": record.started_at or fields.Datetime.now(), "paused_at": False})
+            record.write({"state": "in_progress", "started_at": record.started_at or fields.Datetime.now(), "paused_at": False})
             if record.production_order_id.state == "planned":
                 record.production_order_id.write({"state": "in_progress", "started_at": record.production_order_id.started_at or fields.Datetime.now()})
         return True
@@ -162,8 +233,7 @@ class SabProductionStep(models.Model):
         self.ensure_one()
         self._ensure_editable()
         self._ensure_user_can_work()
-        if not self.responsible_user_id:
-            self.responsible_user_id = self.env.user
+        self._claim_for_current_employee()
         employee_view = self.env.ref("sab_project.view_sab_employee_time_entry_form")
         return {"type": "ir.actions.act_window", "name": _("Arbeitszeit erfassen"), "res_model": "sab.time.entry", "views": [(employee_view.id, "form")], "target": "current", "context": {"default_production_step_id": self.id, "default_project_id": self.project_id.id, "default_user_id": self.env.user.id, "default_name": self.name}}
 
@@ -171,18 +241,18 @@ class SabProductionStep(models.Model):
         self.ensure_one()
         self._ensure_editable()
         self._ensure_user_can_work()
-        if not self.responsible_user_id:
-            self.responsible_user_id = self.env.user
+        self._claim_for_current_employee()
         employee_view = self.env.ref("sab_project.view_sab_employee_feedback_form")
         return {"type": "ir.actions.act_window", "name": _("Rückmeldung erfassen"), "res_model": "sab.employee.feedback", "views": [(employee_view.id, "form")], "target": "current", "context": {"default_production_step_id": self.id, "default_user_id": self.env.user.id, "default_name": self.name}}
 
     def action_done(self):
         self._ensure_editable()
         self._ensure_user_can_work()
+        self._claim_for_current_employee()
         for record in self:
             if record.state not in ("pending", "in_progress", "paused"):
                 raise ValidationError(_("Nur offene, laufende oder pausierte Arbeitsschritte können fertiggemeldet werden."))
-            record.write({"state": "done", "responsible_user_id": record.responsible_user_id.id or self.env.user.id, "started_at": record.started_at or fields.Datetime.now(), "paused_at": False, "finished_at": fields.Datetime.now()})
+            record.write({"state": "done", "started_at": record.started_at or fields.Datetime.now(), "paused_at": False, "finished_at": fields.Datetime.now()})
             if record.production_order_id.state == "planned":
                 record.production_order_id.write({"state": "in_progress", "started_at": record.production_order_id.started_at or fields.Datetime.now()})
         return True
@@ -197,4 +267,8 @@ class SabProductionStep(models.Model):
     def write(self, vals):
         if any(record.production_order_id.state in ("done", "cancel") for record in self):
             raise ValidationError(_("Fertigungsschritte eines abgeschlossenen oder stornierten Fertigungsauftrags sind gesperrt."))
+        vals = dict(vals)
+        if "responsible_employee_id" in vals:
+            employee = self.env["sab.employee.profile"].sudo().browse(vals.get("responsible_employee_id")).exists() if vals.get("responsible_employee_id") else False
+            vals["responsible_user_id"] = employee.user_id.id if employee and employee.user_id else False
         return super().write(vals)
