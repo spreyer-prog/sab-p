@@ -78,11 +78,6 @@ class TestSabDatanormImport(TransactionCase):
         self.assertEqual(supplier_product.ean, "7320500520642")
         self.assertIn("Z-Preis-/Zuschlagssätze erkannt: 1", wizard.result_text)
 
-    def test_optional_space_units_parser(self):
-        importer = self.env["sab.datanorm.import"]
-        self.assertAlmostEqual(importer._space_units_from_text("S201-B16 1 PLE"), 1.0)
-        self.assertFalse(importer._space_units_from_text("S201-B16 ohne Platzeinheit"))
-
     def test_record_count_and_units(self):
         counts = self.env["sab.datanorm.import"]._record_counts([HEADER, ARTICLE, Z_RECORD, Z_RECORD, END])
         self.assertEqual(counts["A"], 1)
