@@ -5,6 +5,15 @@ from odoo.tests.common import TransactionCase
 
 class TestSabUiContracts(TransactionCase):
 
+    def _assert_button_label(self, view_xmlid, button_name, expected_label):
+        view = self.env.ref(view_xmlid)
+        arch = etree.fromstring(view.arch_db.encode("utf-8"))
+        matches = arch.xpath(f"//button[@name='{button_name}'][@string='{expected_label}']")
+        self.assertTrue(
+            matches,
+            f"{view_xmlid}: Button {button_name!r} muss als {expected_label!r} beschriftet sein",
+        )
+
     def test_project_overview_action_uses_sab_list_view(self):
         action = self.env.ref("sab_project.sab_project_overview_action")
         view = self.env.ref("sab_project.sab_project_overview_list")
@@ -75,3 +84,46 @@ class TestSabUiContracts(TransactionCase):
             self.assertTrue(pivot_arch.xpath(f"/pivot/field[@name='{measure}'][@type='measure']"))
         for measure in ("offer_amount", "actual_direct_cost", "contribution_margin"):
             self.assertTrue(graph_arch.xpath(f"/graph/field[@name='{measure}'][@type='measure']"))
+
+    def test_primary_button_labels_match_documented_ui_contract(self):
+        """Keep the user manual's SAB-P button names tied to the actual XML views."""
+        expected = (
+            ("sab_project.sab_project_project_form_inherit", "action_create_sab_quotation", "Neues Angebot"),
+            ("sab_project.sab_project_project_form_inherit", "action_view_sab_quotations", "Angebote"),
+            ("sab_project.sab_project_project_form_inherit", "action_assign_sab_project_reference", "Projektnummer vergeben"),
+            ("sab_project.sab_sale_order_form_inherit", "action_create_sab_revision", "Neue Revision"),
+            ("sab_project.sab_sale_order_form_inherit", "action_generate_sab_bom", "Stückliste erzeugen"),
+            ("sab_project.view_sab_project_bom_form", "action_release", "Stückliste freigeben"),
+            ("sab_project.view_sab_project_bom_form", "action_create_production_order", "Fertigungsauftrag erzeugen"),
+            ("sab_project.view_sab_project_bom_form", "action_generate_purchase_requirements", "Einkaufsbedarf erzeugen"),
+            ("sab_project.view_sab_purchase_requirement_form", "action_mark_ordered", "Als bestellt markieren"),
+            ("sab_project.view_sab_purchase_requirement_form", "action_mark_received", "Als geliefert markieren"),
+            ("sab_project.view_sab_production_order_form", "action_start", "Fertigung starten"),
+            ("sab_project.view_sab_production_order_form", "action_mark_done", "Fertigungsauftrag abschließen"),
+            ("sab_project.view_sab_employee_profile_form", "action_create_or_update_user", "Zugang anlegen / aktualisieren"),
+            ("sab_project.view_sab_employee_profile_form", "action_send_invitation", "Einladung / Passwortlink senden"),
+            ("sab_project.view_sab_employee_profile_form", "action_apply_permissions", "Rechte übernehmen"),
+            ("sab_project.view_sab_employee_profile_form", "action_deactivate", "Mitarbeiter deaktivieren"),
+            ("sab_project.view_sab_employee_profile_form", "action_activate", "Mitarbeiter aktivieren"),
+            ("sab_project.view_sab_employee_step_form", "action_claim", "Arbeit übernehmen"),
+            ("sab_project.view_sab_employee_step_form", "action_start", "Start / Fortsetzen"),
+            ("sab_project.view_sab_employee_step_form", "action_pause", "Pause"),
+            ("sab_project.view_sab_employee_step_form", "action_open_time_entry", "Zeit erfassen"),
+            ("sab_project.view_sab_employee_step_form", "action_open_feedback", "Rückmeldung / Foto / Material"),
+            ("sab_project.view_sab_employee_step_form", "action_done", "Fertig melden"),
+            ("sab_project.view_sab_employee_time_entry_form", "action_confirm", "Zeit buchen"),
+            ("sab_project.view_sab_project_document_form", "action_release", "Dokument intern freigeben"),
+            ("sab_project.view_sab_project_document_form", "action_release_to_customer", "Für Kundenportal freigeben"),
+            ("sab_project.view_sab_project_document_form", "action_withdraw_customer_release", "Kundenfreigabe zurückziehen"),
+            ("sab_project.view_sab_project_document_form", "action_create_revision", "Neue Revision"),
+            ("sab_project.view_sab_employee_feedback_form", "action_mark_processed", "Als bearbeitet markieren"),
+            ("sab_project.view_sab_employee_feedback_form", "action_release_to_customer", "Foto für Kunden freigeben"),
+            ("sab_project.view_sab_employee_feedback_form", "action_withdraw_customer_release", "Kundenfreigabe zurückziehen"),
+            ("sab_project.view_sab_customer_status_form", "action_apply_suggestion", "Internen Stand übernehmen"),
+            ("sab_project.view_sab_customer_status_form", "action_release", "Für Kunden freigeben"),
+            ("sab_project.view_sab_customer_status_form", "action_withdraw", "Freigabe zurückziehen"),
+            ("sab_project.view_sab_datanorm_import_form", "action_import", "DATANORM importieren"),
+        )
+        for view_xmlid, button_name, expected_label in expected:
+            with self.subTest(view=view_xmlid, button=button_name):
+                self._assert_button_label(view_xmlid, button_name, expected_label)
