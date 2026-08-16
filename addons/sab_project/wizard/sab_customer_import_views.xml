@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_customer_import_form" model="ir.ui.view">
+        <field name="name">sab.customer.import.form</field>
+        <field name="model">sab.customer.import</field>
+        <field name="arch" type="xml">
+            <form string="Kundenstamm importieren">
+                <sheet>
+                    <group>
+                        <field name="file_name" invisible="1"/>
+                        <field name="file_data" filename="file_name"/>
+                        <field name="update_existing"/>
+                        <field name="create_contacts"/>
+                        <field name="create_invoice_addresses"/>
+                        <field name="create_delivery_addresses"/>
+                    </group>
+                    <group string="Ergebnis" invisible="not result_text">
+                        <field name="result_text" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_import" type="object" string="Kunden importieren" class="btn-primary"/>
+                    <button string="Schließen" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_sab_customer_import" model="ir.actions.act_window">
+        <field name="name">Kundenstamm importieren</field>
+        <field name="res_model">sab.customer.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="sab_customer_import_menu" name="Kunden importieren" parent="sab_project_configuration_menu" action="action_sab_customer_import" sequence="35" groups="project.group_project_manager"/>
+</odoo>
