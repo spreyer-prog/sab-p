@@ -26,6 +26,19 @@ class SabSupplierImport(models.TransientModel):
                 continue
         raise ValidationError(_("Die CSV-Datei konnte nicht als UTF-8/Windows-1252 gelesen werden."))
 
+    def _reader(self):
+        text = self._decode()
+        lines = text.splitlines()
+        if not lines:
+            raise ValidationError(_("Die Lieferanten-CSV ist leer."))
+        # DATEV-EXTF: Zeile 1 ist Metadaten, Zeile 2 die eigentliche Kopfzeile.
+        if lines[0].lstrip('\ufeff').startswith('"EXTF"') or lines[0].lstrip('\ufeff').startswith("EXTF;"):
+            lines = lines[1:]
+        reader = csv.DictReader(io.StringIO("\n".join(lines)), delimiter=";")
+        if not reader.fieldnames:
+            raise ValidationError(_("Die Lieferanten-CSV enthält keine Kopfzeile."))
+        return reader
+
     def _value(self, row, *names):
         for name in names:
             value = (row.get(name) or "").strip()
@@ -40,10 +53,18 @@ class SabSupplierImport(models.TransientModel):
         return self.env["res.country"].search([("code", "=", code)], limit=1)
 
     def _supplier_number(self, row):
-        return self._value(row, "Lieferantennummer", "Kreditorennummer", "Kreditorenkonto", "Lieferanten-Nr.", "Nummer")
+        return self._value(row, "Konto", "Lieferantennummer", "Kreditorennummer", "Kreditorenkonto", "Lieferanten-Nr.", "Nummer")
 
     def _supplier_name(self, row):
-        return self._value(row, "Name/Firma", "Lieferant", "Firma", "Name")
+        company = self._value(row, "Name (Adressattyp Unternehmen)", "Name/Firma", "Lieferant", "Firma", "Name")
+        if company:
+            return company
+        no_type = self._value(row, "Name (Adressattyp keine Angabe)")
+        if no_type:
+            return no_type
+        first = self._value(row, "Vorname (Adressattyp natürl. Person)")
+        last = self._value(row, "Name (Adressattyp natürl. Person)")
+        return " ".join(part for part in (first, last) if part).strip()
 
     def _find_supplier(self, row):
         Supplier = self.env["sab.supplier"].sudo().with_context(active_test=False)
@@ -59,23 +80,36 @@ class SabSupplierImport(models.TransientModel):
                 return matches
         return Supplier
 
+    def _vat(self, row):
+        direct = self._value(row, "USt-IdNr.", "USt-ID", "Umsatzsteuer-ID")
+        if direct:
+            return direct
+        country = self._value(row, "EU-Mitgliedstaat")
+        number = self._value(row, "EU-USt-IdNr.")
+        if number:
+            return f"{country}{number}" if country and not number.upper().startswith(country.upper()) else number
+        return ""
+
     def _partner_values(self, row):
-        country = self._country(self._value(row, "Land", "Land - Standard Rechnungsadresse", "Länderkennzeichen"))
-        vals = {"name": self._supplier_name(row), "company_type": "company"}
+        country_code = self._value(row, "Land", "Land - Standard Rechnungsadresse", "Länderkennzeichen")
+        country = self._country(country_code)
+        vals = {"name": self._supplier_name(row), "company_type": "company", "supplier_rank": 1}
         mapping = {
-            "street": ("Straße, Hnr.", "Straße, Hnr. - Standard Rechnungsadresse", "Straße"),
+            "street": ("Straße", "Straße, Hnr.", "Straße, Hnr. - Standard Rechnungsadresse"),
             "street2": ("Adresszusatz", "Adresszusatz - Standard Rechnungsadresse"),
-            "zip": ("PLZ", "PLZ - Standard Rechnungsadresse"),
+            "zip": ("Postleitzahl", "PLZ", "PLZ - Standard Rechnungsadresse"),
             "city": ("Ort", "Ort - Standard Rechnungsadresse"),
             "phone": ("Telefon", "Ansprechpartner Telefon"),
             "email": ("E-Mail", "Ansprechpartner E-Mail", "Rechnungs E-Mail"),
             "website": ("Internet", "Website", "Ansprechpartner Internet"),
-            "vat": ("USt-IdNr.", "USt-ID", "Umsatzsteuer-ID"),
         }
         for field, aliases in mapping.items():
             value = self._value(row, *aliases)
             if value:
                 vals[field] = value
+        vat = self._vat(row)
+        if vat:
+            vals["vat"] = vat
         if country:
             vals["country_id"] = country.id
         return vals
@@ -87,8 +121,8 @@ class SabSupplierImport(models.TransientModel):
         Partner = self.env["res.partner"].sudo()
         child = Partner.search([("parent_id", "=", partner.id), ("type", "=", "contact"), ("name", "=", name)], limit=1)
         vals = {"parent_id": partner.id, "type": "contact", "name": name}
-        email = self._value(row, "Ansprechpartner E-Mail", "E-Mail Ansprechpartner")
-        phone = self._value(row, "Ansprechpartner Telefon", "Telefon Ansprechpartner")
+        email = self._value(row, "Ansprechpartner E-Mail", "E-Mail Ansprechpartner", "E-Mail")
+        phone = self._value(row, "Ansprechpartner Telefon", "Telefon Ansprechpartner", "Telefon")
         if email:
             vals["email"] = email
         if phone:
@@ -99,12 +133,10 @@ class SabSupplierImport(models.TransientModel):
             child = Partner.create(vals)
         return child
 
-    def _upsert_bank(self, partner, row):
-        account = self._value(row, "IBAN", "Bankkonto-Nummer", "Kontonummer").replace(" ", "")
+    def _upsert_bank_values(self, partner, account, bic="", bank_name=""):
+        account = (account or "").replace(" ", "")
         if not account:
             return False
-        bic = self._value(row, "SWIFT-Code", "BIC", "SWIFT")
-        bank_name = self._value(row, "Bankbezeichnung", "Bank", "Bankname")
         Bank = self.env["res.bank"].sudo()
         bank = False
         if bic:
@@ -127,11 +159,27 @@ class SabSupplierImport(models.TransientModel):
             record = Account.create(vals)
         return record
 
+    def _import_banks(self, partner, row):
+        imported = 0
+        # DATEV unterstützt bis zu zehn Bankverbindungen. Primär wird die IBAN verwendet.
+        for idx in range(1, 11):
+            iban = self._value(row, f"IBAN-Nr. {idx}")
+            account = iban or self._value(row, f"Bankkonto-Nummer {idx}")
+            bic = self._value(row, f"SWIFT-Code {idx}")
+            bank_name = self._value(row, f"Bankbezeichung {idx}", f"Bankbezeichnung {idx}")
+            if account and self._upsert_bank_values(partner, account, bic, bank_name):
+                imported += 1
+        if imported:
+            return imported
+        # Fallback für andere CSV-Formate.
+        account = self._value(row, "IBAN", "Bankkonto-Nummer", "Kontonummer")
+        bic = self._value(row, "SWIFT-Code", "BIC", "SWIFT")
+        bank_name = self._value(row, "Bankbezeichnung", "Bank", "Bankname")
+        return 1 if account and self._upsert_bank_values(partner, account, bic, bank_name) else 0
+
     def action_import(self):
         self.ensure_one()
-        reader = csv.DictReader(io.StringIO(self._decode()), delimiter=";")
-        if not reader.fieldnames:
-            raise ValidationError(_("Die Lieferanten-CSV enthält keine Kopfzeile."))
+        reader = self._reader()
         created = updated = skipped = contacts = banks = 0
         for row in reader:
             name = self._supplier_name(row)
@@ -142,10 +190,9 @@ class SabSupplierImport(models.TransientModel):
             number = self._supplier_number(row)
             website = self._value(row, "Internet", "Website", "Ansprechpartner Internet")
             datanorm = self._value(row, "DATANORM-Kennung", "Datanorm", "DATANORM")
-            if supplier:
-                if not self.update_existing:
-                    skipped += 1
-                    continue
+            if supplier and not self.update_existing:
+                skipped += 1
+                continue
             partner = supplier.partner_id if supplier and supplier.partner_id else False
             partner_vals = self._partner_values(row)
             if partner:
@@ -167,8 +214,8 @@ class SabSupplierImport(models.TransientModel):
                 created += 1
             if self.create_contacts and self._upsert_contact(partner, row):
                 contacts += 1
-            if self.import_bank_data and self._upsert_bank(partner, row):
-                banks += 1
+            if self.import_bank_data:
+                banks += self._import_banks(partner, row)
 
         self.result_text = _("Import abgeschlossen: %(created)s Lieferanten neu, %(updated)s aktualisiert, %(contacts)s Ansprechpartner, %(banks)s Bankverbindungen, %(skipped)s übersprungen.") % {
             "created": created, "updated": updated, "contacts": contacts, "banks": banks, "skipped": skipped,
