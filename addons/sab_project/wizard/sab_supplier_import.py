@@ -42,13 +42,13 @@ class SabSupplierImport(models.TransientModel):
     def _supplier_number(self, row):
         return self._value(row, "Lieferantennummer", "Kreditorennummer", "Kreditorenkonto", "Lieferanten-Nr.", "Nummer")
 
-    def _name(self, row):
+    def _supplier_name(self, row):
         return self._value(row, "Name/Firma", "Lieferant", "Firma", "Name")
 
     def _find_supplier(self, row):
         Supplier = self.env["sab.supplier"].sudo().with_context(active_test=False)
         number = self._supplier_number(row)
-        name = self._name(row)
+        name = self._supplier_name(row)
         if number:
             supplier = Supplier.search([("supplier_number", "=", number)], limit=1)
             if supplier:
@@ -61,7 +61,7 @@ class SabSupplierImport(models.TransientModel):
 
     def _partner_values(self, row):
         country = self._country(self._value(row, "Land", "Land - Standard Rechnungsadresse", "Länderkennzeichen"))
-        vals = {"name": self._name(row), "company_type": "company"}
+        vals = {"name": self._supplier_name(row), "company_type": "company"}
         mapping = {
             "street": ("Straße, Hnr.", "Straße, Hnr. - Standard Rechnungsadresse", "Straße"),
             "street2": ("Adresszusatz", "Adresszusatz - Standard Rechnungsadresse"),
@@ -134,7 +134,7 @@ class SabSupplierImport(models.TransientModel):
             raise ValidationError(_("Die Lieferanten-CSV enthält keine Kopfzeile."))
         created = updated = skipped = contacts = banks = 0
         for row in reader:
-            name = self._name(row)
+            name = self._supplier_name(row)
             if not name:
                 skipped += 1
                 continue
