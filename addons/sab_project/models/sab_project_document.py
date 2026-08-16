@@ -30,6 +30,17 @@ class SabProjectDocument(models.Model):
         if not self.env.user.has_group("sab_project.group_sab_customer_release"):
             raise AccessError(_("Sie haben keine Berechtigung für Kundenportal-Freigaben."))
 
+    def is_portal_visible_to(self, partner):
+        self.ensure_one()
+        commercial_partner = partner.commercial_partner_id if partner else self.env["res.partner"]
+        return bool(
+            self.state == "released"
+            and self.customer_visible
+            and self.project_id.partner_id
+            and commercial_partner
+            and self.project_id.partner_id.commercial_partner_id == commercial_partner
+        )
+
     def action_release(self):
         for record in self:
             if record.state != "draft":
