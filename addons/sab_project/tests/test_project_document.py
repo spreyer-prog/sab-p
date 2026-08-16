@@ -9,6 +9,9 @@ class TestSabProjectDocument(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env.ref("sab_project.group_sab_customer_release").write({
+            "user_ids": [(4, cls.env.user.id)],
+        })
         cls.partner = cls.env["res.partner"].create({"name": "Kunde Dokumente"})
         cls.project = cls.env["project.project"].create({"name": "Projekt Dokumente", "partner_id": cls.partner.id})
 
