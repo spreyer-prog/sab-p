@@ -18,6 +18,16 @@ class TestSabEmployeeFeedback(TransactionCase):
         cls.step = cls.production.step_ids.sorted("sequence")[:1]
         cls.product = cls.env["sab.product"].create({"name": "Fehlendes Material"})
 
+    def _photo_feedback(self):
+        return self.env["sab.employee.feedback"].create({
+            "name": "Aufbau dokumentiert",
+            "production_step_id": self.step.id,
+            "feedback_type": "photo",
+            "description": "Stand nach mechanischem Aufbau",
+            "photo_filename": "aufbau.jpg",
+            "photo": base64.b64encode(b"fake-image"),
+        })
+
     def test_photo_feedback_requires_photo(self):
         with self.assertRaises(ValidationError):
             self.env["sab.employee.feedback"].create({
@@ -27,16 +37,21 @@ class TestSabEmployeeFeedback(TransactionCase):
                 "description": "Dokumentation",
             })
 
-        feedback = self.env["sab.employee.feedback"].create({
-            "name": "Aufbau dokumentiert",
-            "production_step_id": self.step.id,
-            "feedback_type": "photo",
-            "description": "Stand nach mechanischem Aufbau",
-            "photo_filename": "aufbau.jpg",
-            "photo": base64.b64encode(b"fake-image"),
-        })
+        feedback = self._photo_feedback()
         self.assertEqual(feedback.project_id, self.project)
         self.assertEqual(feedback.state, "open")
+        self.assertFalse(feedback.customer_visible)
+
+        with self.assertRaises(ValidationError):
+            feedback.action_release_to_customer()
+
+        feedback.action_mark_processed()
+        feedback.action_release_to_customer()
+        self.assertTrue(feedback.customer_visible)
+        self.assertTrue(feedback.customer_released_at)
+
+        feedback.action_withdraw_customer_release()
+        self.assertFalse(feedback.customer_visible)
 
     def test_material_request_requires_product_and_quantity(self):
         with self.assertRaises(ValidationError):
@@ -61,3 +76,5 @@ class TestSabEmployeeFeedback(TransactionCase):
         feedback.action_mark_processed()
         self.assertEqual(feedback.state, "processed")
         self.assertTrue(feedback.processed_at)
+        with self.assertRaises(ValidationError):
+            feedback.action_release_to_customer()
