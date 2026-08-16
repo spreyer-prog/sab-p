@@ -43,10 +43,7 @@ class SabProductionOrder(models.Model):
                 record.progress_percent = 100.0
                 continue
             steps = record.step_ids.filtered(lambda step: step.state != "skipped")
-            if not steps:
-                record.progress_percent = 0.0
-                continue
-            record.progress_percent = len(steps.filtered(lambda step: step.state == "done")) * 100.0 / len(steps)
+            record.progress_percent = len(steps.filtered(lambda step: step.state == "done")) * 100.0 / len(steps) if steps else 0.0
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -71,11 +68,10 @@ class SabProductionOrder(models.Model):
 
     def action_start(self):
         for record in self:
-            if record.state != "planned":
-                continue
-            if record.bom_id.state != "released":
-                raise ValidationError(_("Die Fertigung kann nur mit einer freigegebenen Stückliste gestartet werden."))
-            record.write({"state": "in_progress", "started_at": record.started_at or fields.Datetime.now()})
+            if record.state == "planned":
+                if record.bom_id.state != "released":
+                    raise ValidationError(_("Die Fertigung kann nur mit einer freigegebenen Stückliste gestartet werden."))
+                record.write({"state": "in_progress", "started_at": record.started_at or fields.Datetime.now()})
         return True
 
     def action_mark_done(self):
@@ -90,10 +86,8 @@ class SabProductionOrder(models.Model):
         return True
 
     def write(self, vals):
-        if any(record.state == "done" for record in self):
-            allowed = {"responsible_user_id", "note"}
-            if set(vals) - allowed:
-                raise ValidationError(_("Ein abgeschlossener Fertigungsauftrag ist gesperrt."))
+        if any(record.state == "done" for record in self) and set(vals) - {"responsible_user_id", "note"}:
+            raise ValidationError(_("Ein abgeschlossener Fertigungsauftrag ist gesperrt."))
         return super().write(vals)
 
 
@@ -129,6 +123,30 @@ class SabProductionStep(models.Model):
             if record.work_area_id and record.work_area_id not in employee.work_area_ids:
                 raise ValidationError(_("Der Mitarbeiter %s ist nicht für den Arbeitsbereich %s freigegeben.") % (employee.name, record.work_area_id.name))
 
+    @api.model
+    def _legacy_work_area_by_name(self, name):
+        normalized = (name or "").strip().lower()
+        for _sequence, default_name, xmlid in DEFAULT_PRODUCTION_STEPS:
+            if normalized == default_name.lower():
+                return self.env.ref(xmlid, raise_if_not_found=False)
+        return self.env["sab.work.area"]
+
+    def action_migrate_legacy_assignment(self):
+        """Upgrade helper: enrich old steps without changing historical assignment."""
+        for record in self.sudo():
+            values = {}
+            if not record.work_area_id:
+                area = self._legacy_work_area_by_name(record.name)
+                if area:
+                    values["work_area_id"] = area.id
+            if record.responsible_user_id and not record.responsible_employee_id:
+                profile = self.env["sab.employee.profile"].sudo().search([("user_id", "=", record.responsible_user_id.id)], limit=1)
+                if profile:
+                    values["responsible_employee_id"] = profile.id
+            if values:
+                record.with_context(sab_legacy_migration=True).write(values)
+        return True
+
     @api.onchange("responsible_employee_id")
     def _onchange_responsible_employee_id(self):
         for record in self:
@@ -157,10 +175,8 @@ class SabProductionStep(models.Model):
 
     def _ensure_editable(self):
         for record in self:
-            if record.production_order_id.state == "done":
-                raise ValidationError(_("Ein abgeschlossener Fertigungsauftrag ist gesperrt."))
-            if record.production_order_id.state == "cancel":
-                raise ValidationError(_("Ein stornierter Fertigungsauftrag ist gesperrt."))
+            if record.production_order_id.state in ("done", "cancel"):
+                raise ValidationError(_("Ein abgeschlossener oder stornierter Fertigungsauftrag ist gesperrt."))
             if record.production_order_id.bom_id.state != "released":
                 raise ValidationError(_("Fertigungsschritte benötigen eine freigegebene Stückliste."))
 
@@ -189,23 +205,19 @@ class SabProductionStep(models.Model):
         if self.env.user.has_group("project.group_project_manager"):
             for record in self:
                 if not record.responsible_user_id:
-                    record.write({"responsible_user_id": self.env.user.id})
+                    record.with_context(sab_legacy_migration=True).write({"responsible_user_id": self.env.user.id})
             return
         raise ValidationError(_("Für Ihren Benutzer ist kein aktiver SAB-P Mitarbeiter mit App-Zugriff hinterlegt."))
 
     def action_claim(self):
-        self._ensure_editable()
-        self._ensure_user_can_work()
+        self._ensure_editable(); self._ensure_user_can_work()
         for record in self:
             if record.state not in ("pending", "in_progress", "paused"):
                 raise ValidationError(_("Nur offene, laufende oder pausierte Arbeitsschritte können übernommen werden."))
-        self._claim_for_current_employee()
-        return True
+        self._claim_for_current_employee(); return True
 
     def action_start(self):
-        self._ensure_editable()
-        self._ensure_user_can_work()
-        self._claim_for_current_employee()
+        self._ensure_editable(); self._ensure_user_can_work(); self._claim_for_current_employee()
         for record in self:
             if record.state not in ("pending", "paused"):
                 raise ValidationError(_("Nur offene oder pausierte Arbeitsschritte können gestartet werden."))
@@ -215,54 +227,35 @@ class SabProductionStep(models.Model):
         return True
 
     def action_pause(self):
-        self._ensure_editable()
-        self._ensure_user_can_work()
+        self._ensure_editable(); self._ensure_user_can_work()
         for record in self:
-            if record.state != "in_progress":
-                raise ValidationError(_("Nur laufende Arbeitsschritte können pausiert werden."))
+            if record.state != "in_progress": raise ValidationError(_("Nur laufende Arbeitsschritte können pausiert werden."))
             record.write({"state": "paused", "paused_at": fields.Datetime.now()})
         return True
 
     def action_open_time_entry(self):
-        self.ensure_one()
-        self._ensure_editable()
-        self._ensure_user_can_work()
-        self._claim_for_current_employee()
-        employee_view = self.env.ref("sab_project.view_sab_employee_time_entry_form")
-        return {"type": "ir.actions.act_window", "name": _("Arbeitszeit erfassen"), "res_model": "sab.time.entry", "views": [(employee_view.id, "form")], "target": "current", "context": {"default_production_step_id": self.id, "default_project_id": self.project_id.id, "default_user_id": self.env.user.id, "default_name": self.name}}
+        self.ensure_one(); self._ensure_editable(); self._ensure_user_can_work(); self._claim_for_current_employee()
+        view = self.env.ref("sab_project.view_sab_employee_time_entry_form")
+        return {"type": "ir.actions.act_window", "name": _("Arbeitszeit erfassen"), "res_model": "sab.time.entry", "views": [(view.id, "form")], "target": "current", "context": {"default_production_step_id": self.id, "default_project_id": self.project_id.id, "default_user_id": self.env.user.id, "default_name": self.name}}
 
     def action_open_feedback(self):
-        self.ensure_one()
-        self._ensure_editable()
-        self._ensure_user_can_work()
-        self._claim_for_current_employee()
-        employee_view = self.env.ref("sab_project.view_sab_employee_feedback_form")
-        return {"type": "ir.actions.act_window", "name": _("Rückmeldung erfassen"), "res_model": "sab.employee.feedback", "views": [(employee_view.id, "form")], "target": "current", "context": {"default_production_step_id": self.id, "default_user_id": self.env.user.id, "default_name": self.name}}
+        self.ensure_one(); self._ensure_editable(); self._ensure_user_can_work(); self._claim_for_current_employee()
+        view = self.env.ref("sab_project.view_sab_employee_feedback_form")
+        return {"type": "ir.actions.act_window", "name": _("Rückmeldung erfassen"), "res_model": "sab.employee.feedback", "views": [(view.id, "form")], "target": "current", "context": {"default_production_step_id": self.id, "default_user_id": self.env.user.id, "default_name": self.name}}
 
     def action_done(self):
-        self._ensure_editable()
-        self._ensure_user_can_work()
-        self._claim_for_current_employee()
+        self._ensure_editable(); self._ensure_user_can_work(); self._claim_for_current_employee()
         for record in self:
             if record.state not in ("pending", "in_progress", "paused"):
                 raise ValidationError(_("Nur offene, laufende oder pausierte Arbeitsschritte können fertiggemeldet werden."))
             record.write({"state": "done", "started_at": record.started_at or fields.Datetime.now(), "paused_at": False, "finished_at": fields.Datetime.now()})
-            if record.production_order_id.state == "planned":
-                record.production_order_id.write({"state": "in_progress", "started_at": record.production_order_id.started_at or fields.Datetime.now()})
+            if record.production_order_id.state == "planned": record.production_order_id.action_start()
         return True
 
     def action_skip(self):
-        self._ensure_editable()
-        self._ensure_user_can_work()
-        for record in self:
-            record.write({"state": "skipped", "paused_at": False, "finished_at": fields.Datetime.now()})
+        self._ensure_editable(); self._ensure_user_can_work()
+        for record in self: record.write({"state": "skipped", "paused_at": False, "finished_at": fields.Datetime.now()})
         return True
 
     def write(self, vals):
-        if any(record.production_order_id.state in ("done", "cancel") for record in self):
-            raise ValidationError(_("Fertigungsschritte eines abgeschlossenen oder stornierten Fertigungsauftrags sind gesperrt."))
-        vals = dict(vals)
-        if "responsible_employee_id" in vals:
-            employee = self.env["sab.employee.profile"].sudo().browse(vals.get("responsible_employee_id")).exists() if vals.get("responsible_employee_id") else False
-            vals["responsible_user_id"] = employee.user_id.id if employee and employee.user_id else False
-        return super().write(vals)
+        if any(record.production_order_id.state in ("done", "cancel")
