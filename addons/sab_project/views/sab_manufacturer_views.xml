@@ -1,55 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!-- Listenansicht -->
+    <!-- Altbestand bleibt technisch erhalten, damit bestehende Produkt- und DATANORM-
+         Zuordnungen nicht verloren gehen. Ein separater Hersteller-Menüpunkt wird
+         nicht mehr angeboten; Hersteller werden am Produkt aus dem Lieferantenstamm gewählt. -->
     <record id="view_sab_manufacturer_tree" model="ir.ui.view">
-        <field name="name">sab.manufacturer.tree</field>
-        <field name="model">sab.manufacturer</field>
-        <field name="arch" type="xml">
-            <list string="Hersteller">
-                <field name="name"/>
-                <field name="short_name"/>
-                <field name="website"/>
-                <field name="active"/>
-            </list>
-        </field>
+        <field name="name">sab.manufacturer.tree</field><field name="model">sab.manufacturer</field>
+        <field name="arch" type="xml"><list string="Hersteller"><field name="name"/><field name="short_name"/><field name="website"/><field name="active"/></list></field>
     </record>
-
-    <!-- Formular -->
     <record id="view_sab_manufacturer_form" model="ir.ui.view">
-        <field name="name">sab.manufacturer.form</field>
-        <field name="model">sab.manufacturer</field>
-        <field name="arch" type="xml">
-            <form string="Hersteller">
-                <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="short_name"/>
-                        <field name="website"/>
-                        <field name="active"/>
-                    </group>
-
-                    <group>
-                        <field name="note"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
+        <field name="name">sab.manufacturer.form</field><field name="model">sab.manufacturer</field>
+        <field name="arch" type="xml"><form string="Hersteller"><sheet><group><field name="name"/><field name="short_name"/><field name="website"/><field name="active"/></group><group><field name="note"/></group></sheet></form></field>
     </record>
-
-    <!-- Aktion -->
-    <record id="action_sab_manufacturer" model="ir.actions.act_window">
-        <field name="name">Hersteller</field>
-        <field name="res_model">sab.manufacturer</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
-    <!-- Menü -->
-    <menuitem
-        id="sab_manufacturer_menu"
-        name="Hersteller"
-        parent="sab_calculation_root_menu"
-        action="action_sab_manufacturer"
-        sequence="20"/>
-
+    <record id="action_sab_manufacturer" model="ir.actions.act_window"><field name="name">Hersteller (Altbestand)</field><field name="res_model">sab.manufacturer</field><field name="view_mode">list,form</field></record>
 </odoo>
