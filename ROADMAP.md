@@ -75,34 +75,42 @@ Für **jedes SAB-Produkt / jeden bestellbaren Artikel** wird eine zwingende Eink
 
 - Standardwert bei jeder Neuanlage eines Artikels ist **Grün**.
 - Der Artikel darf ohne besondere Mengenbegrenzung über den normalen Einkaufsprozess bestellt werden.
-- Keine zusätzliche Begründung oder Geschäftsführungsfreigabe erforderlich.
+- Keine zusätzliche Begründung oder Freigabe erforderlich.
 
 ### Gelb – mengenbegrenzter Artikel
 
-- Für den Artikel wird eine **maximal zulässige Bestellmenge** hinterlegt.
-- Bestellungen sind nur bis zu dieser festgelegten Maximumgrenze ohne Sonderfreigabe zulässig.
+- Sobald **Gelb** ausgewählt wird, erscheint am Artikel zwingend das Feld **Höchstmenge**.
+- Ohne eingetragene Höchstmenge darf ein gelber Artikel nicht gespeichert bzw. nicht als vollständig konfiguriert gelten.
+- Bis einschließlich der hinterlegten Höchstmenge kann der Artikel über den normalen Einkaufsprozess bestellt werden.
+- Wird die Höchstmenge überschritten, greift automatisch derselbe begründungs- und freigabepflichtige Workflow wie bei einem roten Artikel.
+- Beim Überschreiten öffnet sich zwingend ein Eingabefenster mit **Begründung als Pflichtfeld**.
+- Ohne Begründung kann die Bestellung nicht weitergeführt werden.
+- Die Freigabeanforderung wird an die berechtigten Freigeber gestellt. **Einkaufsleiter oder Geschäftsführung** können die Überschreitung freigeben.
+- Sobald einer der dafür berechtigten Freigeber die Anforderung genehmigt hat, darf der Bestellvorgang fortgesetzt werden.
+- Eine Ablehnung sperrt die Bestellung in der beantragten Menge; für einen neuen Versuch ist eine neue bzw. geänderte Anforderung erforderlich.
+- Antragsteller, Artikel, normale Höchstmenge, beantragte Menge, Überschreitung, Begründung, Projekt/Bestellbezug, Zeitpunkt, Entscheidung und Freigebender werden nachvollziehbar gespeichert.
 - Die Mengenprüfung muss im tatsächlichen Bestell-/Freigabeprozess technisch erzwungen werden und darf nicht nur ein Hinweis sein.
-- Die genaue Bezugsgröße der Maximumgrenze (z. B. je Bestellung, Projekt oder Zeitraum) wird vor Implementierung fachlich festgelegt.
+- Die Höchstmenge ist zunächst als **zulässige Menge je Bestellvorgang/Bestellposition** vorgesehen. Eine spätere zusätzliche Projekt- oder Zeitraumgrenze kann separat ergänzt werden, falls fachlich gewünscht.
 
 ### Rot – freigabepflichtiger Artikel
 
-- Der Artikel darf nicht ohne ausdrückliche Begründung bestellt werden.
+- Der Artikel darf unabhängig von der Menge nicht ohne ausdrückliche Begründung bestellt werden.
 - Sobald ein roter Artikel bestellt bzw. zur Bestellung freigegeben werden soll, öffnet sich zwingend ein Eingabe-/Auswahlfenster.
 - In diesem Fenster muss der Mitarbeiter eine **Begründung als Pflichtfeld** erfassen.
 - Ohne Begründung kann der Vorgang nicht weitergeführt werden.
-- Anschließend wird eine Freigabeanforderung an den **Geschäftsführer** gesendet.
-- Der **Einkaufsleiter** erhält die Benachrichtigung zusätzlich in CC.
-- Die Bestellung darf erst nach dokumentierter Freigabe durch den dafür berechtigten Geschäftsführer fortgesetzt/freigegeben werden.
+- Anschließend wird eine Freigabeanforderung an die **Geschäftsführung** gesendet; der **Einkaufsleiter** wird zusätzlich informiert/CC gesetzt.
+- Die Bestellung darf erst nach dokumentierter Freigabe durch einen dafür berechtigten Freigeber fortgesetzt werden.
 - Begründung, Antragsteller, Artikel, Menge, Projekt/Bestellbezug, Zeitpunkt, Freigabeentscheidung und Freigebender müssen nachvollziehbar gespeichert werden.
 
 ### Bedien- und Datenregel
 
 - Die Ampel muss am Artikel sichtbar und zwingend gepflegt sein.
 - Technisch ist sie als **Einfachauswahl** (Grün/Gelb/Rot) umzusetzen, nicht als drei unabhängig gleichzeitig aktivierbare Häkchen. Damit werden widersprüchliche Zustände ausgeschlossen.
-- In der Oberfläche kann die Auswahl farblich mit Grün, Gelb und Rot dargestellt werden.
+- In der Oberfläche wird die Auswahl farblich mit Grün, Gelb und Rot dargestellt.
+- Bei Auswahl **Gelb** wird das Feld **Höchstmenge** eingeblendet und verpflichtend.
 - Bei neu angelegten Artikeln wird automatisch **Grün** vorbelegt.
 - Bestehende Artikel erhalten bei der Einführung ebenfalls Grün, sofern keine abweichende Einstufung bewusst vorgenommen wird.
-- Die Ampelklassifizierung muss bei DATANORM-/Preisimporten erhalten bleiben und darf durch Lieferanten- oder Preisupdates nicht überschrieben werden.
+- Die Ampelklassifizierung und eine hinterlegte Höchstmenge müssen bei DATANORM-/Preisimporten erhalten bleiben und dürfen durch Lieferanten- oder Preisupdates nicht überschrieben werden.
 
 ---
 
@@ -115,9 +123,8 @@ Für **jedes SAB-Produkt / jeden bestellbaren Artikel** wird eine zwingende Eink
 - ABB-DATANORM praktisch prüfen,
 - Lageranfangsbestände und Anfangsbewertung,
 - Pflichtdokumente/Rollen/Managementgrenzen,
-- **Artikel-Ampel mit Mengenlimit und rotem Freigabeworkflow implementieren und testen**,
-- für Gelb verbindlich festlegen, worauf sich die Maximumgrenze bezieht,
-- Geschäftsführer- und Einkaufsleiter-E-Mail/Benutzer für den Freigabeworkflow konfigurierbar machen,
+- **Artikel-Ampel mit gelber Höchstmenge sowie gelbem/rotem Freigabeworkflow implementieren und testen**,
+- Geschäftsführer- und Einkaufsleiter-Benutzer/E-Mail für Freigaben konfigurierbar machen,
 - Handbuch und Produktivcheckliste finalisieren,
 - Backup-/Rollback-Test,
 - erst nach vollständiger Abnahme Merge in `main`.
