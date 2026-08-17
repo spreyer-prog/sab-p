@@ -31,11 +31,7 @@ class SabCalculationItem(models.Model):
         index=True,
     )
 
-    standard_product_id = fields.Many2one(
-        comodel_name="sab.product",
-        string="Standardprodukt",
-        ondelete="restrict",
-    )
+    standard_product_id = fields.Many2one(comodel_name="sab.product", string="Standardprodukt", ondelete="restrict")
     alternative_product_ids = fields.Many2many(
         comodel_name="sab.product",
         relation="sab_calculation_item_alternative_product_rel",
@@ -47,65 +43,22 @@ class SabCalculationItem(models.Model):
     mechanical_factor = fields.Float(string="Mechanikfaktor (%)", default=100.0)
     wiring_factor = fields.Float(string="Verdrahtungsfaktor (%)", default=100.0)
     testing_factor = fields.Float(string="Prüffaktor (%)", default=100.0)
-    space_factor = fields.Float(
-        string="Platzfaktor",
-        default=1.0,
-        help="Dezimaler Platzfaktor, z. B. 0,50 / 1,00 / 1,25.",
-    )
+    space_factor = fields.Float(string="Platzfaktor", default=1.0, help="Dezimaler Platzfaktor, z. B. 0,50 / 1,00 / 1,25.")
 
-    product_line_ids = fields.One2many(
-        comodel_name="sab.calculation.item.line",
-        inverse_name="calculation_item_id",
-        string="Kalkulationszeilen",
-        copy=True,
-    )
+    product_line_ids = fields.One2many(comodel_name="sab.calculation.item.line", inverse_name="calculation_item_id", string="Kalkulationszeilen", copy=True)
 
-    legacy_import_key = fields.Char(
-        string="Import-Schlüssel", copy=False, index=True, readonly=True
-    )
-    legacy_source_sheet = fields.Char(
-        string="Import-Tabellenblatt", copy=False, readonly=True
-    )
-    legacy_source_row = fields.Integer(
-        string="Import-Zeile", copy=False, readonly=True
-    )
+    legacy_import_key = fields.Char(string="Import-Schlüssel", copy=False, index=True, readonly=True)
+    legacy_source_sheet = fields.Char(string="Import-Tabellenblatt", copy=False, readonly=True)
+    legacy_source_row = fields.Integer(string="Import-Zeile", copy=False, readonly=True)
 
-    space_units = fields.Float(
-        string="Berechnete Platzeinheiten",
-        compute="_compute_product_values",
-        store=True,
-    )
-    mechanical_time_minutes = fields.Float(
-        string="Berechnete Mechanikzeit in Minuten",
-        compute="_compute_product_values",
-        store=True,
-    )
-    wiring_time_minutes = fields.Float(
-        string="Berechnete Verdrahtungszeit in Minuten",
-        compute="_compute_product_values",
-        store=True,
-    )
-    testing_time_minutes = fields.Float(
-        string="Berechnete Prüfzeit in Minuten",
-        compute="_compute_product_values",
-        store=True,
-    )
+    space_units = fields.Float(string="Berechnete Platzeinheiten", compute="_compute_product_values", store=True)
+    mechanical_time_minutes = fields.Float(string="Berechnete Mechanikzeit in Minuten", compute="_compute_product_values", store=True)
+    wiring_time_minutes = fields.Float(string="Berechnete Verdrahtungszeit in Minuten", compute="_compute_product_values", store=True)
+    testing_time_minutes = fields.Float(string="Berechnete Prüfzeit in Minuten", compute="_compute_product_values", store=True)
     additional_time_minutes = fields.Float(string="Zusatzzeit in Minuten", default=0.0)
-    total_time_minutes = fields.Float(
-        string="Gesamtzeit in Minuten",
-        compute="_compute_total_time_minutes",
-        store=True,
-    )
-    purchase_total = fields.Float(
-        string="Material-EK gesamt",
-        digits=(16, 4),
-        compute="_compute_purchase_totals",
-    )
-    optional_purchase_total = fields.Float(
-        string="Optionaler Material-EK",
-        digits=(16, 4),
-        compute="_compute_purchase_totals",
-    )
+    total_time_minutes = fields.Float(string="Gesamtzeit in Minuten", compute="_compute_total_time_minutes", store=True)
+    purchase_total = fields.Float(string="Material-EK gesamt", digits=(16, 2), compute="_compute_purchase_totals")
+    optional_purchase_total = fields.Float(string="Optionaler Material-EK", digits=(16, 2), compute="_compute_purchase_totals")
 
     search_term_01 = fields.Char(string="Suchbegriff 1", index=True)
     search_term_02 = fields.Char(string="Suchbegriff 2", index=True)
@@ -135,10 +88,7 @@ class SabCalculationItem(models.Model):
         "product_line_ids.product_id.mechanical_time_minutes",
         "product_line_ids.product_id.wiring_time_minutes",
         "product_line_ids.product_id.testing_time_minutes",
-        "mechanical_factor",
-        "wiring_factor",
-        "testing_factor",
-        "space_factor",
+        "mechanical_factor", "wiring_factor", "testing_factor", "space_factor",
     )
     def _compute_product_values(self):
         for record in self:
@@ -157,20 +107,10 @@ class SabCalculationItem(models.Model):
             record.wiring_time_minutes = base_wiring * record.wiring_factor / 100.0
             record.testing_time_minutes = base_testing * record.testing_factor / 100.0
 
-    @api.depends(
-        "mechanical_time_minutes",
-        "wiring_time_minutes",
-        "testing_time_minutes",
-        "additional_time_minutes",
-    )
+    @api.depends("mechanical_time_minutes", "wiring_time_minutes", "testing_time_minutes", "additional_time_minutes")
     def _compute_total_time_minutes(self):
         for record in self:
-            record.total_time_minutes = (
-                record.mechanical_time_minutes
-                + record.wiring_time_minutes
-                + record.testing_time_minutes
-                + record.additional_time_minutes
-            )
+            record.total_time_minutes = record.mechanical_time_minutes + record.wiring_time_minutes + record.testing_time_minutes + record.additional_time_minutes
 
     @api.depends("product_line_ids.purchase_total", "product_line_ids.optional")
     def _compute_purchase_totals(self):
