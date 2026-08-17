@@ -23,8 +23,8 @@
         <field name="name">sab.calculation.item.form</field>
         <field name="model">sab.calculation.item</field>
         <field name="arch" type="xml">
-            <form string="Kalkulationsartikel">
-                <sheet>
+            <form string="Kalkulationsartikel" class="o_sab_calculation_item_form">
+                <sheet class="o_sab_calculation_item_sheet">
                     <group string="Stammdaten" col="4">
                         <field name="calculation_number" readonly="1"/>
                         <field name="status"/>
@@ -32,24 +32,25 @@
                         <field name="quotation_text" colspan="4"/>
                     </group>
 
-                    <group string="Produktpositionen">
+                    <div class="o_sab_product_positions">
+                        <separator string="Produktpositionen"/>
                         <field name="product_line_ids" nolabel="1">
-                            <list editable="bottom" default_order="sequence">
+                            <list editable="bottom" default_order="sequence" class="o_sab_product_positions_list">
                                 <field name="sequence" string="Pos." widget="handle"/>
                                 <field name="position_type" string="Positionstyp"/>
                                 <field name="product_id" string="Standardprodukt"/>
                                 <field name="quantity" string="Menge"/>
                                 <field name="unit" string="Einheit"/>
                                 <field name="fixed_quantity" string="Festmenge"/>
-                                <field name="selected_supplier_product_id" readonly="1" optional="show"/>
-                                <field name="unit_purchase_price" readonly="1" optional="show"/>
-                                <field name="purchase_total" readonly="1" optional="show"/>
+                                <field name="selected_supplier_product_id" string="Verwendeter Lieferantenartikel" readonly="1" optional="show"/>
+                                <field name="unit_purchase_price" string="EK Preis je Einheit" readonly="1" optional="show"/>
+                                <field name="purchase_total" string="EK gesamt" readonly="1" optional="show"/>
                                 <field name="alternative_product_ids" string="Alternativprodukte" widget="many2many_tags" optional="show"/>
                                 <field name="optional" string="Optional" optional="show"/>
                                 <field name="note" string="Bemerkung" optional="show"/>
                             </list>
                         </field>
-                    </group>
+                    </div>
 
                     <group string="Kalkulationsfaktoren" col="4">
                         <field name="mechanical_factor"/>
