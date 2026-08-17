@@ -1,92 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_sab_employee_profile_list" model="ir.ui.view">
-        <field name="name">sab.employee.profile.list</field>
-        <field name="model">sab.employee.profile</field>
-        <field name="arch" type="xml">
-            <list string="Mitarbeiter">
-                <field name="name"/>
-                <field name="login"/>
-                <field name="email" optional="show"/>
-                <field name="work_area_ids" widget="many2many_tags"/>
-                <field name="mobile_access"/>
-                <field name="project_manager_access"/>
-                <field name="customer_release_access"/>
-                <field name="user_state" optional="show"/>
-                <field name="last_login" optional="hide"/>
-                <field name="user_id" optional="hide"/>
-                <field name="active"/>
-            </list>
-        </field>
+        <field name="name">sab.employee.profile.list</field><field name="model">sab.employee.profile</field>
+        <field name="arch" type="xml"><list string="Mitarbeiter"><field name="name"/><field name="login"/><field name="email" optional="show"/><field name="work_area_ids" widget="many2many_tags"/><field name="mobile_access"/><field name="project_manager_access"/><field name="customer_release_access"/><field name="user_state" optional="show"/><field name="last_login" optional="hide"/><field name="user_id" optional="hide"/><field name="active"/></list></field>
     </record>
-
     <record id="view_sab_employee_profile_form" model="ir.ui.view">
-        <field name="name">sab.employee.profile.form</field>
-        <field name="model">sab.employee.profile</field>
-        <field name="arch" type="xml">
-            <form string="SAB-P Mitarbeiter">
-                <header>
-                    <button name="action_create_or_update_user" type="object" string="Zugang anlegen / aktualisieren" class="btn-primary" invisible="not active"/>
-                    <button name="action_send_invitation" type="object" string="Einladung / Passwortlink senden" class="btn-secondary" invisible="not active or not email"/>
-                    <button name="action_apply_permissions" type="object" string="Rechte übernehmen" invisible="not user_id or not active"/>
-                    <button name="action_deactivate" type="object" string="Mitarbeiter deaktivieren" invisible="not active"/>
-                    <button name="action_activate" type="object" string="Mitarbeiter aktivieren" invisible="active"/>
-                </header>
-                <sheet>
-                    <group col="4">
-                        <field name="name"/>
-                        <field name="active" readonly="1"/>
-                        <field name="login"/>
-                        <field name="email"/>
-                        <field name="user_id" readonly="1"/>
-                        <field name="user_state" readonly="1"/>
-                        <field name="last_login" readonly="1"/>
-                    </group>
-                    <group string="Arbeitsbereiche">
-                        <field name="work_area_ids" widget="many2many_tags" options="{'no_create': True}"/>
-                    </group>
-                    <group string="Berechtigungen" col="4">
-                        <field name="mobile_access"/>
-                        <field name="project_manager_access"/>
-                        <field name="customer_release_access"/>
-                    </group>
-                    <group string="Interner Hinweis">
-                        <field name="note"/>
-                    </group>
-                </sheet>
-                <chatter/>
-            </form>
-        </field>
+        <field name="name">sab.employee.profile.form</field><field name="model">sab.employee.profile</field>
+        <field name="arch" type="xml"><form string="SAB-P Mitarbeiter"><header>
+            <button name="action_create_or_update_user" type="object" string="Zugang anlegen / aktualisieren" class="btn-primary" invisible="not active"/>
+            <button name="action_send_invitation" type="object" string="Einladung / Passwortlink senden" class="btn-secondary" invisible="not active or not email"/>
+            <button name="action_apply_permissions" type="object" string="Rechte übernehmen" invisible="not user_id or not active"/>
+            <button name="action_deactivate" type="object" string="Mitarbeiter deaktivieren" invisible="not active"/>
+            <button name="action_activate" type="object" string="Mitarbeiter aktivieren" invisible="active"/>
+        </header><sheet>
+            <group col="4"><field name="name"/><field name="active" readonly="1"/><field name="login"/><field name="email"/><field name="user_id" readonly="1"/><field name="user_state" readonly="1"/><field name="last_login" readonly="1"/></group>
+            <group string="Arbeitsbereiche"><field name="work_area_ids" widget="many2many_tags" options="{'no_create': True}"/></group>
+            <group string="Berechtigungen" col="4"><field name="mobile_access"/><field name="project_manager_access"/><field name="customer_release_access"/></group>
+            <group string="Interner Hinweis"><field name="note"/></group>
+        </sheet><chatter/></form></field>
     </record>
-
-    <record id="action_sab_employee_profile" model="ir.actions.act_window">
-        <field name="name">Mitarbeiterverwaltung</field>
-        <field name="res_model">sab.employee.profile</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
-    <record id="view_sab_work_area_list" model="ir.ui.view">
-        <field name="name">sab.work.area.list</field>
-        <field name="model">sab.work.area</field>
-        <field name="arch" type="xml">
-            <list string="Arbeitsbereiche"><field name="sequence" widget="handle"/><field name="name"/><field name="code"/><field name="active"/></list>
-        </field>
-    </record>
-
-    <record id="view_sab_work_area_form" model="ir.ui.view">
-        <field name="name">sab.work.area.form</field>
-        <field name="model">sab.work.area</field>
-        <field name="arch" type="xml">
-            <form string="Arbeitsbereich"><sheet><group><field name="name"/><field name="code"/><field name="sequence"/><field name="active"/></group></sheet></form>
-        </field>
-    </record>
-
-    <record id="action_sab_work_area" model="ir.actions.act_window">
-        <field name="name">Arbeitsbereiche</field>
-        <field name="res_model">sab.work.area</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
-    <menuitem id="sab_employee_admin_menu" name="Mitarbeiterverwaltung" parent="sab_project_configuration_menu" action="action_sab_employee_profile" sequence="10" groups="project.group_project_manager"/>
-    <menuitem id="sab_work_area_menu" name="Arbeitsbereiche" parent="sab_project_configuration_menu" action="action_sab_work_area" sequence="20" groups="project.group_project_manager"/>
+    <record id="action_sab_employee_profile" model="ir.actions.act_window"><field name="name">Mitarbeiterverwaltung</field><field name="res_model">sab.employee.profile</field><field name="view_mode">list,form</field></record>
+    <record id="view_sab_work_area_list" model="ir.ui.view"><field name="name">sab.work.area.list</field><field name="model">sab.work.area</field><field name="arch" type="xml"><list string="Arbeitsbereiche"><field name="sequence" widget="handle"/><field name="name"/><field name="code"/><field name="active"/></list></field></record>
+    <record id="view_sab_work_area_form" model="ir.ui.view"><field name="name">sab.work.area.form</field><field name="model">sab.work.area</field><field name="arch" type="xml"><form string="Arbeitsbereich"><sheet><group><field name="name"/><field name="code"/><field name="sequence"/><field name="active"/></group></sheet></form></field></record>
+    <record id="action_sab_work_area" model="ir.actions.act_window"><field name="name">Arbeitsbereiche</field><field name="res_model">sab.work.area</field><field name="view_mode">list,form</field></record>
+    <menuitem id="sab_employee_admin_menu" name="Mitarbeiterverwaltung" parent="sab_settings_employee_root_menu" action="action_sab_employee_profile" sequence="10" groups="project.group_project_manager"/>
+    <menuitem id="sab_work_area_menu" name="Arbeitsbereiche" parent="sab_settings_employee_root_menu" action="action_sab_work_area" sequence="20" groups="project.group_project_manager"/>
 </odoo>
