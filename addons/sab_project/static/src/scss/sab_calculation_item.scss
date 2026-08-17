@@ -1,0 +1,44 @@
+.o_sab_calculation_item_form {
+    .o_sab_calculation_item_sheet {
+        max-width: none !important;
+        width: calc(100% - 32px) !important;
+        margin-left: 16px !important;
+        margin-right: 16px !important;
+    }
+
+    .o_sab_product_positions {
+        width: 100%;
+        grid-column: 1 / -1;
+        margin-top: 12px;
+        margin-bottom: 16px;
+    }
+
+    .o_sab_product_positions .o_field_x2many,
+    .o_sab_product_positions .o_list_renderer,
+    .o_sab_product_positions table {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .o_sab_product_positions thead th {
+        white-space: normal !important;
+        line-height: 1.15;
+        vertical-align: bottom;
+        min-width: 72px;
+    }
+
+    .o_sab_product_positions thead th[data-name="selected_supplier_product_id"] {
+        min-width: 150px;
+    }
+
+    .o_sab_product_positions thead th[data-name="unit_purchase_price"],
+    .o_sab_product_positions thead th[data-name="purchase_total"] {
+        min-width: 88px;
+        max-width: 110px;
+    }
+
+    .o_sab_product_positions thead th[data-name="alternative_product_ids"],
+    .o_sab_product_positions thead th[data-name="note"] {
+        min-width: 120px;
+    }
+}
