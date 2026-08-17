@@ -4,54 +4,42 @@ from odoo import api, fields, models
 class SabProduct(models.Model):
     _name = "sab.product"
     _description = "SAB-P Produkt"
-    _order = "manufacturer_id, manufacturer_article_number, name"
+    _order = "manufacturer_supplier_id, manufacturer_article_number, name"
     _rec_name = "name"
 
     active = fields.Boolean(string="Aktiv", default=True)
 
     product_type = fields.Selection(
         selection=[
-            ("material", "Material"),
-            ("mechanical", "Mechanik"),
-            ("wiring", "Verdrahtung"),
-            ("testing", "Prüfung"),
-            ("labeling", "Beschriftung"),
-            ("documentation", "Dokumentation"),
-            ("transport", "Transport"),
-            ("packaging", "Verpackung"),
-            ("other", "Sonstiges"),
+            ("material", "Material"), ("mechanical", "Mechanik"), ("wiring", "Verdrahtung"),
+            ("testing", "Prüfung"), ("labeling", "Beschriftung"), ("documentation", "Dokumentation"),
+            ("transport", "Transport"), ("packaging", "Verpackung"), ("other", "Sonstiges"),
         ],
-        string="Produkttyp",
-        required=True,
-        default="material",
-        index=True,
+        string="Produkttyp", required=True, default="material", index=True,
     )
     name = fields.Char(string="Bezeichnung", required=True, index=True)
-    manufacturer_id = fields.Many2one(comodel_name="sab.manufacturer", string="Hersteller", ondelete="restrict", index=True)
+
+    # Neuer zentraler Herstellerbezug: Auswahl direkt aus dem vorhandenen Lieferantenstamm.
+    manufacturer_supplier_id = fields.Many2one(
+        comodel_name="sab.supplier",
+        string="Hersteller",
+        ondelete="restrict",
+        index=True,
+        help="Hersteller des Produkts. Die Auswahl erfolgt aus dem zentralen Lieferanten-/Firmenstamm.",
+    )
+    # Altes Herstellerfeld bleibt vorerst technisch bestehen, damit vorhandene Daten und
+    # laufende Importe nicht verloren gehen. Es wird nicht mehr in der Oberfläche gepflegt.
+    manufacturer_id = fields.Many2one(
+        comodel_name="sab.manufacturer", string="Hersteller (Altbestand)", ondelete="restrict", index=True,
+    )
     manufacturer_article_number = fields.Char(string="Herstellerartikelnummer", index=True)
     datanorm_number = fields.Char(string="DATANORM-Nummer", index=True)
     supplier_product_ids = fields.One2many(comodel_name="sab.supplier.product", inverse_name="product_id", string="Lieferantenartikel")
 
-    stock_movement_ids = fields.One2many(
-        comodel_name="sab.stock.movement",
-        inverse_name="product_id",
-        string="Lagerbewegungen",
-    )
-    stock_on_hand = fields.Float(
-        string="Lagerbestand",
-        digits=(16, 3),
-        compute="_compute_stock_balances",
-    )
-    stock_reserved = fields.Float(
-        string="Reserviert",
-        digits=(16, 3),
-        compute="_compute_stock_balances",
-    )
-    stock_available = fields.Float(
-        string="Verfügbar",
-        digits=(16, 3),
-        compute="_compute_stock_balances",
-    )
+    stock_movement_ids = fields.One2many(comodel_name="sab.stock.movement", inverse_name="product_id", string="Lagerbewegungen")
+    stock_on_hand = fields.Float(string="Lagerbestand", digits=(16, 3), compute="_compute_stock_balances")
+    stock_reserved = fields.Float(string="Reserviert", digits=(16, 3), compute="_compute_stock_balances")
+    stock_available = fields.Float(string="Verfügbar", digits=(16, 3), compute="_compute_stock_balances")
 
     space_units = fields.Float(string="Platzeinheiten", default=0.0)
     mechanical_time_minutes = fields.Float(string="Mechanikzeit in Minuten", default=0.0)
