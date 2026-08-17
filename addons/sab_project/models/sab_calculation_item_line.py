@@ -44,7 +44,7 @@ class SabCalculationItemLine(models.Model):
         string="Menge",
         required=True,
         default=1.0,
-        digits=(16, 3),
+        digits=(16, 2),
     )
     unit = fields.Selection(
         selection=[
@@ -77,12 +77,12 @@ class SabCalculationItemLine(models.Model):
     )
     unit_purchase_price = fields.Float(
         string="EK je Einheit",
-        digits=(16, 4),
+        digits=(16, 2),
         compute="_compute_purchase_values",
     )
     purchase_total = fields.Float(
         string="EK gesamt",
-        digits=(16, 4),
+        digits=(16, 2),
         compute="_compute_purchase_values",
     )
 
