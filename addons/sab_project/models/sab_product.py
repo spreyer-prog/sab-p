@@ -19,22 +19,38 @@ class SabProduct(models.Model):
     )
     name = fields.Char(string="Bezeichnung", required=True, index=True)
 
-    # Neuer zentraler Herstellerbezug: Auswahl direkt aus dem vorhandenen Lieferantenstamm.
     manufacturer_supplier_id = fields.Many2one(
-        comodel_name="sab.supplier",
-        string="Hersteller",
-        ondelete="restrict",
-        index=True,
+        comodel_name="sab.supplier", string="Hersteller", ondelete="restrict", index=True,
         help="Hersteller des Produkts. Die Auswahl erfolgt aus dem zentralen Lieferanten-/Firmenstamm.",
     )
-    # Altes Herstellerfeld bleibt vorerst technisch bestehen, damit vorhandene Daten und
-    # laufende Importe nicht verloren gehen. Es wird nicht mehr in der Oberfläche gepflegt.
     manufacturer_id = fields.Many2one(
         comodel_name="sab.manufacturer", string="Hersteller (Altbestand)", ondelete="restrict", index=True,
     )
     manufacturer_article_number = fields.Char(string="Herstellerartikelnummer", index=True)
     datanorm_number = fields.Char(string="DATANORM-Nummer", index=True)
-    supplier_product_ids = fields.One2many(comodel_name="sab.supplier.product", inverse_name="product_id", string="Lieferantenartikel")
+
+    price_mode = fields.Selection(
+        selection=[
+            ("supplier", "Lieferantenartikel"),
+            ("fixed", "Fixpreis"),
+            ("assembly", "Baugruppe"),
+        ],
+        string="Preisermittlung",
+        required=True,
+        default="supplier",
+        help="Lieferantenartikel: günstigster/bevorzugter Lieferantenartikel. Fixpreis: direkter EK. Baugruppe: Summe der hinterlegten Lieferantenartikel.",
+    )
+    fixed_purchase_price = fields.Float(string="Fixpreis EK", digits=(16, 2), default=0.0)
+    component_ids = fields.One2many(
+        "sab.product.component", "product_id", string="Baugruppenpositionen", copy=True
+    )
+    calculated_purchase_price = fields.Float(
+        string="Kalkulatorischer EK", digits=(16, 2), compute="_compute_calculated_purchase_price"
+    )
+
+    supplier_product_ids = fields.One2many(
+        comodel_name="sab.supplier.product", inverse_name="product_id", string="Lieferantenartikel"
+    )
 
     stock_movement_ids = fields.One2many(comodel_name="sab.stock.movement", inverse_name="product_id", string="Lagerbewegungen")
     stock_on_hand = fields.Float(string="Lagerbestand", digits=(16, 3), compute="_compute_stock_balances")
@@ -46,6 +62,27 @@ class SabProduct(models.Model):
     wiring_time_minutes = fields.Float(string="Verdrahtungszeit in Minuten", default=0.0)
     testing_time_minutes = fields.Float(string="Prüfzeit in Minuten", default=0.0)
     notes = fields.Text(string="Interne Hinweise")
+
+    @api.depends(
+        "price_mode",
+        "fixed_purchase_price",
+        "component_ids.total_price",
+        "supplier_product_ids.active",
+        "supplier_product_ids.preferred",
+        "supplier_product_ids.net_purchase_price",
+    )
+    def _compute_calculated_purchase_price(self):
+        for product in self:
+            if product.price_mode == "fixed":
+                product.calculated_purchase_price = product.fixed_purchase_price or 0.0
+                continue
+            if product.price_mode == "assembly":
+                product.calculated_purchase_price = sum(product.component_ids.mapped("total_price"))
+                continue
+            candidates = product.supplier_product_ids.filtered("active")
+            preferred = candidates.filtered("preferred")
+            pool = preferred or candidates
+            product.calculated_purchase_price = min(pool.mapped("net_purchase_price")) if pool else 0.0
 
     @api.depends("stock_movement_ids.movement_type", "stock_movement_ids.quantity")
     def _compute_stock_balances(self):
