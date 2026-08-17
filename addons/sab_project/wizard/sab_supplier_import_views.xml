@@ -13,22 +13,14 @@
                         <field name="create_contacts"/>
                         <field name="import_bank_data"/>
                     </group>
-                    <group string="Ergebnis" invisible="not result_text">
-                        <field name="result_text" readonly="1" nolabel="1"/>
-                    </group>
+                    <group string="Ergebnis" invisible="not result_text"><field name="result_text" readonly="1" nolabel="1"/></group>
                 </sheet>
-                <footer>
-                    <button name="action_import" type="object" string="Lieferanten importieren" class="btn-primary"/>
-                    <button string="Schließen" special="cancel" class="btn-secondary"/>
-                </footer>
+                <footer><button name="action_import" type="object" string="Lieferanten importieren" class="btn-primary"/><button string="Schließen" special="cancel" class="btn-secondary"/></footer>
             </form>
         </field>
     </record>
-
     <record id="action_sab_supplier_import" model="ir.actions.act_window">
-        <field name="name">Lieferanten importieren</field>
-        <field name="res_model">sab.supplier.import</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="name">Lieferanten importieren</field><field name="res_model">sab.supplier.import</field><field name="view_mode">form</field><field name="target">new</field>
     </record>
+    <menuitem id="sab_supplier_import_menu" name="Lieferanten importieren" parent="sab_settings_import_root_menu" action="action_sab_supplier_import" sequence="40" groups="project.group_project_manager"/>
 </odoo>
