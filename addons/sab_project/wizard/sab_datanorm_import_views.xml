@@ -12,35 +12,18 @@
                     <field name="create_missing_products"/>
                     <field name="source_file_name" readonly="1" invisible="not source_file_name"/>
                 </group>
-
                 <div class="alert alert-info" role="alert">
                     Es kann eine DATANORM-5-Datei (.001) oder direkt das Lieferanten-ZIP hochgeladen werden.
                     Bei ABB wird die Variante mit Typbezeichnung im Kurztext automatisch bevorzugt.
                     Technische SAB-P-Zeiten und Platzeinheiten werden nicht überschrieben.
                 </div>
-
-                <group string="Importprotokoll" invisible="not result_text">
-                    <field name="result_text" nolabel="1" readonly="1"/>
-                </group>
-
-                <footer>
-                    <button name="action_import" type="object" string="DATANORM importieren" class="btn-primary"/>
-                    <button string="Schließen" special="cancel" class="btn-secondary"/>
-                </footer>
+                <group string="Importprotokoll" invisible="not result_text"><field name="result_text" nolabel="1" readonly="1"/></group>
+                <footer><button name="action_import" type="object" string="DATANORM importieren" class="btn-primary"/><button string="Schließen" special="cancel" class="btn-secondary"/></footer>
             </form>
         </field>
     </record>
-
     <record id="action_sab_datanorm_import" model="ir.actions.act_window">
-        <field name="name">DATANORM 5 importieren</field>
-        <field name="res_model">sab.datanorm.import</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="name">DATANORM 5 importieren</field><field name="res_model">sab.datanorm.import</field><field name="view_mode">form</field><field name="target">new</field>
     </record>
-
-    <menuitem id="sab_datanorm_import_menu"
-              name="DATANORM importieren"
-              parent="sab_calculation_root_menu"
-              action="action_sab_datanorm_import"
-              sequence="60"/>
+    <menuitem id="sab_datanorm_import_menu" name="DATANORM importieren" parent="sab_settings_import_root_menu" action="action_sab_datanorm_import" sequence="20" groups="project.group_project_manager"/>
 </odoo>
