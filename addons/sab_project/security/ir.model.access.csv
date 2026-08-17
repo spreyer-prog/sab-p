@@ -16,6 +16,7 @@ access_sab_calculation_item_user,sab.calculation.item user,model_sab_calculation
 access_sab_calculation_item_line_user,sab.calculation.item.line user,model_sab_calculation_item_line,base.group_user,1,1,1,1
 access_sab_manufacturer_user,sab.manufacturer user,model_sab_manufacturer,base.group_user,1,1,1,1
 access_sab_product_user,sab.product user,model_sab_product,base.group_user,1,1,1,1
+access_sab_product_component_user,sab.product.component user,model_sab_product_component,base.group_user,1,1,1,1
 access_sab_supplier_user,sab.supplier user,model_sab_supplier,base.group_user,1,1,1,1
 access_sab_supplier_product_user,sab.supplier.product user,model_sab_supplier_product,base.group_user,1,1,1,1
 access_sab_datanorm_surcharge_user,sab.datanorm.surcharge user,model_sab_datanorm_surcharge,base.group_user,1,1,1,1
