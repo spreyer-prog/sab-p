@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <menuitem id="sab_project_root_menu" name="SAB-P Suite" sequence="35"/>
 
-    <menuitem
-        id="sab_project_root_menu"
-        name="SAB-P Suite"
-        sequence="35"/>
+    <menuitem id="sab_project_projects_menu" name="Projekte" parent="sab_project_root_menu" sequence="10"/>
 
-    <menuitem
-        id="sab_project_projects_menu"
-        name="Projekte"
-        parent="sab_project_root_menu"
-        sequence="10"/>
+    <menuitem id="sab_calculation_root_menu" name="Kalkulationsdatenbank" parent="sab_project_root_menu" sequence="20"/>
 
-    <menuitem
-        id="sab_calculation_root_menu"
-        name="Kalkulationsdatenbank"
-        parent="sab_project_root_menu"
-        sequence="20"/>
+    <!-- Operativer Mitarbeiterbereich: nicht mehr Teil der Kalkulationsdatenbank. -->
+    <menuitem id="sab_employee_root_menu" name="Mitarbeiter" parent="sab_project_root_menu" sequence="30" groups="sab_project.group_sab_employee,project.group_project_manager"/>
+
+    <!-- Zentraler Administrationsbereich. -->
+    <menuitem id="sab_project_configuration_menu" name="Einstellungen" parent="sab_project_root_menu" sequence="90" groups="project.group_project_manager,sab_project.group_sab_confidential_hr"/>
+
+    <menuitem id="sab_settings_import_root_menu" name="Importe" parent="sab_project_configuration_menu" sequence="10" groups="project.group_project_manager"/>
+    <menuitem id="sab_settings_employee_root_menu" name="Mitarbeiter &amp; Rechte" parent="sab_project_configuration_menu" sequence="20" groups="project.group_project_manager,sab_project.group_sab_confidential_hr"/>
 
     <record id="action_sab_calculation_import" model="ir.actions.act_window">
         <field name="name">Import Kalkulationsdatenbank</field>
@@ -25,18 +22,5 @@
         <field name="target">new</field>
     </record>
 
-    <menuitem
-        id="sab_calculation_import_menu"
-        name="Import Kalkulationsdatenbank"
-        parent="sab_calculation_root_menu"
-        action="action_sab_calculation_import"
-        sequence="99"/>
-
-    <menuitem
-        id="sab_project_configuration_menu"
-        name="Einstellungen"
-        parent="sab_project_root_menu"
-        sequence="90"
-        groups="project.group_project_manager,sab_project.group_sab_confidential_hr"/>
-
+    <menuitem id="sab_calculation_import_menu" name="Kalkulationsdatenbank importieren" parent="sab_settings_import_root_menu" action="action_sab_calculation_import" sequence="10" groups="project.group_project_manager"/>
 </odoo>
