@@ -7,6 +7,7 @@ from . import sale_order
 from . import sab_calculation_item
 from . import sab_manufacturer
 from . import sab_product
+from . import sab_product_component
 from . import sab_calculation_item_line
 from . import sab_supplier
 from . import sab_supplier_product
