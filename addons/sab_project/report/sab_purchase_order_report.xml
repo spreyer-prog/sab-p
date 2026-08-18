@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_sab_purchase_order" model="ir.actions.report">
+        <field name="name">SAB-P Bestellung</field>
+        <field name="model">sab.purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_purchase_order</field>
+        <field name="report_file">sab_project.report_sab_purchase_order</field>
+        <field name="print_report_name">'Bestellung_%s' % (object.name or '')</field>
+    </record>
+
+    <template id="report_sab_purchase_order">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row mb-4">
+                            <div class="col-7">
+                                <h2>Bestellung <span t-out="o.name"/></h2>
+                                <p>
+                                    <strong>Lieferant:</strong>
+                                    <span t-out="o.supplier_id.name"/>
+                                    <br/>
+                                    <t t-if="o.partner_id">
+                                        <span t-out="o.partner_id.street or ''"/>
+                                        <t t-if="o.partner_id.street2"><br/><span t-out="o.partner_id.street2"/></t>
+                                        <br/>
+                                        <span t-out="o.partner_id.zip or ''"/> <span t-out="o.partner_id.city or ''"/>
+                                    </t>
+                                </p>
+                            </div>
+                            <div class="col-5 text-end">
+                                <p>
+                                    <strong>Datum:</strong>
+                                    <span t-out="o.sent_at or o.approved_at or o.create_date" t-options="{'widget': 'date'}"/>
+                                    <br/>
+                                    <strong>Projekte:</strong>
+                                    <span t-out="', '.join(o.project_ids.mapped('sab_project_reference'))"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th class="text-start">Projekt</th>
+                                    <th class="text-start">Hersteller</th>
+                                    <th class="text-start">Artikel</th>
+                                    <th class="text-start">Bezeichnung</th>
+                                    <th class="text-end">Menge</th>
+                                    <th class="text-start">Einheit</th>
+                                    <th class="text-end">EK</th>
+                                    <th class="text-end">Gesamt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids.sorted(key=lambda l: (l.project_id.sab_project_reference or '', l.sequence, l.id))" t-as="line">
+                                    <tr>
+                                        <td>
+                                            <span t-out="line.project_id.sab_project_reference or line.project_id.display_name"/>
+                                        </td>
+                                        <td><span t-out="line.manufacturer_name or ''"/></td>
+                                        <td><span t-out="line.supplier_article_number or ''"/></td>
+                                        <td>
+                                            <span t-out="line.odoo_product_id.display_name if line.odoo_product_id else line.product_id.display_name"/>
+                                        </td>
+                                        <td class="text-end"><span t-out="line.quantity_ordered" t-options="{'widget':'float','precision':3}"/></td>
+                                        <td><span t-out="dict(line._fields['unit'].selection).get(line.unit, line.unit or '')"/></td>
+                                        <td class="text-end"><span t-out="line.unit_purchase_price" t-options="{'widget':'float','precision':4}"/></td>
+                                        <td class="text-end"><span t-out="line.purchase_total" t-options="{'widget':'float','precision':2}"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr class="border-top fw-bold">
+                                    <td colspan="7" class="text-end">Bestellwert netto</td>
+                                    <td class="text-end"><span t-out="o.amount_total" t-options="{'widget':'float','precision':2}"/></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <div class="mt-4" t-if="o.note">
+                            <strong>Hinweise:</strong>
+                            <p t-out="o.note"/>
+                        </div>
+
+                        <div class="mt-4">
+                            <p>Bitte bestätigen Sie uns den Auftrag mit Liefertermin unter Angabe unserer Bestellnummer.</p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
