@@ -47,5 +47,28 @@ class SabProjectLvMapping(models.Model):
 
     @api.model
     def next_ntg_number(self, project):
-        last = self.search([("project_id", "=", project.id), ("is_ntg", "=", True)], order="ntg_number desc", limit=1)
-        return (last.ntg_number or 0) + 1
+        last_mapping = self.search(
+            [("project_id", "=", project.id), ("is_ntg", "=", True)],
+            order="ntg_number desc",
+            limit=1,
+        )
+        highest = last_mapping.ntg_number or 0
+
+        # Bauteile carry their own project position. They are intentionally not
+        # mapped to each contained product, but their NTG numbers still share the
+        # same project-wide sequence as direct calculation positions.
+        sections = self.env["sab.offer.calculation.line"].search([
+            ("order_id.sab_project_id", "=", project.id),
+            ("line_type", "=", "section"),
+            ("is_ntg", "=", True),
+            ("lv_position", "!=", False),
+        ])
+        for section in sections:
+            code = (section.lv_position or "").strip().upper()
+            if not code.startswith("NTG"):
+                continue
+            try:
+                highest = max(highest, int(code.split()[-1]))
+            except (ValueError, IndexError):
+                continue
+        return highest + 1
