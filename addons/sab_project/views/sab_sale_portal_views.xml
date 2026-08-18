@@ -41,12 +41,12 @@
                                 <tr class="fst-italic"><td></td><td colspan="4"><span t-out="line.description"/></td></tr>
                             </t>
                             <t t-elif="line.line_type == 'item'">
-                                <tr t-att-class="'sab-subline' if line.parent_section_id or line.parent_cabinet_id else ''">
+                                <tr t-att-class="'sab-subline' if line.parent_section_id else ''">
                                     <td>
-                                        <span t-if="line.parent_section_id or line.parent_cabinet_id" class="text-muted me-1">↳</span>
-                                        <span t-out="line.lv_position or line.schematic_reference or ''"/>
+                                        <span t-if="line.parent_section_id" class="text-muted me-1">↳</span>
+                                        <span t-if="not line.parent_section_id" t-out="line.lv_position or line.schematic_reference or ''"/>
                                     </td>
-                                    <td t-att-style="'padding-left: 2rem;' if line.parent_section_id and line.parent_cabinet_id else ('padding-left: 1.25rem;' if line.parent_section_id or line.parent_cabinet_id else '')">
+                                    <td t-att-style="'padding-left: 2rem;' if line.parent_section_id and line.parent_cabinet_id else ('padding-left: 1.25rem;' if line.parent_section_id else '')">
                                         <span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/>
                                     </td>
                                     <td class="text-end"><span t-out="line.quantity" t-options="{'widget':'float','precision':2}"/></td>
