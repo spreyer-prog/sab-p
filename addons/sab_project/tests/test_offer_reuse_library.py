@@ -44,6 +44,19 @@ class TestSabOfferReuseLibrary(TransactionCase):
                 "sab_calculation_source": "lv",
             }
         )
+        # The same calculation item is also offered once as a genuine direct LV
+        # position. That project mapping must remain available for direct reuse,
+        # while a child inside a Bauteil still inherits the Bauteil position.
+        cls.direct_item = cls.env["sab.offer.calculation.line"].create(
+            {
+                "order_id": cls.first_order.id,
+                "calculation_item_id": cls.calculation_item.id,
+                "quantity": 1.0,
+                "description": "Direkte LV-Position",
+                "lv_position": "01.01.03",
+                "sequence": 5,
+            }
+        )
         cls.source_section = cls.env["sab.offer.calculation.line"].create(
             {
                 "order_id": cls.first_order.id,
@@ -59,7 +72,6 @@ class TestSabOfferReuseLibrary(TransactionCase):
                 "calculation_item_id": cls.calculation_item.id,
                 "quantity": 2.0,
                 "description": "Einspeisung komplett",
-                "lv_position": "01.01.03",
                 "sequence": 20,
             }
         )
@@ -88,8 +100,7 @@ class TestSabOfferReuseLibrary(TransactionCase):
             item for item in payload["project_components"] if item["id"] == self.source_section.id
         ]
         self.assertEqual(len(source_components), 1)
-        self.assertIn("01.01", source_components[0]["positions"])
-        self.assertIn("01.01.03", source_components[0]["positions"])
+        self.assertEqual(source_components[0]["positions"], "01.01")
         self.assertEqual(source_components[0]["line_count"], 1)
 
     def test_single_lv_position_can_be_added_from_panel(self):
@@ -110,7 +121,7 @@ class TestSabOfferReuseLibrary(TransactionCase):
         self.assertEqual(added.lv_position, "01.01.03")
         self.assertTrue(added.lv_position_locked)
 
-    def test_complete_project_component_is_copied_with_project_positions(self):
+    def test_complete_project_component_is_copied_with_component_position(self):
         result = self.second_order.sab_offer_add_reuse_entry(
             "project_component", self.source_section.id
         )
@@ -126,7 +137,8 @@ class TestSabOfferReuseLibrary(TransactionCase):
         self.assertEqual(copied_section.lv_position, "01.01")
         self.assertEqual(len(copied_item), 1)
         self.assertEqual(copied_item.parent_section_id, copied_section)
-        self.assertEqual(copied_item.lv_position, "01.01.03")
+        self.assertEqual(copied_item.lv_position, "01.01")
+        self.assertFalse(copied_item.is_ntg)
         self.assertAlmostEqual(copied_item.quantity, 2.0)
 
     def test_component_can_be_saved_to_database_without_lv_and_reused(self):
@@ -162,7 +174,8 @@ class TestSabOfferReuseLibrary(TransactionCase):
             lambda line: line.line_type == "item"
         )
         self.assertFalse(inserted_section.lv_position)
-        self.assertEqual(inserted_item.lv_position, "01.01.03")
+        self.assertFalse(inserted_item.lv_position)
+        self.assertFalse(inserted_item.is_ntg)
         self.assertEqual(inserted_item.parent_section_id, inserted_section)
 
     def test_form_contains_right_side_reuse_widget(self):
