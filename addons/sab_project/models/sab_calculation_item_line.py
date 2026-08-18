@@ -9,8 +9,13 @@ class SabCalculationItemLine(models.Model):
     calculation_item_id = fields.Many2one("sab.calculation.item", string="Kalkulationsartikel", required=True, ondelete="cascade", index=True)
     sequence = fields.Integer(string="Pos.", default=10, index=True)
     position_type = fields.Selection([
-        ("normal", "Normal"), ("alternative", "Alternative"), ("information", "Information"),
-        ("heading", "Überschrift"), ("subtotal", "Zwischensumme")], string="Positionstyp", required=True, default="normal", index=True)
+        ("normal", "Normal"),
+        ("auxiliary_material", "Hilfsmaterial"),
+        ("alternative", "Alternative"),
+        ("information", "Information"),
+        ("heading", "Überschrift"),
+        ("subtotal", "Zwischensumme"),
+    ], string="Positionstyp", required=True, default="normal", index=True)
     product_id = fields.Many2one("sab.product", string="Standardprodukt", ondelete="restrict", index=True)
     alternative_product_ids = fields.Many2many("sab.product", relation="sab_calculation_line_alternative_product_rel", column1="calculation_line_id", column2="product_id", string="Alternativprodukte")
     quantity = fields.Float(string="Menge", required=True, default=1.0, digits=(16, 2))
