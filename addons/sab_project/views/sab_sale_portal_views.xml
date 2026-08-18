@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sab_sale_order_portal_calculation" inherit_id="sale.sale_order_portal_content" priority="50">
-        <!--
-            Odoo 19 bindet eigenes JavaScript an die Standard-Verkaufspositionen.
-            Deshalb darf sales_order_table bei SAB-P nicht mit t-if vollständig
-            aus dem DOM entfernt werden. Wir lassen die Originaltabelle technisch
-            vorhanden und blenden sie nur visuell aus. Dadurch bleiben Odoos
-            dataset-basierte Portal-Interaktionen funktionsfähig.
-        -->
+        <!-- Keep Odoo's original order table in the DOM for its portal JavaScript. -->
         <xpath expr="//table[@id='sales_order_table']" position="attributes">
             <attribute name="t-attf-class">#{'d-none' if sale_order.sab_calculation_line_ids else ''} table table-sm</attribute>
         </xpath>
@@ -25,10 +19,19 @@
                     </thead>
                     <tbody>
                         <t t-foreach="sale_order.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
-                            <t t-if="line.line_type == 'section'">
+                            <t t-if="line.line_type == 'cabinet'">
+                                <tr class="fw-bold border-top border-bottom">
+                                    <td></td>
+                                    <td class="text-center"><span t-out="line.description"/></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="text-end text-nowrap"><span t-out="line.cabinet_total" t-options="{'widget':'monetary','display_currency':sale_order.currency_id}"/></td>
+                                </tr>
+                            </t>
+                            <t t-elif="line.line_type == 'section'">
                                 <tr class="fw-bold border-top bg-light">
                                     <td><span t-out="line.lv_position or line.schematic_reference or ''"/></td>
-                                    <td><span t-out="line.description"/></td>
+                                    <td t-att-style="'padding-left: 1rem;' if line.parent_cabinet_id else ''"><span t-out="line.description"/></td>
                                     <td></td>
                                     <td></td>
                                     <td class="text-end text-nowrap"><span t-out="line.section_total" t-options="{'widget':'monetary','display_currency':sale_order.currency_id}"/></td>
@@ -38,12 +41,12 @@
                                 <tr class="fst-italic"><td></td><td colspan="4"><span t-out="line.description"/></td></tr>
                             </t>
                             <t t-elif="line.line_type == 'item'">
-                                <tr t-att-class="'sab-subline' if line.parent_section_id else ''">
+                                <tr t-att-class="'sab-subline' if line.parent_section_id or line.parent_cabinet_id else ''">
                                     <td>
-                                        <span t-if="line.parent_section_id" class="text-muted me-1">↳</span>
+                                        <span t-if="line.parent_section_id or line.parent_cabinet_id" class="text-muted me-1">↳</span>
                                         <span t-out="line.lv_position or line.schematic_reference or ''"/>
                                     </td>
-                                    <td t-att-style="'padding-left: 1.5rem;' if line.parent_section_id else ''">
+                                    <td t-att-style="'padding-left: 2rem;' if line.parent_section_id and line.parent_cabinet_id else ('padding-left: 1.25rem;' if line.parent_section_id or line.parent_cabinet_id else '')">
                                         <span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/>
                                     </td>
                                     <td class="text-end"><span t-out="line.quantity" t-options="{'widget':'float','precision':2}"/></td>
