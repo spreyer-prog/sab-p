@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_form_switchboard_rules" model="ir.ui.view">
+        <field name="name">sale.order.form.sab.switchboard.rules</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_lv_rules"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_calculation']//field[@name='sab_calculation_line_ids']/list" position="attributes">
+                <attribute name="decoration-info">line_type == 'cabinet'</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='sab_calculation_line_ids']/list/control/create[@string='Bauteil beenden']" position="after">
+                <create string="Schaltschrank erstellen"
+                        context="{'default_line_type': 'cabinet', 'default_quantity': 1.0}"
+                        invisible="parent.sab_calculation_source != 'schematic'"/>
+                <create string="Schaltschrank beenden"
+                        context="{'default_line_type': 'cabinet_end', 'default_quantity': 1.0}"
+                        invisible="parent.sab_calculation_source != 'schematic'"/>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='parent_section_id']" position="after">
+                <field name="parent_cabinet_id" column_invisible="1"/>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='lv_position']" position="attributes">
+                <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end')</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='is_ntg']" position="attributes">
+                <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end')</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='schematic_reference']" position="attributes">
+                <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end')</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='description']" position="attributes">
+                <attribute name="invisible">line_type in ('section_end', 'cabinet_end')</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='section_total']" position="after">
+                <field name="cabinet_total" string="Schaltschrank gesamt" readonly="1" invisible="line_type != 'cabinet'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
