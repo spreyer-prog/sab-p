@@ -6,7 +6,8 @@
         <field name="model">sab.product</field>
         <field name="arch" type="xml">
             <list string="Produkte">
-                <field name="manufacturer_supplier_id" string="Hersteller"/>
+                <field name="manufacturer_id" string="Hersteller"/>
+                <field name="manufacturer_supplier_id" string="Datenquelle / Lieferant" optional="hide"/>
                 <field name="product_type"/>
                 <field name="manufacturer_article_number"/>
                 <field name="name"/>
@@ -29,7 +30,16 @@
         <field name="name">sab.product.form</field>
         <field name="model">sab.product</field>
         <field name="arch" type="xml">
-            <form string="Produkt"><sheet><group><field name="name"/></group></sheet></form>
+            <form string="Produkt">
+                <sheet>
+                    <group string="Identifikation" col="4">
+                        <field name="manufacturer_id" string="Hersteller"/>
+                        <field name="manufacturer_supplier_id" string="Datenquelle / Lieferant"/>
+                        <field name="manufacturer_article_number"/>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 
@@ -39,14 +49,14 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- Neue Hauptansicht: gleiche Bedienlogik wie die frühere SAB-P Produktmaske,
-         aber direkt auf dem normalen Odoo-Produktstamm. -->
+    <!-- Neue Hauptansicht direkt auf dem normalen Odoo-Produktstamm. -->
     <record id="view_sab_odoo_product_tree" model="ir.ui.view">
         <field name="name">product.template.sab.p.tree</field>
         <field name="model">product.template</field>
         <field name="arch" type="xml">
             <list string="Produkte">
-                <field name="sab_manufacturer_supplier_id" string="Hersteller"/>
+                <field name="sab_manufacturer_id" string="Hersteller"/>
+                <field name="sab_manufacturer_supplier_id" string="Datenquelle / Lieferant" optional="hide"/>
                 <field name="sab_product_type" string="Produkttyp"/>
                 <field name="sab_manufacturer_article_number" string="Herstellerartikelnummer"/>
                 <field name="name"/>
@@ -72,7 +82,8 @@
             <form string="Produkt">
                 <sheet>
                     <group string="Identifikation" col="4">
-                        <field name="sab_manufacturer_supplier_id" string="Hersteller" options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="sab_manufacturer_id" string="Hersteller" options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="sab_manufacturer_supplier_id" string="Datenquelle / Lieferant" options="{'no_create': True, 'no_create_edit': True}"/>
                         <field name="sab_manufacturer_article_number" string="Herstellerartikelnummer"/>
                         <field name="sab_product_type" string="Produkttyp"/>
                         <field name="active"/>
@@ -127,7 +138,10 @@
                         </page>
 
                         <page string="DATANORM">
-                            <group><field name="sab_datanorm_number" string="DATANORM-Nummer"/></group>
+                            <group col="4">
+                                <field name="sab_manufacturer_id" string="Hersteller" readonly="1"/>
+                                <field name="sab_datanorm_number" string="DATANORM-Nummer"/>
+                            </group>
                         </page>
 
                         <page string="Lagerbewegungen">
@@ -153,8 +167,7 @@
         </field>
     </record>
 
-    <!-- Die Standard-Odoo-Produktmaske bekommt zusätzlich die SAB-P-Felder,
-         damit dieselben Daten auch über Verkauf > Produkte sichtbar sind. -->
+    <!-- Die Standard-Odoo-Produktmaske bekommt zusätzlich die SAB-P-Felder. -->
     <record id="view_product_template_form_sab_p" model="ir.ui.view">
         <field name="name">product.template.form.sab.p</field>
         <field name="model">product.template</field>
@@ -163,7 +176,8 @@
             <xpath expr="//notebook" position="inside">
                 <page string="SAB-P" name="sab_p_calculation">
                     <group string="Identifikation" col="4">
-                        <field name="sab_manufacturer_supplier_id" string="Hersteller"/>
+                        <field name="sab_manufacturer_id" string="Hersteller"/>
+                        <field name="sab_manufacturer_supplier_id" string="Datenquelle / Lieferant"/>
                         <field name="sab_manufacturer_article_number"/>
                         <field name="sab_product_type"/>
                         <field name="sab_datanorm_number"/>
