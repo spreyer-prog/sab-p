@@ -13,7 +13,6 @@ class SabDatanormImportEnrichment(models.TransientModel):
 
     @classmethod
     def _space_units_from_text(cls, *values):
-        """Liest PLE/TE nur dann, wenn sie in den DATANORM-Texten enthalten sind."""
         text = " ".join(value or "" for value in values)
         for pattern in cls.SPACE_PATTERNS:
             match = pattern.search(text)
@@ -24,27 +23,27 @@ class SabDatanormImportEnrichment(models.TransientModel):
                     return 0.0
         return 0.0
 
-    def action_import(self):
-        self.ensure_one()
-        action = super().action_import()
+    def _finish_import(self):
+        """Nach Abschluss die Odoo-Produkte um optionale DATANORM-Technikwerte ergänzen."""
+        super()._finish_import()
         text, _source_file_name = self._read_payload()
         lines = text.splitlines()
         if not lines:
-            return action
+            return
 
         header = lines[0].split(";")
         manufacturer_name = (header[8] or "Unbekannter Hersteller").strip() if len(header) > 8 else "Unbekannter Hersteller"
         manufacturer = self.env["sab.manufacturer"].search([("name", "=ilike", manufacturer_name)], limit=1)
         if not manufacturer:
-            return action
+            return
 
-        Product = self.env["sab.product"].sudo()
+        Product = self.env["product.product"].sudo()
         SupplierProduct = self.env["sab.supplier.product"].sudo()
         product_map = {
-            product.manufacturer_article_number: product
+            product.sab_manufacturer_article_number: product
             for product in Product.search([
-                ("manufacturer_id", "=", manufacturer.id),
-                ("manufacturer_article_number", "!=", False),
+                ("sab_manufacturer_id", "=", manufacturer.id),
+                ("sab_manufacturer_article_number", "!=", False),
             ])
         }
         supplier_map = {
@@ -68,8 +67,6 @@ class SabDatanormImportEnrichment(models.TransientModel):
             supplier_product = supplier_map.get(article_number)
             if supplier_product:
                 vals = {"list_price": datanorm_price}
-                # Vorhandenen echten EK nicht überschreiben. Nur ohne EK dient
-                # der Listenpreis als kalkulatorischer Fallback.
                 if not supplier_product.purchase_price:
                     vals["purchase_price"] = datanorm_price
                 supplier_product.write(vals)
@@ -80,9 +77,8 @@ class SabDatanormImportEnrichment(models.TransientModel):
                 combined_text = " ".join(value.strip() for value in parts[3:5] + parts[12:18] if value.strip())
                 space_units = self._space_units_from_text(combined_text)
                 if space_units:
-                    product.write({"space_units": space_units})
+                    product.write({"sab_space_units": space_units})
                     enriched_spaces += 1
 
         suffix = f"\nListenpreise gespeichert: {enriched_prices}\nPlatzeinheiten aus DATANORM erkannt: {enriched_spaces}"
         self.result_text = (self.result_text or "") + suffix
-        return action
