@@ -27,15 +27,16 @@ class TestSabOfferCalculation(TransactionCase):
         self.assertAlmostEqual(order.sab_testing_hours, 0.1)
         self.assertAlmostEqual(order.sab_space_units, 3.0)
 
-        # Normales Material erhält nur den Materialfaktor. Der Hilfsmaterialfaktor
-        # gilt ausschließlich für explizit als Hilfsmaterial markierte Positionen.
+        # Normales Material erhält nur den Materialfaktor; Hilfsmaterial separat.
         # Material: 60 * 1.00 = 60 EUR
         # Lohn: 0.6 h * 80 EUR * 1.25 = 60 EUR
         self.assertAlmostEqual(order.sab_material_cost, 60.0)
         self.assertAlmostEqual(order.sab_labor_cost, 60.0)
         self.assertAlmostEqual(order.sab_direct_cost, 120.0)
-        self.assertAlmostEqual(order.sab_commercial_factor, 1.491890625)
-        self.assertAlmostEqual(order.sab_recommended_net_price, 179.03, places=2)
+        # Aktuelle Excel-Referenzwerte: 1.03 Verpackung * 1.03 Skonto *
+        # 1.35 Marge * 1.125 Rabatt = 1.611241875.
+        self.assertAlmostEqual(order.sab_commercial_factor, 1.611241875)
+        self.assertAlmostEqual(order.sab_recommended_net_price, 193.35, places=2)
 
     def test_offer_uses_snapshot_not_live_master_data(self):
         order = self._order()
