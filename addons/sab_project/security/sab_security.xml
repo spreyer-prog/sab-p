@@ -5,6 +5,16 @@
         <field name="comment">Mobile Fertigungsrückmeldung und eigene Zeitbuchungen.</field>
     </record>
 
+    <record id="group_sab_purchasing" model="res.groups">
+        <field name="name">SAB-P Einkauf</field>
+        <field name="comment">Darf freigegebene projektbezogene Fehlbestände sammeln, Bestellvorschläge erstellen und freigegebene Bestellungen versenden.</field>
+    </record>
+
+    <record id="group_sab_warehouse" model="res.groups">
+        <field name="name">SAB-P Lager</field>
+        <field name="comment">Darf Lagerbestände einsehen, Wareneingänge buchen und eingegangenes Material projektbezogen kommissionieren.</field>
+    </record>
+
     <record id="group_sab_customer_release" model="res.groups">
         <field name="name">SAB-P Kundenfreigaben</field>
         <field name="comment">Darf Kundenstatus, Projektdokumente und Fertigungsfotos für das Kundenportal freigeben. Diese Rolle verleiht keine Projektleiterrechte.</field>
