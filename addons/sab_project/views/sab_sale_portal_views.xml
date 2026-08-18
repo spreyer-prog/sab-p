@@ -1,61 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sab_sale_order_portal_calculation" inherit_id="sale.sale_order_portal_template" priority="50">
-        <!-- Odoo-Auftragspositionen bleiben nur technische Spiegelung. Sobald eine
-             SAB-P Kalkulation existiert, ist ausschließlich diese kundenwirksam. -->
-        <xpath expr="//div[@name='sol_table']" position="attributes">
+        <!-- Odoo 19 hat keinen div[name='sol_table'] mehr. Die Standard-Positions-Tabelle
+             wird bei SAB-P Angeboten ausgeblendet; die SAB-P Kalkulation bleibt kundenführend. -->
+        <xpath expr="//table[@id='sales_order_table']" position="attributes">
             <attribute name="t-if">not sale_order.sab_calculation_line_ids</attribute>
         </xpath>
-        <xpath expr="//div[@name='sol_table']" position="after">
+        <xpath expr="//table[@id='sales_order_table']" position="after">
             <div t-if="sale_order.sab_calculation_line_ids" class="table-responsive" name="sab_calculation_portal_table">
                 <table class="table table-sm" id="sab_sales_order_table">
-                    <thead>
-                        <tr>
-                            <th class="text-start" style="width: 12%;">LV / Pos.</th>
-                            <th class="text-start">Beschreibung</th>
-                            <th class="text-end" style="width: 10%;">Menge</th>
-                            <th class="text-end" style="width: 15%;">Einzelpreis</th>
-                            <th class="text-end" style="width: 15%;">Gesamtpreis</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th class="text-start" style="width:12%;">LV / Pos.</th><th class="text-start">Beschreibung</th><th class="text-end" style="width:10%;">Menge</th><th class="text-end" style="width:15%;">Einzelpreis</th><th class="text-end" style="width:15%;">Gesamtpreis</th></tr></thead>
                     <tbody>
-                        <t t-set="sab_pos" t-value="0"/>
                         <t t-foreach="sale_order.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
                             <t t-if="line.line_type == 'section'">
-                                <t t-set="sab_pos" t-value="sab_pos + 1"/>
-                                <tr class="fw-bold border-top">
-                                    <td><span t-out="line.lv_position or line.schematic_reference or sab_pos"/></td>
-                                    <td><span t-out="line.description"/></td>
-                                    <td></td><td></td>
-                                    <td class="text-end text-nowrap">
-                                        <span t-out="line.section_total" t-options="{'widget': 'monetary', 'display_currency': sale_order.currency_id}"/>
-                                    </td>
-                                </tr>
+                                <tr class="fw-bold border-top"><td><span t-out="line.lv_position or line.schematic_reference or ''"/></td><td><span t-out="line.description"/></td><td></td><td></td><td class="text-end text-nowrap"><span t-out="line.section_total" t-options="{'widget':'monetary','display_currency':sale_order.currency_id}"/></td></tr>
                             </t>
                             <t t-elif="line.line_type == 'info'">
-                                <tr class="fst-italic">
-                                    <td></td><td colspan="4"><span t-out="line.description"/></td>
-                                </tr>
+                                <tr class="fst-italic"><td></td><td colspan="4"><span t-out="line.description"/></td></tr>
                             </t>
-                            <!-- Positionen innerhalb eines Bauteils sind nur interne Kalkulationsdetails. -->
                             <t t-elif="line.line_type == 'item' and not line.parent_section_id">
-                                <t t-set="sab_pos" t-value="sab_pos + 1"/>
-                                <tr>
-                                    <td>
-                                        <span t-if="line.lv_position" t-out="line.lv_position"/>
-                                        <span t-elif="line.schematic_reference" t-out="line.schematic_reference"/>
-                                        <span t-elif="line.is_ntg">NTG <t t-out="sab_pos"/></span>
-                                        <span t-else="" t-out="sab_pos"/>
-                                    </td>
-                                    <td>
-                                        <span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/>
-                                    </td>
-                                    <td class="text-end"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
-                                    <td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': sale_order.currency_id}"/></td>
-                                    <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': sale_order.currency_id}"/></td>
-                                </tr>
+                                <tr><td><span t-out="line.lv_position or line.schematic_reference or ''"/></td><td><span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/></td><td class="text-end"><span t-out="line.quantity" t-options="{'widget':'float','precision':2}"/></td><td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget':'monetary','display_currency':sale_order.currency_id}"/></td><td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget':'monetary','display_currency':sale_order.currency_id}"/></td></tr>
                             </t>
-                            <!-- section_end wird absichtlich nicht kundenwirksam ausgegeben. -->
                         </t>
                     </tbody>
                 </table>
