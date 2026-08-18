@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.46.0",
+    "version": "19.0.5.47.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -29,7 +29,7 @@
             "sab_project/static/src/xml/datanorm_progress.xml"
         ]
     },
-    "installable": True,
-    "application": True,
-    "auto_install": False
+    "installable": true,
+    "application": true,
+    "auto_install": false
 }
