@@ -43,8 +43,6 @@
                                 <field name="unit_recommended_net_price" string="VK je Einheit" readonly="1"/>
                                 <field name="recommended_net_price" string="VK gesamt" readonly="1"/>
                                 <field name="note" string="Bemerkung" optional="show"/>
-
-                                <!-- Interne Kalkulationswerte bleiben verfügbar, sind aber standardmäßig ausgeblendet. -->
                                 <field name="material_purchase_total" string="Material-EK" readonly="1" optional="hide"/>
                                 <field name="mechanical_time_minutes" string="Mechanik min" readonly="1" optional="hide"/>
                                 <field name="wiring_time_minutes" string="Verdrahtung min" readonly="1" optional="hide"/>
@@ -57,15 +55,10 @@
 
                     <group string="Angebotssumme" col="4">
                         <field name="sab_offer_net_total" string="Netto-Angebotssumme" readonly="1"/>
+                        <field name="sab_offer_vat_total" string="Umsatzsteuer" readonly="1"/>
+                        <field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
                         <field name="sab_material_purchase_total" string="Material-EK gesamt" readonly="1" optional="hide"/>
-                        <field name="sab_calculated_hours" string="Kalkulierte Zeit" readonly="1" optional="hide"/>
-                        <field name="sab_space_units" string="Platzeinheiten" readonly="1" optional="hide"/>
                     </group>
-
-                    <div class="alert alert-info" role="alert">
-                        Mehrere Kalkulationspositionen können einem Bauteil zugeordnet werden. Im Angebotsdruck werden die internen Einzelpositionen dieses Bauteils nicht gezeigt; sichtbar ist nur das Bauteil mit seinem Gruppenpreis.
-                        Die sichtbaren Verkaufspreise werden aus den Kalkulationswerten und den im Reiter „Kalkulationsfaktoren“ gespeicherten Angebotsfaktoren berechnet.
-                    </div>
                 </page>
 
                 <page string="Kalkulationsfaktoren" name="sab_calculation_factors">
@@ -83,6 +76,7 @@
                         <field name="sab_skonto_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_margin_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_rebate_factor" readonly="state not in ('draft', 'sent')"/>
+                        <field name="sab_vat_rate" string="Umsatzsteuer (%)" readonly="state not in ('draft', 'sent')"/>
                     </group>
 
                     <group string="Kontrollwerte" col="5">
@@ -91,10 +85,13 @@
                         <field name="sab_direct_cost" readonly="1"/>
                         <field name="sab_commercial_factor" readonly="1"/>
                         <field name="sab_recommended_net_price" readonly="1"/>
+                        <field name="sab_offer_net_total" string="Netto-Angebotssumme" readonly="1"/>
+                        <field name="sab_offer_vat_total" string="Umsatzsteuer" readonly="1"/>
+                        <field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
                     </group>
 
                     <div class="alert alert-secondary" role="alert">
-                        Diese Faktoren gelten nur für dieses Angebot und werden mit dem Angebot gespeichert. Änderungen wirken direkt auf die kalkulierten Verkaufspreise der SAB-P Kalkulationspositionen und Bauteile.
+                        Diese Faktoren gelten nur für dieses Angebot und werden mit dem Angebot gespeichert. Der Umsatzsteuersatz steht standardmäßig auf 19 % und kann pro Angebot angepasst werden.
                     </div>
                 </page>
             </xpath>
