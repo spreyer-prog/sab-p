@@ -5,6 +5,7 @@ from . import project_project
 from . import project_customer_portal
 from . import sale_order
 from . import sab_sale_order_template
+from . import sab_offer_lv_order
 from . import sab_calculation_item
 from . import sab_manufacturer
 from . import product_template_extension
