@@ -39,3 +39,14 @@ class SabOfferCalculationGroup(models.Model):
     def _compute_group_net_price(self):
         for record in self:
             record.group_net_price = sum(record.line_ids.mapped("recommended_net_price"))
+
+
+class SaleOrder(models.Model):
+    _inherit = "sale.order"
+
+    sab_calculation_group_ids = fields.One2many(
+        comodel_name="sab.offer.calculation.group",
+        inverse_name="order_id",
+        string="Bauteile / Gruppenpreise",
+        copy=True,
+    )
