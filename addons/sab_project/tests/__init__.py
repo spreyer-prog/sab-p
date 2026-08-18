@@ -4,6 +4,7 @@ from . import test_datanorm_import
 from . import test_customer_import
 from . import test_supplier_import
 from . import test_offer_calculation
+from . import test_project_lv_mapping
 from . import test_calculation_audit_and_bom
 from . import test_production_workflow
 from . import test_employee_production_start
