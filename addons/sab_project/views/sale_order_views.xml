@@ -17,16 +17,33 @@
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="SAB-P Kalkulation" name="sab_calculation">
-                    <group string="Bauteile" col="1">
-                        <field name="sab_calculation_group_ids" nolabel="1" readonly="state not in ('draft', 'sent')">
-                            <list editable="bottom" default_order="sequence"><control><create string="Bauteil erstellen"/></control><field name="sequence" widget="handle" string="Pos."/><field name="name" string="Bauteil"/><field name="description" string="Angebotstext" optional="show"/><field name="group_net_price" string="Gruppenpreis / VK netto" readonly="1"/><field name="note" optional="show"/></list>
-                        </field>
-                    </group>
                     <group string="Kalkulationspositionen" col="1">
                         <field name="sab_calculation_line_ids" nolabel="1" readonly="state not in ('draft', 'sent')">
-                            <list editable="bottom" default_order="sequence" decoration-muted="line_type == 'info'">
-                                <control><create string="Kalkulationsartikel hinzufügen" context="{'default_line_type': 'item'}"/><create string="Infofeld hinzufügen" context="{'default_line_type': 'info', 'default_quantity': 1.0}"/></control>
-                                <field name="order_id" column_invisible="1"/><field name="line_type" column_invisible="1"/><field name="sequence" widget="handle" string="Pos."/><field name="group_id" string="Bauteil" optional="show" options="{'no_create_edit': True}" invisible="line_type == 'info'"/><field name="calculation_item_id" string="Kalkulationsartikel" invisible="line_type == 'info'"/><field name="quantity" string="Menge" invisible="line_type == 'info'"/><field name="description" string="Angebotstext" optional="show"/><field name="unit_recommended_net_price" string="VK je Einheit" readonly="1" invisible="line_type == 'info'"/><field name="recommended_net_price" string="VK gesamt" readonly="1" invisible="line_type == 'info'"/><field name="note" string="Bemerkung" optional="show" invisible="line_type == 'info'"/><field name="material_purchase_total" string="Material-EK" readonly="1" optional="hide"/><field name="auxiliary_purchase_total" string="Hilfsmaterial-EK" readonly="1" optional="hide"/><field name="mechanical_time_minutes" string="Mechanik min" readonly="1" optional="hide"/><field name="wiring_time_minutes" string="Verdrahtung min" readonly="1" optional="hide"/><field name="testing_time_minutes" string="Prüfung min" readonly="1" optional="hide"/><field name="total_hours" string="Gesamtstunden" readonly="1" optional="hide"/><field name="space_units" string="Platzeinheiten" readonly="1" optional="hide"/>
+                            <list editable="bottom" default_order="sequence" decoration-muted="line_type == 'info'" decoration-bf="line_type == 'section'">
+                                <control>
+                                    <create string="Kalkulationsartikel / Produkt hinzufügen" context="{'default_line_type': 'item'}"/>
+                                    <create string="Bauteil erstellen" context="{'default_line_type': 'section', 'default_quantity': 1.0}"/>
+                                    <create string="Infofeld hinzufügen" context="{'default_line_type': 'info', 'default_quantity': 1.0}"/>
+                                </control>
+                                <field name="order_id" column_invisible="1"/>
+                                <field name="line_type" column_invisible="1"/>
+                                <field name="sequence" widget="handle" string="Pos."/>
+                                <field name="parent_section_id" string="Bauteil" options="{'no_create': True, 'no_create_edit': True}" invisible="line_type != 'item'" optional="show"/>
+                                <field name="calculation_item_id" string="Kalkulationsartikel" invisible="line_type != 'item'" optional="show"/>
+                                <field name="odoo_product_id" string="Produkt" invisible="line_type != 'item'" optional="show"/>
+                                <field name="quantity" string="Menge" invisible="line_type != 'item'"/>
+                                <field name="description" string="Angebotstext / Bauteil" optional="show"/>
+                                <field name="unit_recommended_net_price" string="VK je Einheit" readonly="1" invisible="line_type != 'item'"/>
+                                <field name="recommended_net_price" string="VK gesamt" readonly="1" invisible="line_type != 'item'"/>
+                                <field name="section_total" string="Gruppenpreis" readonly="1" invisible="line_type != 'section'"/>
+                                <field name="note" string="Bemerkung" optional="show" invisible="line_type != 'item'"/>
+                                <field name="material_purchase_total" string="Material-EK" readonly="1" optional="hide" invisible="line_type != 'item'"/>
+                                <field name="auxiliary_purchase_total" string="Hilfsmaterial-EK" readonly="1" optional="hide" invisible="line_type != 'item'"/>
+                                <field name="mechanical_time_minutes" string="Mechanik min" readonly="1" optional="hide" invisible="line_type != 'item'"/>
+                                <field name="wiring_time_minutes" string="Verdrahtung min" readonly="1" optional="hide" invisible="line_type != 'item'"/>
+                                <field name="testing_time_minutes" string="Prüfung min" readonly="1" optional="hide" invisible="line_type != 'item'"/>
+                                <field name="total_hours" string="Gesamtstunden" readonly="1" optional="hide" invisible="line_type != 'item'"/>
+                                <field name="space_units" string="Platzeinheiten" readonly="1" optional="hide" invisible="line_type != 'item'"/>
                             </list>
                         </field>
                     </group>
@@ -40,14 +57,12 @@
                         <field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
                     </group>
                 </page>
-
                 <page string="Kalkulationsfaktoren" name="sab_calculation_factors">
                     <group string="Material und Zeit" col="4"><field name="sab_material_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_aux_material_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_hourly_rate" readonly="state not in ('draft', 'sent')"/><field name="sab_time_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_difficulty_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_planning_surcharge_factor" string="Planungszuschlag – Formelabgleich offen" readonly="state not in ('draft', 'sent')"/></group>
                     <group string="Kaufmännische Faktoren" col="4"><field name="sab_packaging_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_skonto_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_margin_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_rebate_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_object_discount_percent" readonly="state not in ('draft', 'sent')"/><field name="sab_vat_rate" string="Umsatzsteuer (%)" readonly="state not in ('draft', 'sent')"/></group>
                     <group string="Excel-Sonderfaktoren" col="4"><field name="sab_additional_order_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_hw_metal_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_1" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_2" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_3" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_4" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_5" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_6" readonly="state not in ('draft', 'sent')"/><field name="sab_terminal_deduction" readonly="state not in ('draft', 'sent')"/><field name="sab_wage_unit" readonly="state not in ('draft', 'sent')"/><field name="sab_planning_hours" readonly="state not in ('draft', 'sent')"/><field name="sab_assembly_correction" readonly="state not in ('draft', 'sent')"/></group>
                     <group string="Kontrollwerte" col="5"><field name="sab_material_cost" readonly="1"/><field name="sab_labor_cost" readonly="1"/><field name="sab_direct_cost" readonly="1"/><field name="sab_commercial_factor" readonly="1"/><field name="sab_recommended_net_price" readonly="1"/></group>
                 </page>
-
                 <page string="Angebotsbedingungen" name="sab_offer_terms">
                     <group string="Lieferung und Zahlung" col="4"><field name="sab_delivery_time_text"/><field name="sab_payment_text"/><field name="validity_date"/><field name="sab_transport_cost"/></group>
                     <group string="Leistungsbeschreibung" col="1"><field name="sab_service_description" nolabel="1"/></group>
