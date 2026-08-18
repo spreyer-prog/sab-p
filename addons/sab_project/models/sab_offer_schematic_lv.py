@@ -38,6 +38,15 @@ class SabOfferCalculationLineSchematicLv(models.Model):
         if not (calc_id or product_id):
             return vals
 
+        # A schematic quotation is only valid after a priced LV quotation was
+        # actually sent/confirmed. A mapping created in an unsent LV draft alone
+        # must not bypass this prerequisite.
+        if order.sab_calculation_source == "schematic" and not self._sab_has_prior_lv_offer(order):
+            raise ValidationError(
+                "Ein Schaltplan-Angebot setzt ein zuvor bepreistes LV-Angebot im selben Projekt voraus. "
+                "Bitte zuerst mindestens ein LV-Angebot senden oder bestätigen."
+            )
+
         mapping = self._sab_lv_mapping(order, calc_id, product_id)
         if mapping:
             vals["lv_position"] = mapping.position_code
@@ -45,11 +54,6 @@ class SabOfferCalculationLineSchematicLv(models.Model):
             return vals
 
         if order.sab_calculation_source == "schematic":
-            if not self._sab_has_prior_lv_offer(order):
-                raise ValidationError(
-                    "Ein Schaltplan-Angebot setzt ein zuvor bepreistes LV-Angebot im selben Projekt voraus. "
-                    "Bitte zuerst mindestens ein LV-Angebot senden oder bestätigen."
-                )
             Mapping = self.env["sab.project.lv.mapping"]
             number = Mapping.next_ntg_number(order.sab_project_id)
             code = f"NTG {number}"
