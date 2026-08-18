@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sab_report_saleorder_document" inherit_id="sale.report_saleorder_document">
-        <xpath expr="//table[contains(@class, 'o_main_table')]" position="attributes">
+        <xpath expr="//table[hasclass('o_main_table')]" position="attributes">
             <attribute name="t-if">not doc.sab_calculation_line_ids</attribute>
         </xpath>
 
-        <xpath expr="//table[contains(@class, 'o_main_table')]" position="after">
+        <xpath expr="//table[hasclass('o_main_table')]" position="after">
             <table t-if="doc.sab_calculation_line_ids" class="o_has_total_table table o_main_table table-borderless">
                 <thead style="display: table-row-group">
                     <tr>
@@ -19,7 +19,7 @@
                 <tbody>
                     <t t-set="sab_pos" t-value="0"/>
                     <t t-foreach="doc.sab_calculation_group_ids.sorted(key=lambda g: (g.sequence, g.id))" t-as="group">
-                        <t t-if="group.line_ids">
+                        <t t-if="group.line_ids.filtered(lambda l: l.line_type == 'item')">
                             <t t-set="sab_pos" t-value="sab_pos + 1"/>
                             <tr class="fw-bold">
                                 <td class="text-start"><span t-out="sab_pos"/></td>
@@ -34,14 +34,22 @@
                         </t>
                     </t>
                     <t t-foreach="doc.sab_calculation_line_ids.filtered(lambda l: not l.group_id).sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
-                        <t t-set="sab_pos" t-value="sab_pos + 1"/>
-                        <tr>
-                            <td class="text-start"><span t-out="sab_pos"/></td>
-                            <td class="text-start"><span t-out="line.description or line.calculation_item_id.quotation_text or line.calculation_item_id.name"/></td>
-                            <td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
-                            <td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                            <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                        </tr>
+                        <t t-if="line.line_type == 'info'">
+                            <tr class="fst-italic">
+                                <td></td>
+                                <td colspan="4" class="text-start"><span t-out="line.description"/></td>
+                            </tr>
+                        </t>
+                        <t t-else="">
+                            <t t-set="sab_pos" t-value="sab_pos + 1"/>
+                            <tr>
+                                <td class="text-start"><span t-out="sab_pos"/></td>
+                                <td class="text-start"><span t-out="line.description or line.calculation_item_id.quotation_text or line.calculation_item_id.name"/></td>
+                                <td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                <td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                                <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                        </t>
                     </t>
                 </tbody>
             </table>
@@ -56,18 +64,9 @@
                 <div class="row mt-2">
                     <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
                         <table class="o_total_table table table-borderless">
-                            <tr>
-                                <td class="text-start">Netto-Angebotssumme</td>
-                                <td class="text-end"><span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                            </tr>
-                            <tr>
-                                <td class="text-start">Umsatzsteuer <span t-out="doc.sab_vat_rate" t-options="{'widget': 'float', 'precision': 2}"/> %</td>
-                                <td class="text-end"><span t-out="doc.sab_offer_vat_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                            </tr>
-                            <tr class="fw-bold border-top">
-                                <td class="text-start">Brutto-Angebotssumme</td>
-                                <td class="text-end"><span t-out="doc.sab_offer_gross_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                            </tr>
+                            <tr><td class="text-start">Netto-Angebotssumme</td><td class="text-end"><span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
+                            <tr><td class="text-start">Umsatzsteuer <span t-out="doc.sab_vat_rate" t-options="{'widget': 'float', 'precision': 2}"/> %</td><td class="text-end"><span t-out="doc.sab_offer_vat_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
+                            <tr class="fw-bold border-top"><td class="text-start">Brutto-Angebotssumme</td><td class="text-end"><span t-out="doc.sab_offer_gross_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
                         </table>
                     </div>
                 </div>
