@@ -101,13 +101,18 @@ class SabDatanormImport(models.TransientModel):
         if not article_lines: raise UserError("Die DATANORM-Datei enthält keine Artikelsätze (A-Sätze).")
         self.write({"source_file_name": source_file_name, "import_manufacturer_name": manufacturer_name, "import_source_date": source_date, "import_z_count": counts.get("Z", 0), "import_payload": "\n".join(article_lines), "import_state": "running", "progress_percent": 0.0, "processed_records": 0, "total_records": len(article_lines), "current_status": f"Vorbereitet – {len(article_lines)} Artikel erkannt", "last_error": False, "result_text": False, "created_products": 0, "updated_products": 0, "unchanged_products": 0, "created_supplier": 0, "updated_supplier": 0, "unchanged_supplier": 0, "synced_odoo": 0, "skipped_records": 0, "error_records": 0})
 
+    @staticmethod
+    def _has_http_request():
+        """Werkzeug LocalProxy darf außerhalb eines HTTP-Kontexts nicht direkt gelesen werden."""
+        try:
+            from odoo.http import request
+            return bool(request and request.httprequest)
+        except RuntimeError:
+            return False
+
     def action_import(self):
-        """UI: Fortschrittsdialog. Tests/Serveraufrufe ohne HTTP-Request bleiben synchron kompatibel."""
         self._prepare_import()
-        # Odoo-Tests rufen action_import direkt ohne Web-Request auf. Dort vollständig
-        # verarbeiten, damit die bisherige öffentliche Methode kompatibel bleibt.
-        from odoo.http import request
-        if not getattr(request, "httprequest", None):
+        if not self._has_http_request():
             while self.import_state == "running": self.action_process_chunk(batch_size=1000)
             return {"type": "ir.actions.act_window", "res_model": self._name, "res_id": self.id, "view_mode": "form", "target": "new"}
         return {"type": "ir.actions.client", "tag": "sab_datanorm_progress", "params": {"wizard_id": self.id}}
