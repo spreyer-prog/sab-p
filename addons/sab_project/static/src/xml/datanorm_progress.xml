@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sab_project.DatanormProgress">
+        <div class="o_action_manager d-flex justify-content-center align-items-start p-5">
+            <div class="card shadow-sm" style="width: min(900px, 95vw);">
+                <div class="card-body p-4">
+                    <h3 class="mb-3">DATANORM-Import</h3>
+                    <div class="progress mb-3" style="height: 28px;">
+                        <div class="progress-bar progress-bar-striped"
+                             t-att-class="state.busy ? 'progress-bar progress-bar-striped progress-bar-animated' : 'progress-bar progress-bar-striped'"
+                             role="progressbar"
+                             t-att-style="'width: ' + state.progress + '%'"
+                             t-att-aria-valuenow="state.progress"
+                             aria-valuemin="0" aria-valuemax="100">
+                            <t t-esc="state.progress"/> %
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong t-esc="state.status"/>
+                        <span><t t-esc="state.processed"/> / <t t-esc="state.total"/></span>
+                    </div>
+                    <div t-if="state.errors" class="alert alert-warning mt-3 mb-0">
+                        <strong>Fehlerhafte Datensätze: <t t-esc="state.errors"/></strong>
+                        <div t-if="state.lastError" class="mt-1"><t t-esc="state.lastError"/></div>
+                    </div>
+                    <div t-if="state.failed" class="alert alert-danger mt-3 mb-0">
+                        <strong>Der Import wurde abgebrochen.</strong>
+                        <div class="mt-1" t-esc="state.lastError"/>
+                    </div>
+                    <div t-if="state.done" class="alert alert-success mt-3 mb-0">
+                        Import abgeschlossen. <t t-esc="state.processed"/> Artikel wurden verarbeitet.
+                    </div>
+                    <div class="mt-4 text-end">
+                        <button t-if="state.done or state.failed" type="button" class="btn btn-primary" t-on-click="openProtocol">
+                            Importprotokoll anzeigen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
