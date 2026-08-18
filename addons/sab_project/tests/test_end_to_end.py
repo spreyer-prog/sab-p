@@ -37,17 +37,59 @@ class TestSabEndToEnd(TransactionCase):
         project = self.env["project.project"].create({"name": "E2E NSHV", "partner_id": self.partner.id})
         self.assertRegex(project.sab_project_reference, r"^A\d{2}\.\d{4}$")
 
-        order = self.env["sale.order"].create({
-            "partner_id": self.partner.id, "sab_project_id": project.id,
-            "sab_calculation_line_ids": [(0, 0, {"calculation_item_id": self.calculation_item.id, "quantity": 3.0})],
+        lv_order = self.env["sale.order"].create({
+            "partner_id": self.partner.id,
+            "sab_project_id": project.id,
+            "sab_calculation_source": "lv",
         })
-        self.assertTrue(order.sab_offer_reference.startswith(project.sab_project_reference + "-"))
+        lv_line = self.env["sab.offer.calculation.line"].create({
+            "order_id": lv_order.id,
+            "calculation_item_id": self.calculation_item.id,
+            "quantity": 3.0,
+            "lv_position": "01.01.03",
+        })
+        lv_order.state = "sent"
+        self.assertEqual(lv_line.lv_position, "01.01.03")
+        self.assertEqual(lv_order.sab_offer_reference, f"{project.sab_project_reference}-01")
+
+        order = self.env["sale.order"].create({
+            "partner_id": self.partner.id,
+            "sab_project_id": project.id,
+            "sab_calculation_source": "schematic",
+        })
+        cabinet = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet",
+            "description": "NSHV1",
+            "sequence": 10,
+        })
+        schematic_line = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "calculation_item_id": self.calculation_item.id,
+            "quantity": 3.0,
+            "sequence": 20,
+        })
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet_end",
+            "sequence": 30,
+        })
+        order.sab_calculation_line_ids._normalize_section_membership()
+
+        self.assertEqual(order.sab_offer_reference, f"{project.sab_project_reference}-02")
         self.assertGreater(order.sab_calculated_hours, 0.0)
+        self.assertEqual(schematic_line.lv_position, "01.01.03")
+        self.assertEqual(schematic_line.parent_cabinet_id, cabinet)
 
         order.state = "sale"
         bom_action = order.action_generate_sab_bom()
-        bom = self.env["sab.project.bom"].browse(bom_action["res_id"])
+        self.assertEqual(bom_action["res_model"], "sab.project.bom")
+        self.assertEqual(len(order.sab_bom_ids), 2)
+        bom = order.sab_bom_ids.filtered(lambda record: record.bom_scope == "cabinet")
+        total_bom = order.sab_bom_ids.filtered(lambda record: record.bom_scope == "total")
+        self.assertEqual(bom.cabinet_line_id, cabinet)
         self.assertAlmostEqual(bom.line_ids.quantity, 6.0)
+        self.assertAlmostEqual(total_bom.line_ids.quantity, 6.0)
         bom.action_release()
 
         bom.action_generate_purchase_requirements()
