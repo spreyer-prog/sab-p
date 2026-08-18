@@ -4,62 +4,15 @@
         <xpath expr="//table[hasclass('o_main_table')]" position="attributes"><attribute name="t-if">not doc.sab_calculation_line_ids</attribute></xpath>
         <xpath expr="//table[hasclass('o_main_table')]" position="after">
             <table t-if="doc.sab_calculation_line_ids" class="o_has_total_table table o_main_table table-borderless">
-                <thead style="display: table-row-group"><tr><th class="text-start" style="width: 7%;">Pos.</th><th class="text-start">Beschreibung</th><th class="text-end text-nowrap" style="width: 12%;">Menge</th><th class="text-end text-nowrap" style="width: 16%;">Einzelpreis</th><th class="text-end text-nowrap" style="width: 16%;">Gesamtpreis</th></tr></thead>
-                <tbody>
-                    <t t-set="sab_pos" t-value="0"/>
-                    <t t-foreach="doc.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
-                        <!-- Bauteil wie ein Odoo-Abschnitt: nur Bezeichnung und zusammengefasster Gruppenpreis. -->
-                        <t t-if="line.line_type == 'section'">
-                            <t t-set="sab_pos" t-value="sab_pos + 1"/>
-                            <tr class="fw-bold border-top">
-                                <td class="text-start"><span t-out="sab_pos"/></td>
-                                <td class="text-start"><span t-out="line.description"/></td>
-                                <td></td>
-                                <td></td>
-                                <td class="text-end text-nowrap"><span t-out="line.section_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                            </tr>
-                        </t>
-                        <t t-elif="line.line_type == 'info'">
-                            <tr class="fst-italic"><td></td><td colspan="4" class="text-start"><span t-out="line.description"/></td></tr>
-                        </t>
-                        <!-- Positionen innerhalb eines Bauteils werden nicht einzeln an den Kunden gedruckt. -->
-                        <t t-elif="line.line_type == 'item' and not line.parent_section_id">
-                            <t t-set="sab_pos" t-value="sab_pos + 1"/>
-                            <tr>
-                                <td class="text-start"><span t-out="sab_pos"/></td>
-                                <td class="text-start"><span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/></td>
-                                <td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
-                                <td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                                <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
-                            </tr>
-                        </t>
-                    </t>
-                </tbody>
+                <thead style="display: table-row-group"><tr><th class="text-start" style="width: 11%;">LV / Pos.</th><th class="text-start">Beschreibung</th><th class="text-end text-nowrap" style="width: 10%;">Menge</th><th class="text-end text-nowrap" style="width: 15%;">Einzelpreis</th><th class="text-end text-nowrap" style="width: 15%;">Gesamtpreis</th></tr></thead>
+                <tbody><t t-set="sab_pos" t-value="0"/><t t-foreach="doc.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
+                    <t t-if="line.line_type == 'section'"><t t-set="sab_pos" t-value="sab_pos + 1"/><tr class="fw-bold border-top"><td class="text-start"><span t-out="line.lv_position or line.schematic_reference or sab_pos"/></td><td class="text-start"><span t-out="line.description"/></td><td></td><td></td><td class="text-end text-nowrap"><span t-out="line.section_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr></t>
+                    <t t-elif="line.line_type == 'info'"><tr class="fst-italic"><td></td><td colspan="4" class="text-start"><span t-out="line.description"/></td></tr></t>
+                    <t t-elif="line.line_type == 'item' and not line.parent_section_id"><t t-set="sab_pos" t-value="sab_pos + 1"/><tr><td class="text-start"><span t-out="line.lv_position or line.schematic_reference or (('NTG ' + str(sab_pos)) if line.is_ntg else sab_pos)"/></td><td class="text-start"><span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/></td><td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td><td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td><td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr></t>
+                </t></tbody>
             </table>
         </xpath>
-
         <xpath expr="//div[@name='so_total_summary']" position="attributes"><attribute name="t-if">not doc.sab_calculation_line_ids</attribute></xpath>
-        <xpath expr="//div[@name='so_total_summary']" position="after">
-            <div t-if="doc.sab_calculation_line_ids" class="clearfix" name="sab_total_summary">
-                <div class="row mt-2"><div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto"><table class="o_total_table table table-borderless">
-                    <tr><td class="text-start">Nettobetrag</td><td class="text-end"><span t-out="doc.sab_offer_subtotal" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
-                    <tr t-if="doc.sab_object_discount_percent"><td class="text-start">Objektnachlass <span t-out="doc.sab_object_discount_percent" t-options="{'widget': 'float', 'precision': 2}"/> %</td><td class="text-end">- <span t-out="doc.sab_object_discount_amount" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
-                    <tr t-if="doc.sab_object_discount_percent"><td class="text-start">Nettobetrag nach Objektnachlass</td><td class="text-end"><span t-out="doc.sab_offer_net_after_discount" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
-                    <tr t-if="doc.sab_transport_cost"><td class="text-start">Transport</td><td class="text-end"><span t-out="doc.sab_transport_cost" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
-                    <tr><td class="text-start">Netto-Angebotssumme</td><td class="text-end"><span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
-                    <tr><td class="text-start">Umsatzsteuer <span t-out="doc.sab_vat_rate" t-options="{'widget': 'float', 'precision': 2}"/> %</td><td class="text-end"><span t-out="doc.sab_offer_vat_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
-                    <tr class="fw-bold border-top"><td class="text-start">Brutto-Angebotssumme</td><td class="text-end"><span t-out="doc.sab_offer_gross_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
-                </table></div></div>
-                <div class="mt-4" t-if="doc.sab_delivery_time_text or doc.sab_payment_text or doc.sab_service_description or doc.sab_documentation_text or doc.sab_transport_text or doc.sab_reservations_text or doc.sab_additional_terms_text">
-                    <p t-if="doc.sab_delivery_time_text"><strong>Lieferzeit:</strong> <span t-out="doc.sab_delivery_time_text"/></p>
-                    <p t-if="doc.sab_payment_text"><strong>Zahlung:</strong> <span t-out="doc.sab_payment_text"/></p>
-                    <div t-if="doc.sab_service_description"><strong>Leistungsbeschreibung:</strong><div t-field="doc.sab_service_description"/></div>
-                    <div t-if="doc.sab_documentation_text"><strong>Dokumentation:</strong><div t-field="doc.sab_documentation_text"/></div>
-                    <div t-if="doc.sab_transport_text"><strong>Transport / Verpackung:</strong><div t-field="doc.sab_transport_text"/></div>
-                    <div t-if="doc.sab_reservations_text"><strong>Vorbehalte:</strong><div t-field="doc.sab_reservations_text"/></div>
-                    <div t-if="doc.sab_additional_terms_text"><strong>Zusätzliche Bedingungen:</strong><div t-field="doc.sab_additional_terms_text"/></div>
-                </div>
-            </div>
-        </xpath>
+        <xpath expr="//div[@name='so_total_summary']" position="after"><div t-if="doc.sab_calculation_line_ids" class="clearfix" name="sab_total_summary"><div class="row mt-2"><div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto"><table class="o_total_table table table-borderless"><tr><td class="text-start">Nettobetrag</td><td class="text-end"><span t-out="doc.sab_offer_subtotal" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr><tr t-if="doc.sab_object_discount_percent"><td>Objektnachlass <span t-out="doc.sab_object_discount_percent"/> %</td><td class="text-end">- <span t-out="doc.sab_object_discount_amount" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr><tr t-if="doc.sab_transport_cost"><td>Transport</td><td class="text-end"><span t-out="doc.sab_transport_cost" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr><tr><td>Netto-Angebotssumme</td><td class="text-end"><span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr><tr><td>Umsatzsteuer <span t-out="doc.sab_vat_rate"/> %</td><td class="text-end"><span t-out="doc.sab_offer_vat_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr><tr class="fw-bold border-top"><td>Brutto-Angebotssumme</td><td class="text-end"><span t-out="doc.sab_offer_gross_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr></table></div></div></div></xpath>
     </template>
 </odoo>
