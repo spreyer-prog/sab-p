@@ -14,6 +14,7 @@
 
     <menuitem id="sab_settings_import_root_menu" name="Importe" parent="sab_project_configuration_menu" sequence="10" groups="project.group_project_manager"/>
     <menuitem id="sab_settings_employee_root_menu" name="Mitarbeiter &amp; Rechte" parent="sab_project_configuration_menu" sequence="20" groups="project.group_project_manager,sab_project.group_sab_confidential_hr"/>
+    <menuitem id="sab_settings_quotation_templates_menu" name="Angebotsvorlagen" parent="sab_project_configuration_menu" action="sale_management.sale_order_template_action" sequence="30" groups="project.group_project_manager"/>
 
     <record id="action_sab_calculation_import" model="ir.actions.act_window">
         <field name="name">Import Kalkulationsdatenbank</field>
