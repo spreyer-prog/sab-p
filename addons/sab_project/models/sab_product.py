@@ -8,6 +8,14 @@ class SabProduct(models.Model):
     _rec_name = "name"
 
     active = fields.Boolean(string="Aktiv", default=True)
+    odoo_product_id = fields.Many2one(
+        "product.product",
+        string="Odoo-Produkt",
+        copy=False,
+        ondelete="set null",
+        index=True,
+        help="Verknüpfung zum normalen Odoo-Produktstamm. DATANORM-Produkte werden automatisch synchronisiert.",
+    )
 
     product_type = fields.Selection(
         selection=[
@@ -18,41 +26,20 @@ class SabProduct(models.Model):
         string="Produkttyp", required=True, default="material", index=True,
     )
     name = fields.Char(string="Bezeichnung", required=True, index=True)
-
-    manufacturer_supplier_id = fields.Many2one(
-        comodel_name="sab.supplier", string="Hersteller", ondelete="restrict", index=True,
-        help="Hersteller des Produkts. Die Auswahl erfolgt aus dem zentralen Lieferanten-/Firmenstamm.",
-    )
-    manufacturer_id = fields.Many2one(
-        comodel_name="sab.manufacturer", string="Hersteller (Altbestand)", ondelete="restrict", index=True,
-    )
+    manufacturer_supplier_id = fields.Many2one("sab.supplier", string="Hersteller", ondelete="restrict", index=True)
+    manufacturer_id = fields.Many2one("sab.manufacturer", string="Hersteller (Altbestand)", ondelete="restrict", index=True)
     manufacturer_article_number = fields.Char(string="Herstellerartikelnummer", index=True)
     datanorm_number = fields.Char(string="DATANORM-Nummer", index=True)
 
-    price_mode = fields.Selection(
-        selection=[
-            ("supplier", "Lieferantenartikel"),
-            ("fixed", "Fixpreis"),
-            ("assembly", "Baugruppe"),
-        ],
-        string="Preisermittlung",
-        required=True,
-        default="supplier",
-        help="Lieferantenartikel: günstigster/bevorzugter Lieferantenartikel. Fixpreis: direkter EK. Baugruppe: Summe der hinterlegten Lieferantenartikel.",
-    )
+    price_mode = fields.Selection([
+        ("supplier", "Lieferantenartikel"), ("fixed", "Fixpreis"), ("assembly", "Baugruppe")
+    ], string="Preisermittlung", required=True, default="supplier")
     fixed_purchase_price = fields.Float(string="Fixpreis EK", digits=(16, 2), default=0.0)
-    component_ids = fields.One2many(
-        "sab.product.component", "product_id", string="Baugruppenpositionen", copy=True
-    )
-    calculated_purchase_price = fields.Float(
-        string="Kalkulatorischer EK", digits=(16, 2), compute="_compute_calculated_purchase_price"
-    )
+    component_ids = fields.One2many("sab.product.component", "product_id", string="Baugruppenpositionen", copy=True)
+    calculated_purchase_price = fields.Float(string="Kalkulatorischer EK", digits=(16, 2), compute="_compute_calculated_purchase_price")
+    supplier_product_ids = fields.One2many("sab.supplier.product", "product_id", string="Lieferantenartikel")
 
-    supplier_product_ids = fields.One2many(
-        comodel_name="sab.supplier.product", inverse_name="product_id", string="Lieferantenartikel"
-    )
-
-    stock_movement_ids = fields.One2many(comodel_name="sab.stock.movement", inverse_name="product_id", string="Lagerbewegungen")
+    stock_movement_ids = fields.One2many("sab.stock.movement", "product_id", string="Lagerbewegungen")
     stock_on_hand = fields.Float(string="Lagerbestand", digits=(16, 3), compute="_compute_stock_balances")
     stock_reserved = fields.Float(string="Reserviert", digits=(16, 3), compute="_compute_stock_balances")
     stock_available = fields.Float(string="Verfügbar", digits=(16, 3), compute="_compute_stock_balances")
@@ -63,26 +50,60 @@ class SabProduct(models.Model):
     testing_time_minutes = fields.Float(string="Prüfzeit in Minuten", default=0.0)
     notes = fields.Text(string="Interne Hinweise")
 
-    @api.depends(
-        "price_mode",
-        "fixed_purchase_price",
-        "component_ids.total_price",
-        "supplier_product_ids.active",
-        "supplier_product_ids.preferred",
-        "supplier_product_ids.net_purchase_price",
-    )
+    @api.depends("price_mode", "fixed_purchase_price", "component_ids.total_price", "supplier_product_ids.active", "supplier_product_ids.preferred", "supplier_product_ids.net_purchase_price")
     def _compute_calculated_purchase_price(self):
         for product in self:
             if product.price_mode == "fixed":
                 product.calculated_purchase_price = product.fixed_purchase_price or 0.0
-                continue
-            if product.price_mode == "assembly":
+            elif product.price_mode == "assembly":
                 product.calculated_purchase_price = sum(product.component_ids.mapped("total_price"))
-                continue
-            candidates = product.supplier_product_ids.filtered("active")
-            preferred = candidates.filtered("preferred")
-            pool = preferred or candidates
-            product.calculated_purchase_price = min(pool.mapped("net_purchase_price")) if pool else 0.0
+            else:
+                candidates = product.supplier_product_ids.filtered("active")
+                preferred = candidates.filtered("preferred")
+                pool = preferred or candidates
+                product.calculated_purchase_price = min(pool.mapped("net_purchase_price")) if pool else 0.0
+
+    def _odoo_product_values(self):
+        self.ensure_one()
+        return {
+            "name": self.name,
+            "default_code": self.manufacturer_article_number or self.datanorm_number or False,
+            "active": self.active,
+            "sale_ok": True,
+            "purchase_ok": True,
+            "standard_price": self.calculated_purchase_price or 0.0,
+            "type": "consu",
+        }
+
+    def _sync_to_odoo_product(self):
+        Product = self.env["product.product"].sudo()
+        for record in self:
+            vals = record._odoo_product_values()
+            target = record.odoo_product_id.sudo()
+            if not target:
+                # Erst nach bestehender Artikelnummer suchen, damit beim Upgrade keine Dubletten entstehen.
+                code = vals.get("default_code")
+                target = Product.search([("default_code", "=", code)], limit=1) if code else Product.browse()
+            if target:
+                target.write(vals)
+            else:
+                target = Product.create(vals)
+            if record.odoo_product_id != target:
+                record.with_context(skip_odoo_product_sync=True).write({"odoo_product_id": target.id})
+        return True
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        if not self.env.context.get("skip_odoo_product_sync"):
+            records._sync_to_odoo_product()
+        return records
+
+    def write(self, vals):
+        result = super().write(vals)
+        if not self.env.context.get("skip_odoo_product_sync") and set(vals) & {"name", "manufacturer_article_number", "datanorm_number", "active", "price_mode", "fixed_purchase_price"}:
+            self._sync_to_odoo_product()
+        return result
 
     @api.depends("stock_movement_ids.movement_type", "stock_movement_ids.quantity")
     def _compute_stock_balances(self):
