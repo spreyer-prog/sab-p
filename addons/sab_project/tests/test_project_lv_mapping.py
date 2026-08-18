@@ -55,7 +55,7 @@ class TestSabProjectLvMapping(TransactionCase):
         with self.assertRaises(ValidationError):
             second_line.write({"lv_position": "99.99.99"})
 
-    def test_mapping_also_applies_to_item_inside_component_section(self):
+    def test_item_inside_component_inherits_component_position_without_mapping(self):
         first = self._order()
         section = self.env["sab.offer.calculation.line"].create({
             "order_id": first.id,
@@ -63,24 +63,39 @@ class TestSabProjectLvMapping(TransactionCase):
             "description": "Bauteil 1",
             "quantity": 1.0,
             "sequence": 10,
+            "lv_position": "01.01.04",
         })
         first_line = self.env["sab.offer.calculation.line"].create({
             "order_id": first.id,
             "calculation_item_id": self.item.id,
             "quantity": 1.0,
             "sequence": 20,
-            "lv_position": "01.01.04",
+            "lv_position": "99.99.99",
         })
-        first_line._normalize_section_membership()
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": first.id,
+            "line_type": "section_end",
+            "sequence": 30,
+        })
+        first.sab_calculation_line_ids._normalize_section_membership()
+
         self.assertEqual(first_line.parent_section_id, section)
+        self.assertEqual(first_line.lv_position, "01.01.04")
+        self.assertFalse(first_line.is_ntg)
+        self.assertTrue(first_line.lv_position_locked)
+        self.assertFalse(self.env["sab.project.lv.mapping"].search([
+            ("project_id", "=", self.project.id),
+            ("calculation_item_id", "=", self.item.id),
+        ]))
 
         second = self._order()
         second_section = self.env["sab.offer.calculation.line"].create({
             "order_id": second.id,
             "line_type": "section",
-            "description": "Bauteil 2",
+            "description": "Bauteil 1",
             "quantity": 1.0,
             "sequence": 10,
+            "lv_position": "01.01.04",
         })
         second_line = self.env["sab.offer.calculation.line"].create({
             "order_id": second.id,
@@ -88,7 +103,15 @@ class TestSabProjectLvMapping(TransactionCase):
             "quantity": 1.0,
             "sequence": 20,
         })
-        second_line._normalize_section_membership()
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": second.id,
+            "line_type": "section_end",
+            "sequence": 30,
+        })
+        second.sab_calculation_line_ids._normalize_section_membership()
+
         self.assertEqual(second_line.parent_section_id, second_section)
         self.assertEqual(second_line.lv_position, "01.01.04")
-        self.assertTrue(second_line.lv_position_locked)
+        self.assertFalse(second_line.is_ntg)
+        with self.assertRaises(ValidationError):
+            second_line.write({"lv_position": "NTG 99", "is_ntg": True})
