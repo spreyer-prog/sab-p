@@ -1,27 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Alte SAB-P Produktansichten bleiben während der Migration technisch erhalten. -->
+    <!-- Altansichten bleiben technisch für die Migration erhalten. -->
     <record id="view_sab_product_tree" model="ir.ui.view">
         <field name="name">sab.product.tree</field>
         <field name="model">sab.product</field>
-        <field name="arch" type="xml"><list string="Produkte"><field name="manufacturer_supplier_id"/><field name="product_type"/><field name="manufacturer_article_number"/><field name="name"/><field name="price_mode"/><field name="calculated_purchase_price"/><field name="space_units"/><field name="mechanical_time_minutes"/><field name="wiring_time_minutes"/><field name="testing_time_minutes"/><field name="active"/></list></field>
+        <field name="arch" type="xml">
+            <list string="Produkte">
+                <field name="manufacturer_supplier_id" string="Hersteller"/>
+                <field name="product_type"/>
+                <field name="manufacturer_article_number"/>
+                <field name="name"/>
+                <field name="price_mode" string="Preisermittlung"/>
+                <field name="calculated_purchase_price" string="Kalkulatorischer EK"/>
+                <field name="datanorm_number" optional="hide"/>
+                <field name="stock_on_hand" optional="show"/>
+                <field name="stock_reserved" optional="show"/>
+                <field name="stock_available" optional="show"/>
+                <field name="space_units"/>
+                <field name="mechanical_time_minutes"/>
+                <field name="wiring_time_minutes"/>
+                <field name="testing_time_minutes"/>
+                <field name="active"/>
+            </list>
+        </field>
     </record>
-    <record id="view_sab_product_form" model="ir.ui.view">
-        <field name="name">sab.product.form</field><field name="model">sab.product</field>
-        <field name="arch" type="xml"><form string="Produkt"><sheet><group><field name="manufacturer_supplier_id"/><field name="manufacturer_article_number"/><field name="product_type"/><field name="name"/></group></sheet></form></field>
-    </record>
-    <record id="action_sab_product" model="ir.actions.act_window"><field name="name">Produkte (Altbestand)</field><field name="res_model">sab.product</field><field name="view_mode">list,form</field></record>
 
-    <!-- Zielansicht: normale Odoo Produktvorlage mit vollständiger SAB-P Funktionalität. -->
+    <record id="view_sab_product_form" model="ir.ui.view">
+        <field name="name">sab.product.form</field>
+        <field name="model">sab.product</field>
+        <field name="arch" type="xml">
+            <form string="Produkt"><sheet><group><field name="name"/></group></sheet></form>
+        </field>
+    </record>
+
+    <record id="action_sab_product" model="ir.actions.act_window">
+        <field name="name">Produkte (Altbestand)</field>
+        <field name="res_model">sab.product</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Neue Hauptansicht: gleiche Bedienlogik wie die frühere SAB-P Produktmaske,
+         aber direkt auf dem normalen Odoo-Produktstamm. -->
+    <record id="view_sab_odoo_product_tree" model="ir.ui.view">
+        <field name="name">product.template.sab.p.tree</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <list string="Produkte">
+                <field name="sab_manufacturer_supplier_id" string="Hersteller"/>
+                <field name="sab_product_type" string="Produkttyp"/>
+                <field name="sab_manufacturer_article_number" string="Herstellerartikelnummer"/>
+                <field name="name"/>
+                <field name="sab_price_mode" string="Preisermittlung"/>
+                <field name="sab_calculated_purchase_price" string="Kalkulatorischer EK"/>
+                <field name="sab_datanorm_number" string="DATANORM-Nummer" optional="hide"/>
+                <field name="sab_stock_on_hand" string="Lagerbestand" optional="show"/>
+                <field name="sab_stock_reserved" string="Reserviert" optional="show"/>
+                <field name="sab_stock_available" string="Verfügbar" optional="show"/>
+                <field name="sab_space_units" string="Platzeinheiten"/>
+                <field name="sab_mechanical_time_minutes" string="Mechanikzeit in Minuten"/>
+                <field name="sab_wiring_time_minutes" string="Verdrahtungszeit in Minuten"/>
+                <field name="sab_testing_time_minutes" string="Prüfzeit in Minuten"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_odoo_product_form" model="ir.ui.view">
+        <field name="name">product.template.sab.p.form</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <form string="Produkt">
+                <sheet>
+                    <group string="Identifikation" col="4">
+                        <field name="sab_manufacturer_supplier_id" string="Hersteller" options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="sab_manufacturer_article_number" string="Herstellerartikelnummer"/>
+                        <field name="sab_product_type" string="Produkttyp"/>
+                        <field name="active"/>
+                        <field name="name" colspan="4"/>
+                    </group>
+
+                    <group string="Preisermittlung" col="4">
+                        <field name="sab_price_mode" string="Preisermittlung"/>
+                        <field name="sab_calculated_purchase_price" string="Kalkulatorischer EK" readonly="1"/>
+                        <field name="sab_fixed_purchase_price" string="Fixpreis EK" invisible="sab_price_mode != 'fixed'"/>
+                    </group>
+
+                    <group string="Lager" col="4">
+                        <field name="sab_stock_on_hand" string="Lagerbestand" readonly="1"/>
+                        <field name="sab_stock_reserved" string="Reserviert" readonly="1"/>
+                        <field name="sab_stock_available" string="Verfügbar" readonly="1"/>
+                    </group>
+
+                    <group string="Technische Kalkulationswerte" col="4">
+                        <field name="sab_space_units" string="Platzeinheiten"/>
+                        <field name="sab_mechanical_time_minutes" string="Mechanikzeit in Minuten"/>
+                        <field name="sab_wiring_time_minutes" string="Verdrahtungszeit in Minuten"/>
+                        <field name="sab_testing_time_minutes" string="Prüfzeit in Minuten"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Lieferantenartikel" invisible="sab_price_mode != 'supplier'">
+                            <field name="sab_supplier_product_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="supplier_id"/>
+                                    <field name="supplier_article_number"/>
+                                    <field name="datanorm_number" optional="hide"/>
+                                    <field name="list_price"/>
+                                    <field name="purchase_price"/>
+                                    <field name="discount_percent"/>
+                                    <field name="net_purchase_price" readonly="1"/>
+                                    <field name="preferred"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Baugruppe" invisible="sab_price_mode != 'assembly'">
+                            <field name="sab_component_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="supplier_product_id" string="Lieferantenartikel"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" readonly="1"/>
+                                    <field name="total_price" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="DATANORM">
+                            <group><field name="sab_datanorm_number" string="DATANORM-Nummer"/></group>
+                        </page>
+
+                        <page string="Lagerbewegungen">
+                            <field name="sab_stock_movement_ids" nolabel="1" readonly="1">
+                                <list default_order="movement_date desc">
+                                    <field name="name"/>
+                                    <field name="movement_date"/>
+                                    <field name="movement_type"/>
+                                    <field name="quantity"/>
+                                    <field name="unit"/>
+                                    <field name="project_id" optional="show"/>
+                                    <field name="user_id" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Notizen">
+                            <field name="sab_notes" placeholder="Interne Hinweise zum Produkt ..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Die Standard-Odoo-Produktmaske bekommt zusätzlich die SAB-P-Felder,
+         damit dieselben Daten auch über Verkauf > Produkte sichtbar sind. -->
     <record id="view_product_template_form_sab_p" model="ir.ui.view">
         <field name="name">product.template.form.sab.p</field>
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="SAB-P Kalkulation" name="sab_p_calculation">
+                <page string="SAB-P" name="sab_p_calculation">
                     <group string="Identifikation" col="4">
-                        <field name="sab_manufacturer_supplier_id" string="Hersteller" options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="sab_manufacturer_supplier_id" string="Hersteller"/>
                         <field name="sab_manufacturer_article_number"/>
                         <field name="sab_product_type"/>
                         <field name="sab_datanorm_number"/>
@@ -37,61 +179,17 @@
                         <field name="sab_wiring_time_minutes"/>
                         <field name="sab_testing_time_minutes"/>
                     </group>
-                    <notebook>
-                        <page string="Lieferantenartikel" invisible="sab_price_mode != 'supplier'">
-                            <field name="sab_supplier_product_ids" nolabel="1">
-                                <list editable="bottom">
-                                    <field name="supplier_id"/>
-                                    <field name="supplier_article_number"/>
-                                    <field name="datanorm_number" optional="hide"/>
-                                    <field name="list_price"/>
-                                    <field name="purchase_price"/>
-                                    <field name="discount_percent"/>
-                                    <field name="net_purchase_price" readonly="1"/>
-                                    <field name="preferred"/>
-                                    <field name="packaging_quantity" optional="show"/>
-                                    <field name="minimum_order_quantity" optional="show"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Baugruppe" invisible="sab_price_mode != 'assembly'">
-                            <field name="sab_component_ids" nolabel="1">
-                                <list editable="bottom">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="supplier_product_id"/>
-                                    <field name="quantity"/>
-                                    <field name="unit_price" readonly="1"/>
-                                    <field name="total_price" readonly="1"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Notizen"><field name="sab_notes" placeholder="Interne Hinweise zum Produkt ..."/></page>
-                    </notebook>
                 </page>
             </xpath>
         </field>
     </record>
 
-    <record id="view_product_template_tree_sab_p" model="ir.ui.view">
-        <field name="name">product.template.list.sab.p</field>
-        <field name="model">product.template</field>
-        <field name="inherit_id" ref="product.product_template_tree_view"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='name']" position="after">
-                <field name="sab_manufacturer_supplier_id" string="Hersteller" optional="show"/>
-                <field name="sab_manufacturer_article_number" optional="show"/>
-                <field name="sab_product_type" optional="hide"/>
-                <field name="sab_calculated_purchase_price" string="Kalkulatorischer EK" optional="show"/>
-                <field name="sab_space_units" string="PLE" optional="show"/>
-            </xpath>
-        </field>
-    </record>
-
-    <!-- Im SAB-P Menü führt Produkte jetzt ebenfalls auf den normalen Odoo Produktstamm. -->
     <record id="action_sab_odoo_product" model="ir.actions.act_window">
         <field name="name">Produkte</field>
         <field name="res_model">product.template</field>
         <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_odoo_product_tree')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_sab_odoo_product_form')})]"/>
     </record>
+
     <menuitem id="sab_product_menu" name="Produkte" parent="sab_calculation_root_menu" action="action_sab_odoo_product" sequence="30"/>
 </odoo>
