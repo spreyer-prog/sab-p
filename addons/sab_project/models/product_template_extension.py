@@ -16,7 +16,7 @@ class ProductTemplate(models.Model):
             ("packaging", "Verpackung"),
             ("other", "Sonstiges"),
         ],
-        string="SAB-P Produkttyp",
+        string="Produkttyp",
         default="material",
         required=True,
         index=True,
@@ -63,7 +63,35 @@ class ProductTemplate(models.Model):
         readonly=True,
     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        records = super().create(vals_list)
-        return records
+    # Übergangsweise zeigen wir die vorhandenen SAB-P Lagerwerte weiterhin exakt
+    # in der Produktmaske. Neue Lagerlogik wird später direkt auf Odoo-Produkte umgestellt.
+    sab_stock_on_hand = fields.Float(string="Lagerbestand", digits=(16, 3), compute="_compute_sab_legacy_stock")
+    sab_stock_reserved = fields.Float(string="Reserviert", digits=(16, 3), compute="_compute_sab_legacy_stock")
+    sab_stock_available = fields.Float(string="Verfügbar", digits=(16, 3), compute="_compute_sab_legacy_stock")
+    sab_stock_movement_ids = fields.Many2many(
+        "sab.stock.movement",
+        string="Lagerbewegungen",
+        compute="_compute_sab_legacy_stock",
+    )
+
+    def _compute_sab_legacy_stock(self):
+        LegacyProduct = self.env["sab.product"].sudo()
+        legacy_by_variant = {
+            legacy.odoo_product_id.id: legacy
+            for legacy in LegacyProduct.search([
+                ("odoo_product_id", "in", self.mapped("product_variant_id").ids)
+            ])
+            if legacy.odoo_product_id
+        }
+        for template in self:
+            legacy = legacy_by_variant.get(template.product_variant_id.id)
+            if legacy:
+                template.sab_stock_on_hand = legacy.stock_on_hand
+                template.sab_stock_reserved = legacy.stock_reserved
+                template.sab_stock_available = legacy.stock_available
+                template.sab_stock_movement_ids = legacy.stock_movement_ids
+            else:
+                template.sab_stock_on_hand = 0.0
+                template.sab_stock_reserved = 0.0
+                template.sab_stock_available = 0.0
+                template.sab_stock_movement_ids = False
