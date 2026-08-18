@@ -56,6 +56,10 @@ class SaleOrderTemplate(models.Model):
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    # Die aktuell vorliegende Excel-Referenz A26.0247-01 arbeitet mit Marge 1,35.
+    # Der globale Einstellungswert bleibt weiterhin überschreibbar.
+    sab_margin_factor = fields.Float(default=lambda self: self._sab_float_param("sab_project.margin_factor", 1.35))
+
     sab_additional_order_factor = fields.Float(string="Nachtragsaufschlag", default=1.10, copy=True)
     sab_hw_metal_factor = fields.Float(string="HW-Faktor / Metallzuschlag", default=1.0, copy=True)
     sab_trade_factor_1 = fields.Float(string="Handelsware 1", default=1.25, copy=True)
@@ -78,6 +82,60 @@ class SaleOrder(models.Model):
     sab_reservations_text = fields.Html(string="Vorbehalte", copy=True)
     sab_additional_terms_text = fields.Html(string="Zusätzliche Bedingungen", copy=True)
     sab_transport_text = fields.Html(string="Transport / Verpackung", copy=True)
+
+    sab_auxiliary_purchase_total = fields.Monetary(
+        string="Hilfsmaterial-EK",
+        currency_field="currency_id",
+        compute="_compute_sab_calculation_totals",
+        store=True,
+    )
+
+    @api.depends(
+        "sab_calculation_line_ids.material_purchase_total",
+        "sab_calculation_line_ids.auxiliary_purchase_total",
+        "sab_calculation_line_ids.mechanical_time_minutes",
+        "sab_calculation_line_ids.wiring_time_minutes",
+        "sab_calculation_line_ids.testing_time_minutes",
+        "sab_calculation_line_ids.total_time_minutes",
+        "sab_calculation_line_ids.space_units",
+        "sab_material_factor", "sab_aux_material_factor", "sab_hourly_rate", "sab_time_factor",
+        "sab_difficulty_factor", "sab_packaging_factor", "sab_skonto_factor",
+        "sab_margin_factor", "sab_rebate_factor",
+    )
+    def _compute_sab_calculation_totals(self):
+        for order in self:
+            lines = order.sab_calculation_line_ids.filtered(lambda line: line.line_type == "item")
+            normal_material = sum(lines.mapped("material_purchase_total"))
+            auxiliary_material = sum(lines.mapped("auxiliary_purchase_total"))
+            total_minutes = sum(lines.mapped("total_time_minutes"))
+
+            order.sab_material_purchase_total = normal_material
+            order.sab_auxiliary_purchase_total = auxiliary_material
+            order.sab_mechanical_hours = sum(lines.mapped("mechanical_time_minutes")) / 60.0
+            order.sab_wiring_hours = sum(lines.mapped("wiring_time_minutes")) / 60.0
+            order.sab_testing_hours = sum(lines.mapped("testing_time_minutes")) / 60.0
+            order.sab_calculated_hours = total_minutes / 60.0
+            order.sab_space_units = sum(lines.mapped("space_units"))
+
+            # Normalmaterial erhält nur den Materialfaktor. Nur Hilfsmaterial wird
+            # zusätzlich mit dem Hilfsmaterialfaktor beaufschlagt.
+            normal_cost = normal_material * (order.sab_material_factor or 0.0)
+            auxiliary_cost = auxiliary_material * (order.sab_material_factor or 0.0) * (order.sab_aux_material_factor or 0.0)
+            order.sab_material_cost = normal_cost + auxiliary_cost
+            order.sab_labor_cost = (
+                order.sab_calculated_hours
+                * (order.sab_hourly_rate or 0.0)
+                * (order.sab_time_factor or 0.0)
+                * (order.sab_difficulty_factor or 0.0)
+            )
+            order.sab_direct_cost = order.sab_material_cost + order.sab_labor_cost
+            order.sab_commercial_factor = (
+                (order.sab_packaging_factor or 0.0)
+                * (order.sab_skonto_factor or 0.0)
+                * (order.sab_margin_factor or 0.0)
+                * (order.sab_rebate_factor or 0.0)
+            )
+            order.sab_recommended_net_price = order.sab_direct_cost * order.sab_commercial_factor
 
     @api.onchange("sale_order_template_id")
     def _onchange_sale_order_template_id(self):
