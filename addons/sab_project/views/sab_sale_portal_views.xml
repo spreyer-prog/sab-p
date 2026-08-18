@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="sab_sale_order_portal_calculation" inherit_id="sale.sale_order_portal_template" priority="50">
-        <!-- Odoo 19 hat keinen div[name='sol_table'] mehr. Die Standard-Positions-Tabelle
-             wird bei SAB-P Angeboten ausgeblendet; die SAB-P Kalkulation bleibt kundenführend. -->
+    <template id="sab_sale_order_portal_calculation" inherit_id="sale.sale_order_portal_content" priority="50">
+        <!-- Odoo 19 rendert die Positions-Tabelle im separaten Template
+             sale.sale_order_portal_content. Bei SAB-P Angeboten wird die
+             Standard-Positions-Tabelle ausgeblendet und durch die SAB-P
+             Kalkulations-/LV-Darstellung ersetzt. -->
         <xpath expr="//table[@id='sales_order_table']" position="attributes">
             <attribute name="t-if">not sale_order.sab_calculation_line_ids</attribute>
         </xpath>
