@@ -14,6 +14,8 @@ access_sab_employee_profile_hr_read,sab.employee.profile hr read,model_sab_emplo
 access_sab_employee_confidential_note_hr,sab.employee.confidential.note hr,model_sab_employee_confidential_note,sab_project.group_sab_confidential_hr,1,1,1,1
 access_sab_calculation_item_user,sab.calculation.item user,model_sab_calculation_item,base.group_user,1,1,1,0
 access_sab_calculation_item_line_user,sab.calculation.item.line user,model_sab_calculation_item_line,base.group_user,1,1,1,1
+access_sab_calculation_component_template_user,sab.calculation.component.template user,model_sab_calculation_component_template,base.group_user,1,1,1,0
+access_sab_calculation_component_template_line_user,sab.calculation.component.template.line user,model_sab_calculation_component_template_line,base.group_user,1,1,1,1
 access_sab_manufacturer_user,sab.manufacturer user,model_sab_manufacturer,base.group_user,1,1,1,1
 access_sab_product_user,sab.product user,model_sab_product,base.group_user,1,1,1,1
 access_sab_product_component_user,sab.product.component user,model_sab_product_component,base.group_user,1,1,1,1
