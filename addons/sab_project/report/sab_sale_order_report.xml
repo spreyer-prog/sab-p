@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sab_report_saleorder_document" inherit_id="sale.report_saleorder_document">
-        <!-- Sobald eine SAB-P Kalkulation vorhanden ist, ersetzt sie die normalen
-             Odoo-Auftragspositionen im Angebotsdruck. Interne Positionen eines
-             Bauteils bleiben verborgen; gedruckt wird nur der Gruppenpreis. -->
         <xpath expr="//table[contains(@class, 'o_main_table')]" position="attributes">
             <attribute name="t-if">not doc.sab_calculation_line_ids</attribute>
         </xpath>
@@ -59,9 +56,17 @@
                 <div class="row mt-2">
                     <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
                         <table class="o_total_table table table-borderless">
-                            <tr class="fw-bold border-top">
+                            <tr>
                                 <td class="text-start">Netto-Angebotssumme</td>
                                 <td class="text-end"><span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start">Umsatzsteuer <span t-out="doc.sab_vat_rate" t-options="{'widget': 'float', 'precision': 2}"/> %</td>
+                                <td class="text-end"><span t-out="doc.sab_offer_vat_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                            <tr class="fw-bold border-top">
+                                <td class="text-start">Brutto-Angebotssumme</td>
+                                <td class="text-end"><span t-out="doc.sab_offer_gross_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
                             </tr>
                         </table>
                     </div>
