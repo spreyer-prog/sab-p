@@ -29,6 +29,9 @@ class ProjectProjectProcurement(models.Model):
         string="Bestellungen",
         compute="_compute_procurement_overview",
     )
+    # Die folgenden Mengenfelder bleiben aus Kompatibilitätsgründen bestehen.
+    # Sie dürfen nicht als projektübergreifender Prozentnenner verwendet werden,
+    # weil Stück, Meter usw. nicht sinnvoll addiert werden können.
     sab_material_required_quantity = fields.Float(
         string="Materialbedarf gesamt",
         digits=(16, 3),
@@ -70,11 +73,43 @@ class ProjectProjectProcurement(models.Model):
         compute="_compute_procurement_overview",
     )
 
+    @api.model
+    def _sab_weighted_material_percent(self, requirements):
+        """Return physically available material progress without mixing units.
+
+        Primary calculation is purchase-value weighted. If every relevant line
+        has an EK of zero, fall back to the average completion ratio per BOM
+        position. This keeps Stück, Meter and other units dimensionally separate.
+        """
+        requirements = requirements.filtered(lambda req: (req.quantity or 0.0) > 0)
+        if not requirements:
+            return 0.0
+
+        total_value = 0.0
+        available_value = 0.0
+        line_ratios = []
+        for requirement in requirements:
+            required_qty = max(requirement.quantity or 0.0, 0.0)
+            available_qty = min(
+                max(requirement.project_reserved_quantity or 0.0, 0.0),
+                required_qty,
+            )
+            unit_price = max(requirement.unit_purchase_price or 0.0, 0.0)
+            line_value = required_qty * unit_price
+            total_value += line_value
+            available_value += available_qty * unit_price
+            line_ratios.append(available_qty / required_qty if required_qty else 1.0)
+
+        if total_value > 0:
+            return min(max(available_value / total_value * 100.0, 0.0), 100.0)
+        return min(max(sum(line_ratios) / len(line_ratios) * 100.0, 0.0), 100.0)
+
     @api.depends(
         "sab_bom_ids.bom_scope",
         "sab_bom_ids.state",
         "sab_bom_ids.purchase_release_state",
         "sab_purchase_requirement_ids.quantity",
+        "sab_purchase_requirement_ids.unit_purchase_price",
         "sab_purchase_requirement_ids.project_reserved_quantity",
         "sab_purchase_requirement_ids.state",
         "sab_purchase_requirement_ids.purchase_order_line_id.quantity_ordered",
@@ -97,6 +132,8 @@ class ProjectProjectProcurement(models.Model):
                 ("state", "!=", "cancel"),
             ])
 
+            # Mengenwerte dienen nur der Detailanzeige. Die Prozentwerte werden
+            # bewusst nicht aus diesen dimensionsverschiedenen Summen berechnet.
             required = sum(requirements.mapped("quantity"))
             reserved = sum(
                 min(requirement.project_reserved_quantity or 0.0, requirement.quantity or 0.0)
@@ -112,8 +149,8 @@ class ProjectProjectProcurement(models.Model):
                 for order in orders
                 for line in order.line_ids.filtered(lambda item: item.project_id == project)
             )
-            available_percent = min(reserved / required * 100.0, 100.0) if required else 0.0
-            missing_percent = max(100.0 - available_percent, 0.0) if required else 0.0
+            available_percent = project._sab_weighted_material_percent(requirements)
+            missing_percent = max(100.0 - available_percent, 0.0) if requirements else 0.0
 
             project.sab_purchase_order_ids = orders
             project.sab_switchboard_count = len(switchboards)
@@ -131,7 +168,7 @@ class ProjectProjectProcurement(models.Model):
             purchase_released = any(
                 bom.purchase_release_state == "released" for bom in total_boms
             )
-            if required and available_percent >= 100.0:
+            if requirements and available_percent >= 99.999:
                 state = "complete"
             elif any(order.state == "partial" for order in orders) or received > 0:
                 state = "partial"
