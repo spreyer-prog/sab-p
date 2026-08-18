@@ -23,7 +23,7 @@
         "wizard/sab_customer_import_views.xml"
     ],
     "assets": {"web.assets_backend": ["sab_project/static/src/scss/sab_calculation_item.scss"]},
-    "installable": true,
-    "application": true,
-    "auto_install": false
+    "installable": True,
+    "application": True,
+    "auto_install": False
 }
