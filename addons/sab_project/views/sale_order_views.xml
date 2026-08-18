@@ -19,9 +19,12 @@
 
             <xpath expr="//notebook" position="inside">
                 <page string="SAB-P Kalkulation" name="sab_calculation">
-                    <group string="Bauteile / Gruppenpreise" col="1">
+                    <group string="Bauteile" col="1">
                         <field name="sab_calculation_group_ids" nolabel="1" readonly="state not in ('draft', 'sent')">
                             <list editable="bottom" default_order="sequence">
+                                <control>
+                                    <create string="Bauteil erstellen"/>
+                                </control>
                                 <field name="sequence" widget="handle" string="Pos."/>
                                 <field name="name" string="Bauteil"/>
                                 <field name="description" string="Angebotstext" optional="show"/>
@@ -33,17 +36,23 @@
 
                     <group string="Kalkulationspositionen" col="1">
                         <field name="sab_calculation_line_ids" nolabel="1" readonly="state not in ('draft', 'sent')">
-                            <list editable="bottom" default_order="sequence">
+                            <list editable="bottom" default_order="sequence" decoration-muted="line_type == 'info'">
+                                <control>
+                                    <create string="Kalkulationsartikel hinzufügen" context="{'default_line_type': 'item'}"/>
+                                    <create string="Infofeld hinzufügen" context="{'default_line_type': 'info', 'default_quantity': 1.0}"/>
+                                </control>
                                 <field name="order_id" column_invisible="1"/>
+                                <field name="line_type" column_invisible="1"/>
                                 <field name="sequence" widget="handle" string="Pos."/>
-                                <field name="group_id" string="Bauteil" optional="show" options="{'no_create_edit': True}"/>
-                                <field name="calculation_item_id" string="Kalkulationsartikel"/>
-                                <field name="quantity" string="Menge"/>
+                                <field name="group_id" string="Bauteil" optional="show" options="{'no_create_edit': True}" invisible="line_type == 'info'"/>
+                                <field name="calculation_item_id" string="Kalkulationsartikel" invisible="line_type == 'info'"/>
+                                <field name="quantity" string="Menge" invisible="line_type == 'info'"/>
                                 <field name="description" string="Angebotstext" optional="show"/>
-                                <field name="unit_recommended_net_price" string="VK je Einheit" readonly="1"/>
-                                <field name="recommended_net_price" string="VK gesamt" readonly="1"/>
-                                <field name="note" string="Bemerkung" optional="show"/>
+                                <field name="unit_recommended_net_price" string="VK je Einheit" readonly="1" invisible="line_type == 'info'"/>
+                                <field name="recommended_net_price" string="VK gesamt" readonly="1" invisible="line_type == 'info'"/>
+                                <field name="note" string="Bemerkung" optional="show" invisible="line_type == 'info'"/>
                                 <field name="material_purchase_total" string="Material-EK" readonly="1" optional="hide"/>
+                                <field name="auxiliary_purchase_total" string="Hilfsmaterial-EK" readonly="1" optional="hide"/>
                                 <field name="mechanical_time_minutes" string="Mechanik min" readonly="1" optional="hide"/>
                                 <field name="wiring_time_minutes" string="Verdrahtung min" readonly="1" optional="hide"/>
                                 <field name="testing_time_minutes" string="Prüfung min" readonly="1" optional="hide"/>
@@ -70,7 +79,6 @@
                         <field name="sab_difficulty_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_planning_surcharge_factor" string="Planungszuschlag – Formelabgleich offen" readonly="state not in ('draft', 'sent')"/>
                     </group>
-
                     <group string="Kaufmännische Faktoren" col="4">
                         <field name="sab_packaging_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_skonto_factor" readonly="state not in ('draft', 'sent')"/>
@@ -78,21 +86,9 @@
                         <field name="sab_rebate_factor" readonly="state not in ('draft', 'sent')"/>
                         <field name="sab_vat_rate" string="Umsatzsteuer (%)" readonly="state not in ('draft', 'sent')"/>
                     </group>
-
                     <group string="Kontrollwerte" col="5">
-                        <field name="sab_material_cost" readonly="1"/>
-                        <field name="sab_labor_cost" readonly="1"/>
-                        <field name="sab_direct_cost" readonly="1"/>
-                        <field name="sab_commercial_factor" readonly="1"/>
-                        <field name="sab_recommended_net_price" readonly="1"/>
-                        <field name="sab_offer_net_total" string="Netto-Angebotssumme" readonly="1"/>
-                        <field name="sab_offer_vat_total" string="Umsatzsteuer" readonly="1"/>
-                        <field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
+                        <field name="sab_material_cost" readonly="1"/><field name="sab_labor_cost" readonly="1"/><field name="sab_direct_cost" readonly="1"/><field name="sab_commercial_factor" readonly="1"/><field name="sab_recommended_net_price" readonly="1"/><field name="sab_offer_net_total" string="Netto-Angebotssumme" readonly="1"/><field name="sab_offer_vat_total" string="Umsatzsteuer" readonly="1"/><field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
                     </group>
-
-                    <div class="alert alert-secondary" role="alert">
-                        Diese Faktoren gelten nur für dieses Angebot und werden mit dem Angebot gespeichert. Der Umsatzsteuersatz steht standardmäßig auf 19 % und kann pro Angebot angepasst werden.
-                    </div>
                 </page>
             </xpath>
         </field>
