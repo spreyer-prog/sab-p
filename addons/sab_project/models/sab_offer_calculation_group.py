@@ -50,10 +50,29 @@ class SaleOrder(models.Model):
         string="Bauteile / Gruppenpreise",
         copy=True,
     )
+    sab_vat_rate = fields.Float(
+        string="Umsatzsteuer (%)",
+        default=19.0,
+        copy=True,
+        digits=(5, 2),
+        help="Umsatzsteuersatz für den SAB-P Angebotsdruck. Standard: 19 %.",
+    )
     sab_offer_net_total = fields.Monetary(
         string="SAB-P Netto-Angebotssumme",
         currency_field="currency_id",
-        compute="_compute_sab_offer_net_total",
+        compute="_compute_sab_offer_totals",
+        store=True,
+    )
+    sab_offer_vat_total = fields.Monetary(
+        string="Umsatzsteuer",
+        currency_field="currency_id",
+        compute="_compute_sab_offer_totals",
+        store=True,
+    )
+    sab_offer_gross_total = fields.Monetary(
+        string="Brutto-Angebotssumme",
+        currency_field="currency_id",
+        compute="_compute_sab_offer_totals",
         store=True,
     )
 
@@ -61,9 +80,18 @@ class SaleOrder(models.Model):
         "sab_calculation_group_ids.group_net_price",
         "sab_calculation_line_ids.recommended_net_price",
         "sab_calculation_line_ids.group_id",
+        "sab_vat_rate",
     )
-    def _compute_sab_offer_net_total(self):
+    def _compute_sab_offer_totals(self):
         for order in self:
             grouped_total = sum(order.sab_calculation_group_ids.mapped("group_net_price"))
-            ungrouped_total = sum(order.sab_calculation_line_ids.filtered(lambda line: not line.group_id).mapped("recommended_net_price"))
-            order.sab_offer_net_total = grouped_total + ungrouped_total
+            ungrouped_total = sum(
+                order.sab_calculation_line_ids
+                .filtered(lambda line: not line.group_id)
+                .mapped("recommended_net_price")
+            )
+            net_total = grouped_total + ungrouped_total
+            vat_total = net_total * (order.sab_vat_rate or 0.0) / 100.0
+            order.sab_offer_net_total = net_total
+            order.sab_offer_vat_total = vat_total
+            order.sab_offer_gross_total = net_total + vat_total
