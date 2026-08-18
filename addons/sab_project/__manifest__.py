@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.48.1",
+    "version": "19.0.5.49.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -10,9 +10,9 @@
         "security/sab_security.xml", "security/ir.model.access.csv", "security/sab_record_rules.xml",
         "data/sab_classification_data.xml", "data/sab_calculation_sequence.xml", "data/sab_stock_sequence.xml", "data/sab_work_area_data.xml",
         "views/sab_menu_views.xml", "views/sab_employee_admin_views.xml", "views/sab_employee_confidential_views.xml",
-        "views/sab_calculation_item_views.xml", "views/res_config_settings_views.xml", "views/project_project_views.xml",
+        "views/sab_calculation_item_views.xml", "views/sab_calculation_component_template_views.xml", "views/res_config_settings_views.xml", "views/project_project_views.xml",
         "views/project_customer_portal_views.xml", "views/sab_project_overview_views.xml", "views/sab_classification_views.xml",
-        "views/sab_sale_order_template_views.xml", "views/sale_order_views.xml", "views/sab_offer_lv_views.xml", "views/sab_offer_switchboard_views.xml", "views/sab_sale_portal_views.xml", "report/sab_sale_order_report.xml",
+        "views/sab_sale_order_template_views.xml", "views/sale_order_views.xml", "views/sab_offer_lv_views.xml", "views/sab_offer_switchboard_views.xml", "views/sab_offer_reuse_panel_views.xml", "views/sab_sale_portal_views.xml", "report/sab_sale_order_report.xml",
         "views/sab_manufacturer_views.xml", "views/sab_product_views.xml",
         "wizard/sab_supplier_import_views.xml", "wizard/sab_supplier_price_import_views.xml", "views/sab_supplier_views.xml",
         "views/sab_supplier_product_views.xml", "views/sab_calculation_change_log_views.xml", "views/sab_project_bom_views.xml", "views/sab_switchboard_bom_views.xml",
@@ -25,8 +25,11 @@
     "assets": {
         "web.assets_backend": [
             "sab_project/static/src/scss/sab_calculation_item.scss",
+            "sab_project/static/src/scss/offer_reuse_panel.scss",
             "sab_project/static/src/js/datanorm_progress.js",
-            "sab_project/static/src/xml/datanorm_progress.xml"
+            "sab_project/static/src/js/offer_reuse_panel.js",
+            "sab_project/static/src/xml/datanorm_progress.xml",
+            "sab_project/static/src/xml/offer_reuse_panel.xml"
         ]
     },
     "installable": True,
