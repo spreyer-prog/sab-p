@@ -8,37 +8,13 @@ class SabCalculationItem(models.Model):
     _rec_name = "name"
 
     active = fields.Boolean(string="Aktiv", default=True)
-    calculation_number = fields.Char(
-        string="Kalkulationsnummer",
-        required=True,
-        readonly=True,
-        copy=False,
-        default="Neu",
-        index=True,
-    )
+    calculation_number = fields.Char(string="Kalkulationsnummer", required=True, readonly=True, copy=False, default="Neu", index=True)
     name = fields.Char(string="Bezeichnung", required=True, index=True)
     quotation_text = fields.Text(string="Angebotstext", required=True)
-    status = fields.Selection(
-        selection=[
-            ("active", "Aktiv"),
-            ("inactive", "Inaktiv"),
-            ("phase_out", "Auslauf"),
-            ("archived", "Archiviert"),
-        ],
-        string="Status",
-        required=True,
-        default="active",
-        index=True,
-    )
+    status = fields.Selection(selection=[("active", "Aktiv"), ("inactive", "Inaktiv"), ("phase_out", "Auslauf"), ("archived", "Archiviert")], string="Status", required=True, default="active", index=True)
 
     standard_product_id = fields.Many2one(comodel_name="sab.product", string="Standardprodukt", ondelete="restrict")
-    alternative_product_ids = fields.Many2many(
-        comodel_name="sab.product",
-        relation="sab_calculation_item_alternative_product_rel",
-        column1="calculation_item_id",
-        column2="product_id",
-        string="Alternativprodukte",
-    )
+    alternative_product_ids = fields.Many2many(comodel_name="sab.product", relation="sab_calculation_item_alternative_product_rel", column1="calculation_item_id", column2="product_id", string="Alternativprodukte")
 
     mechanical_factor = fields.Float(string="Mechanikfaktor (%)", default=100.0)
     wiring_factor = fields.Float(string="Verdrahtungsfaktor (%)", default=100.0)
@@ -57,8 +33,9 @@ class SabCalculationItem(models.Model):
     testing_time_minutes = fields.Float(string="Berechnete Prüfzeit in Minuten", compute="_compute_product_values", store=True)
     additional_time_minutes = fields.Float(string="Zusatzzeit in Minuten", default=0.0)
     total_time_minutes = fields.Float(string="Gesamtzeit in Minuten", compute="_compute_total_time_minutes", store=True)
-    purchase_total = fields.Float(string="Material-EK gesamt", digits=(16, 2), compute="_compute_purchase_totals")
-    optional_purchase_total = fields.Float(string="Optionaler Material-EK", digits=(16, 2), compute="_compute_purchase_totals")
+    purchase_total = fields.Float(string="Material-EK normal", digits=(16, 2), compute="_compute_purchase_totals", store=True)
+    auxiliary_purchase_total = fields.Float(string="Hilfsmaterial-EK", digits=(16, 2), compute="_compute_purchase_totals", store=True)
+    optional_purchase_total = fields.Float(string="Optionaler Material-EK", digits=(16, 2), compute="_compute_purchase_totals", store=True)
 
     search_term_01 = fields.Char(string="Suchbegriff 1", index=True)
     search_term_02 = fields.Char(string="Suchbegriff 2", index=True)
@@ -82,14 +59,7 @@ class SabCalculationItem(models.Model):
     search_term_20 = fields.Char(string="Suchbegriff 20", index=True)
     notes = fields.Text(string="Interne Hinweise")
 
-    @api.depends(
-        "product_line_ids.quantity",
-        "product_line_ids.product_id.space_units",
-        "product_line_ids.product_id.mechanical_time_minutes",
-        "product_line_ids.product_id.wiring_time_minutes",
-        "product_line_ids.product_id.testing_time_minutes",
-        "mechanical_factor", "wiring_factor", "testing_factor", "space_factor",
-    )
+    @api.depends("product_line_ids.quantity", "product_line_ids.product_id.space_units", "product_line_ids.product_id.mechanical_time_minutes", "product_line_ids.product_id.wiring_time_minutes", "product_line_ids.product_id.testing_time_minutes", "mechanical_factor", "wiring_factor", "testing_factor", "space_factor")
     def _compute_product_values(self):
         for record in self:
             base_space = base_mechanical = base_wiring = base_testing = 0.0
@@ -112,17 +82,19 @@ class SabCalculationItem(models.Model):
         for record in self:
             record.total_time_minutes = record.mechanical_time_minutes + record.wiring_time_minutes + record.testing_time_minutes + record.additional_time_minutes
 
-    @api.depends("product_line_ids.purchase_total", "product_line_ids.optional")
+    @api.depends("product_line_ids.purchase_total", "product_line_ids.optional", "product_line_ids.position_type")
     def _compute_purchase_totals(self):
         for record in self:
-            normal_total = 0.0
-            optional_total = 0.0
+            normal_total = auxiliary_total = optional_total = 0.0
             for line in record.product_line_ids:
                 if line.optional:
                     optional_total += line.purchase_total
-                else:
+                elif line.position_type == "auxiliary_material":
+                    auxiliary_total += line.purchase_total
+                elif line.position_type not in ("information", "heading", "subtotal", "alternative"):
                     normal_total += line.purchase_total
             record.purchase_total = normal_total
+            record.auxiliary_purchase_total = auxiliary_total
             record.optional_purchase_total = optional_total
 
     @api.model_create_multi
@@ -138,17 +110,8 @@ class SabCalculationItem(models.Model):
             vals["active"] = vals["status"] != "archived"
         return super().write(vals)
 
-    def action_set_active(self):
-        self.write({"status": "active", "active": True})
-
-    def action_set_inactive(self):
-        self.write({"status": "inactive", "active": True})
-
-    def action_set_phase_out(self):
-        self.write({"status": "phase_out", "active": True})
-
-    def action_archive_item(self):
-        self.write({"status": "archived", "active": False})
-
-    def action_restore_item(self):
-        self.write({"status": "active", "active": True})
+    def action_set_active(self): self.write({"status": "active", "active": True})
+    def action_set_inactive(self): self.write({"status": "inactive", "active": True})
+    def action_set_phase_out(self): self.write({"status": "phase_out", "active": True})
+    def action_archive_item(self): self.write({"status": "archived", "active": False})
+    def action_restore_item(self): self.write({"status": "active", "active": True})
