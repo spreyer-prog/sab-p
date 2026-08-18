@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_purchase_order_list" model="ir.ui.view">
+        <field name="name">sab.purchase.order.list</field>
+        <field name="model">sab.purchase.order</field>
+        <field name="arch" type="xml">
+            <list string="Lieferantenbestellungen"
+                  create="0"
+                  delete="0"
+                  decoration-info="state in ('draft', 'to_approve', 'approved')"
+                  decoration-warning="state in ('sent', 'partial')"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="project_ids" widget="many2many_tags"/>
+                <field name="state" widget="badge"/>
+                <field name="amount_total" string="Bestellwert netto" sum="Gesamt"/>
+                <field name="receipt_progress" string="Wareneingang" widget="progressbar"/>
+                <field name="sent_at" string="Bestellt am" optional="show"/>
+                <field name="approved_by_id" string="Freigegeben durch" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_order_search" model="ir.ui.view">
+        <field name="name">sab.purchase.order.search</field>
+        <field name="model">sab.purchase.order</field>
+        <field name="arch" type="xml">
+            <search string="Lieferantenbestellungen">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="project_ids"/>
+                <filter name="drafts" string="In Vorbereitung" domain="[('state','in',('draft','to_approve','approved'))]"/>
+                <filter name="open_delivery" string="Lieferung offen" domain="[('state','in',('sent','partial'))]"/>
+                <filter name="done" string="Vollständig geliefert" domain="[('state','=','done')]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_supplier" string="Lieferant" context="{'group_by':'supplier_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_order_form" model="ir.ui.view">
+        <field name="name">sab.purchase.order.form</field>
+        <field name="model">sab.purchase.order</field>
+        <field name="arch" type="xml">
+            <form string="Lieferantenbestellung" create="0" delete="0">
+                <header>
+                    <button name="action_submit_for_approval"
+                            type="object"
+                            string="Zur Freigabe vorlegen"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="sab_project.group_sab_purchasing,project.group_project_manager"/>
+                    <button name="action_approve"
+                            type="object"
+                            string="Bestellung freigeben"
+                            class="btn-primary"
+                            invisible="state not in ('draft','to_approve')"
+                            groups="project.group_project_manager"/>
+                    <button name="action_send_order_email"
+                            type="object"
+                            string="Per E-Mail bestellen"
+                            class="btn-primary"
+                            invisible="state != 'approved'"
+                            groups="sab_project.group_sab_purchasing,project.group_project_manager"/>
+                    <button name="action_post_receipts"
+                            type="object"
+                            string="Wareneingang buchen"
+                            class="btn-primary"
+                            invisible="state not in ('sent','partial')"
+                            groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+                    <button name="action_print_order"
+                            type="object"
+                            string="Bestellung drucken"
+                            invisible="state == 'cancel'"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Stornieren"
+                            invisible="state in ('done','cancel')"
+                            groups="sab_project.group_sab_purchasing,project.group_project_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,sent,partial,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group col="4">
+                        <field name="supplier_id" readonly="state not in ('draft','to_approve')"/>
+                        <field name="partner_id" readonly="1"/>
+                        <field name="project_ids" widget="many2many_tags" readonly="1"/>
+                        <field name="amount_total" readonly="1"/>
+                        <field name="receipt_progress" widget="progressbar" readonly="1"/>
+                        <field name="approved_at" readonly="1" invisible="not approved_at"/>
+                        <field name="approved_by_id" readonly="1" invisible="not approved_by_id"/>
+                        <field name="sent_at" readonly="1" invisible="not sent_at"/>
+                        <field name="sent_by_id" readonly="1" invisible="not sent_by_id"/>
+                    </group>
+
+                    <group string="Bestellpositionen" col="1">
+                        <field name="line_ids" nolabel="1">
+                            <list editable="bottom" create="0" delete="0" default_order="project_id,sequence,id">
+                                <field name="project_id" readonly="1"/>
+                                <field name="manufacturer_name" readonly="1" optional="show"/>
+                                <field name="odoo_product_id" string="Produkt" readonly="1" optional="show"/>
+                                <field name="supplier_article_number" readonly="1"/>
+                                <field name="quantity_ordered" string="Bestellmenge" readonly="parent.state not in ('draft','to_approve')"/>
+                                <field name="unit" readonly="1"/>
+                                <field name="unit_purchase_price" readonly="parent.state not in ('draft','to_approve')" optional="show"/>
+                                <field name="purchase_total" readonly="1" optional="show"/>
+                                <field name="quantity_received" readonly="1"/>
+                                <field name="quantity_remaining" readonly="1"/>
+                                <field name="quantity_to_receive" string="Jetzt geliefert" readonly="parent.state not in ('sent','partial')"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group>
+                        <field name="note" placeholder="Interne Hinweise zur Bestellung ..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_purchase_order_all" model="ir.actions.act_window">
+        <field name="name">Lieferantenbestellungen</field>
+        <field name="res_model">sab.purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sab_purchase_order_search"/>
+        <field name="domain">[('state','!=','cancel')]</field>
+    </record>
+
+    <record id="action_sab_purchase_order_drafts" model="ir.actions.act_window">
+        <field name="name">Bestellvorschläge</field>
+        <field name="res_model">sab.purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sab_purchase_order_search"/>
+        <field name="domain">[('state','in',('draft','to_approve','approved'))]</field>
+    </record>
+
+    <record id="action_sab_purchase_order_open" model="ir.actions.act_window">
+        <field name="name">Bestellt – noch nicht geliefert</field>
+        <field name="res_model">sab.purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sab_purchase_order_search"/>
+        <field name="domain">[('state','in',('sent','partial'))]</field>
+    </record>
+
+    <menuitem id="sab_stock_root_menu"
+              name="Lager"
+              parent="sab_project_root_menu"
+              sequence="40"
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+
+    <record id="sab_purchase_requirement_menu" model="ir.ui.menu">
+        <field name="parent_id" ref="sab_stock_root_menu"/>
+        <field name="sequence">10</field>
+        <field name="groups_id" eval="[(6,0,[ref('sab_project.group_sab_purchasing'),ref('project.group_project_manager')])]"/>
+    </record>
+
+    <menuitem id="sab_purchase_order_drafts_menu"
+              name="Bestellvorschläge"
+              parent="sab_stock_root_menu"
+              action="action_sab_purchase_order_drafts"
+              sequence="20"
+              groups="sab_project.group_sab_purchasing,project.group_project_manager"/>
+
+    <menuitem id="sab_purchase_order_open_menu"
+              name="Bestellt – noch nicht geliefert"
+              parent="sab_stock_root_menu"
+              action="action_sab_purchase_order_open"
+              sequence="30"
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+
+    <menuitem id="sab_purchase_order_all_menu"
+              name="Alle Bestellungen"
+              parent="sab_stock_root_menu"
+              action="action_sab_purchase_order_all"
+              sequence="40"
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+
+    <record id="sab_stock_movement_menu" model="ir.ui.menu">
+        <field name="parent_id" ref="sab_stock_root_menu"/>
+        <field name="sequence">50</field>
+        <field name="groups_id" eval="[(6,0,[ref('sab_project.group_sab_warehouse'),ref('sab_project.group_sab_purchasing'),ref('project.group_project_manager')])]"/>
+    </record>
+</odoo>
