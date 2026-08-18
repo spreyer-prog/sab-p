@@ -50,3 +50,20 @@ class SaleOrder(models.Model):
         string="Bauteile / Gruppenpreise",
         copy=True,
     )
+    sab_offer_net_total = fields.Monetary(
+        string="SAB-P Netto-Angebotssumme",
+        currency_field="currency_id",
+        compute="_compute_sab_offer_net_total",
+        store=True,
+    )
+
+    @api.depends(
+        "sab_calculation_group_ids.group_net_price",
+        "sab_calculation_line_ids.recommended_net_price",
+        "sab_calculation_line_ids.group_id",
+    )
+    def _compute_sab_offer_net_total(self):
+        for order in self:
+            grouped_total = sum(order.sab_calculation_group_ids.mapped("group_net_price"))
+            ungrouped_total = sum(order.sab_calculation_line_ids.filtered(lambda line: not line.group_id).mapped("recommended_net_price"))
+            order.sab_offer_net_total = grouped_total + ungrouped_total
