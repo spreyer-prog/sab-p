@@ -85,13 +85,22 @@ class TestSabUiContracts(TransactionCase):
         for measure in ("offer_amount", "actual_direct_cost", "contribution_margin"):
             self.assertTrue(graph_arch.xpath(f"/graph/field[@name='{measure}'][@type='measure']"))
 
-    def test_sale_portal_extension_inherits_odoo19_content_template(self):
-        """The order line table lives in sale_order_portal_content in Odoo 19."""
+    def test_sale_portal_extension_keeps_odoo_table_in_dom_and_renders_sub_lines(self):
+        """Odoo portal JS needs its own table while SAB-P displays the LV hierarchy."""
         inherited = self.env.ref("sab_project.sab_sale_order_portal_calculation")
         parent = self.env.ref("sale.sale_order_portal_content")
         self.assertEqual(inherited.inherit_id, parent)
         arch = etree.fromstring(inherited.arch_db.encode("utf-8"))
-        self.assertEqual(len(arch.xpath("//xpath[@expr=\"//table[@id='sales_order_table']\"]")), 2)
+        xpath_nodes = arch.xpath("//xpath[@expr=\"//table[@id='sales_order_table']\"]")
+        self.assertEqual(len(xpath_nodes), 2)
+        attrs = xpath_nodes[0].xpath("./attribute[@name='t-attf-class']")
+        self.assertEqual(len(attrs), 1)
+        self.assertIn("d-none", attrs[0].text or "")
+        self.assertFalse(xpath_nodes[0].xpath("./attribute[@name='t-if']"))
+        item_templates = arch.xpath("//t[@t-elif=\"line.line_type == 'item'\"]")
+        self.assertEqual(len(item_templates), 1)
+        self.assertTrue(item_templates[0].xpath(".//span[@t-if='line.parent_section_id']"))
+        self.assertTrue(item_templates[0].xpath(".//td[contains(@t-att-style, 'padding-left')]"))
 
     def test_primary_button_labels_match_documented_ui_contract(self):
         """Keep the user manual's SAB-P button names tied to the actual XML views."""
