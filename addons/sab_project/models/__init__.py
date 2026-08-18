@@ -37,6 +37,7 @@ from . import sab_switchboard_bom
 from . import sab_stock_movement
 from . import sab_procurement
 from . import project_procurement
+from . import sab_procurement_corrections
 from . import sab_project_document
 from . import sab_time_entry
 from . import sab_project_controlling
