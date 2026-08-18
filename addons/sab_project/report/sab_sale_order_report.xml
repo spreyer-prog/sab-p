@@ -7,10 +7,32 @@
                 <thead style="display: table-row-group"><tr><th class="text-start" style="width: 7%;">Pos.</th><th class="text-start">Beschreibung</th><th class="text-end text-nowrap" style="width: 12%;">Menge</th><th class="text-end text-nowrap" style="width: 16%;">Einzelpreis</th><th class="text-end text-nowrap" style="width: 16%;">Gesamtpreis</th></tr></thead>
                 <tbody>
                     <t t-set="sab_pos" t-value="0"/>
-                    <t t-foreach="doc.sab_calculation_group_ids.sorted(key=lambda g: (g.sequence, g.id))" t-as="group"><t t-if="group.line_ids.filtered(lambda l: l.line_type == 'item')"><t t-set="sab_pos" t-value="sab_pos + 1"/><tr class="fw-bold"><td class="text-start"><span t-out="sab_pos"/></td><td class="text-start"><span t-field="group.name"/><div t-if="group.description" class="fw-normal mt-1"><span t-field="group.description"/></div></td><td class="text-end text-nowrap">1,00</td><td class="text-end text-nowrap"><span t-out="group.group_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td><td class="text-end text-nowrap"><span t-out="group.group_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr></t></t>
-                    <t t-foreach="doc.sab_calculation_line_ids.filtered(lambda l: not l.group_id).sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
-                        <t t-if="line.line_type == 'info'"><tr class="fst-italic"><td></td><td colspan="4" class="text-start"><span t-out="line.description"/></td></tr></t>
-                        <t t-else=""><t t-set="sab_pos" t-value="sab_pos + 1"/><tr><td class="text-start"><span t-out="sab_pos"/></td><td class="text-start"><span t-out="line.description or line.calculation_item_id.quotation_text or line.calculation_item_id.name"/></td><td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td><td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td><td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr></t>
+                    <t t-foreach="doc.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
+                        <!-- Bauteil wie ein Odoo-Abschnitt: nur Bezeichnung und zusammengefasster Gruppenpreis. -->
+                        <t t-if="line.line_type == 'section'">
+                            <t t-set="sab_pos" t-value="sab_pos + 1"/>
+                            <tr class="fw-bold border-top">
+                                <td class="text-start"><span t-out="sab_pos"/></td>
+                                <td class="text-start"><span t-out="line.description"/></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-end text-nowrap"><span t-out="line.section_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                        </t>
+                        <t t-elif="line.line_type == 'info'">
+                            <tr class="fst-italic"><td></td><td colspan="4" class="text-start"><span t-out="line.description"/></td></tr>
+                        </t>
+                        <!-- Positionen innerhalb eines Bauteils werden nicht einzeln an den Kunden gedruckt. -->
+                        <t t-elif="line.line_type == 'item' and not line.parent_section_id">
+                            <t t-set="sab_pos" t-value="sab_pos + 1"/>
+                            <tr>
+                                <td class="text-start"><span t-out="sab_pos"/></td>
+                                <td class="text-start"><span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/></td>
+                                <td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                <td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                                <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                        </t>
                     </t>
                 </tbody>
             </table>
@@ -28,7 +50,6 @@
                     <tr><td class="text-start">Umsatzsteuer <span t-out="doc.sab_vat_rate" t-options="{'widget': 'float', 'precision': 2}"/> %</td><td class="text-end"><span t-out="doc.sab_offer_vat_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
                     <tr class="fw-bold border-top"><td class="text-start">Brutto-Angebotssumme</td><td class="text-end"><span t-out="doc.sab_offer_gross_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td></tr>
                 </table></div></div>
-
                 <div class="mt-4" t-if="doc.sab_delivery_time_text or doc.sab_payment_text or doc.sab_service_description or doc.sab_documentation_text or doc.sab_transport_text or doc.sab_reservations_text or doc.sab_additional_terms_text">
                     <p t-if="doc.sab_delivery_time_text"><strong>Lieferzeit:</strong> <span t-out="doc.sab_delivery_time_text"/></p>
                     <p t-if="doc.sab_payment_text"><strong>Zahlung:</strong> <span t-out="doc.sab_payment_text"/></p>
