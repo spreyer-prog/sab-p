@@ -21,6 +21,7 @@ access_sab_supplier_user,sab.supplier user,model_sab_supplier,base.group_user,1,
 access_sab_supplier_product_user,sab.supplier.product user,model_sab_supplier_product,base.group_user,1,1,1,1
 access_sab_datanorm_surcharge_user,sab.datanorm.surcharge user,model_sab_datanorm_surcharge,base.group_user,1,1,1,1
 access_sab_offer_calculation_group_user,sab.offer.calculation.group user,model_sab_offer_calculation_group,base.group_user,1,1,1,1
+access_sab_project_lv_mapping_user,sab.project.lv.mapping user,model_sab_project_lv_mapping,base.group_user,1,1,1,0
 access_sab_offer_calculation_line_user,sab.offer.calculation.line user,model_sab_offer_calculation_line,base.group_user,1,1,1,1
 access_sab_offer_calculation_component_user,sab.offer.calculation.component user,model_sab_offer_calculation_component,base.group_user,1,1,1,1
 access_sab_project_bom_user,sab.project.bom user,model_sab_project_bom,base.group_user,1,1,1,1
