@@ -19,7 +19,7 @@ class SabOfferCalculationRuntime(models.Model):
                 vals = {}
                 if (line.parent_cabinet_id.id or False) != dc: vals["parent_cabinet_id"] = dc
                 if (line.parent_section_id.id or False) != ds: vals["parent_section_id"] = ds
-                if vals: line.with_context(skip_section_normalize=True).write(vals)
+                if vals: line.with_context(skip_section_normalize=True, skip_sale_line_sync=True).write(vals)
         return True
 
     def _prepare_source_values(self, vals):
