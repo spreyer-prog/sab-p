@@ -13,7 +13,13 @@ class SabPurchaseRequirement(models.Model):
     project_id = fields.Many2one(related="bom_id.project_id", string="Projekt", store=True, readonly=True)
     order_id = fields.Many2one(related="bom_id.order_id", string="Kundenauftrag", store=True, readonly=True)
     sequence = fields.Integer(string="Pos.", related="bom_line_id.sequence", store=True, readonly=True)
-    product_id = fields.Many2one(related="bom_line_id.product_id", string="Produkt", store=True, readonly=True)
+    product_id = fields.Many2one(related="bom_line_id.product_id", string="Produkt (Altbestand)", store=True, readonly=True)
+    odoo_product_id = fields.Many2one(
+        related="product_id.odoo_product_id",
+        string="Produkt",
+        store=True,
+        readonly=True,
+    )
     quantity = fields.Float(string="Bedarfsmenge", required=True, digits=(16, 3), readonly=True)
     unit = fields.Selection(related="bom_line_id.unit", string="Einheit", store=True, readonly=True)
     optional = fields.Boolean(related="bom_line_id.optional", string="Optional", store=True, readonly=True)
@@ -69,6 +75,7 @@ class SabPurchaseRequirement(models.Model):
             if not record.stock_movement_id:
                 movement = self.env["sab.stock.movement"].create({
                     "product_id": record.product_id.id,
+                    "odoo_product_id": record.odoo_product_id.id or False,
                     "movement_type": "receipt",
                     "quantity": record.quantity,
                     "unit": record.unit,
