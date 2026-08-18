@@ -16,9 +16,28 @@ class SabOfferCalculationComponent(models.Model):
     sequence = fields.Integer(string="Pos.", default=10, index=True)
     product_id = fields.Many2one(
         comodel_name="sab.product",
-        string="Produkt",
-        required=True,
+        string="Produkt (Altbestand)",
         ondelete="restrict",
+        index=True,
+    )
+    odoo_product_id = fields.Many2one(
+        comodel_name="product.product",
+        string="Odoo-Produkt",
+        ondelete="restrict",
+        index=True,
+    )
+    position_type = fields.Selection(
+        selection=[
+            ("normal", "Normal"),
+            ("auxiliary_material", "Hilfsmaterial"),
+            ("alternative", "Alternative"),
+            ("information", "Information"),
+            ("heading", "Überschrift"),
+            ("subtotal", "Zwischensumme"),
+        ],
+        string="Positionstyp",
+        required=True,
+        default="normal",
         index=True,
     )
     quantity_per_unit = fields.Float(
