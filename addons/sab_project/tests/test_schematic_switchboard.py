@@ -104,7 +104,109 @@ class TestSabSchematicSwitchboard(TransactionCase):
         self.assertTrue(new.is_ntg)
         self.assertEqual(known.parent_cabinet_id, cabinet)
         self.assertEqual(new.parent_cabinet_id, cabinet)
+        self.assertFalse(known.parent_section_id)
+        self.assertFalse(new.parent_section_id)
+        self.assertEqual(known.hierarchy_marker, "")
+        self.assertEqual(new.hierarchy_marker, "")
         self.assertAlmostEqual(cabinet.cabinet_total, known.recommended_net_price + new.recommended_net_price)
+
+    def test_component_children_share_one_lv_position_and_receive_no_own_ntg(self):
+        self._prepare_priced_lv()
+        order = self._order("schematic")
+        cabinet = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet",
+            "description": "UV1",
+            "sequence": 10,
+        })
+        section = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "section",
+            "description": "Bauteil 1",
+            "lv_position": "01.01.02",
+            "sequence": 20,
+        })
+        known_child = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "calculation_item_id": self.item_known.id,
+            "quantity": 1.0,
+            "sequence": 30,
+        })
+        new_child = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "calculation_item_id": self.item_new.id,
+            "quantity": 2.0,
+            "sequence": 40,
+        })
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "section_end",
+            "sequence": 50,
+        })
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet_end",
+            "sequence": 60,
+        })
+        order.sab_calculation_line_ids._normalize_section_membership()
+
+        self.assertEqual(section.parent_cabinet_id, cabinet)
+        self.assertEqual(section.hierarchy_marker, "↳")
+        for child in known_child | new_child:
+            self.assertEqual(child.parent_section_id, section)
+            self.assertEqual(child.parent_cabinet_id, cabinet)
+            self.assertEqual(child.lv_position, "01.01.02")
+            self.assertFalse(child.is_ntg)
+            self.assertTrue(child.lv_position_locked)
+            self.assertEqual(child.hierarchy_marker, "↳↳")
+
+        new_mapping = self.env["sab.project.lv.mapping"].search([
+            ("project_id", "=", self.project.id),
+            ("calculation_item_id", "=", self.item_new.id),
+        ])
+        self.assertFalse(new_mapping)
+
+    def test_new_schematic_component_receives_one_ntg_for_whole_component(self):
+        self._prepare_priced_lv()
+        order = self._order("schematic")
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet",
+            "description": "UV2",
+            "sequence": 10,
+        })
+        section = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "section",
+            "description": "Neues Bauteil",
+            "sequence": 20,
+        })
+        child = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "calculation_item_id": self.item_new.id,
+            "quantity": 1.0,
+            "sequence": 30,
+        })
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "section_end",
+            "sequence": 40,
+        })
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet_end",
+            "sequence": 50,
+        })
+        order.sab_calculation_line_ids._normalize_section_membership()
+
+        self.assertTrue(section.lv_position.startswith("NTG "))
+        self.assertTrue(section.is_ntg)
+        self.assertEqual(child.lv_position, section.lv_position)
+        self.assertTrue(child.is_ntg)
+        self.assertFalse(self.env["sab.project.lv.mapping"].search([
+            ("project_id", "=", self.project.id),
+            ("calculation_item_id", "=", self.item_new.id),
+        ]))
 
     def test_bom_only_from_schematic_and_excludes_auxiliary_material(self):
         lv_order = self._prepare_priced_lv()
