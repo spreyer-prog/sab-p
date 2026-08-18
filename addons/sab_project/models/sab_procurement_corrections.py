@@ -1,4 +1,5 @@
-from odoo import api, models
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class SabPurchaseRequirementProcurementCorrections(models.Model):
@@ -71,3 +72,53 @@ class SabPurchaseOrderProcurementCorrections(models.Model):
             else:
                 progress = 0.0
             order.receipt_progress = min(max(progress, 0.0), 100.0)
+
+    def action_send_order_email(self):
+        """Send the approved order with the generated PDF attached."""
+        self._check_purchasing_user()
+        template = self.env.ref(
+            "sab_project.mail_template_sab_purchase_order",
+            raise_if_not_found=False,
+        )
+        report_action = self.env.ref(
+            "sab_project.action_report_sab_purchase_order",
+            raise_if_not_found=False,
+        )
+        if not template:
+            raise ValidationError("Die E-Mail-Vorlage für Bestellungen fehlt.")
+        if not report_action:
+            raise ValidationError("Das PDF-Layout für Bestellungen fehlt.")
+
+        for order in self:
+            if order.state != "approved":
+                raise ValidationError(
+                    "Die Bestellung muss vor dem Versand durch einen Projektleiter freigegeben werden."
+                )
+            if not order.partner_id or not order.partner_id.email:
+                raise ValidationError(
+                    f"Beim Lieferanten {order.supplier_id.name} ist keine E-Mail-Adresse hinterlegt."
+                )
+
+            pdf_content, _pdf_format = self.env["ir.actions.report"]._render_qweb_pdf(
+                report_action.report_name,
+                res_ids=[order.id],
+            )
+            attachment = self.env["ir.attachment"].create({
+                "name": f"Bestellung_{order.name}.pdf",
+                "raw": pdf_content,
+                "mimetype": "application/pdf",
+                "res_model": order._name,
+                "res_id": order.id,
+            })
+            template.send_mail(
+                order.id,
+                force_send=True,
+                email_values={"attachment_ids": [(4, attachment.id)]},
+            )
+            order.write({
+                "state": "sent",
+                "sent_at": fields.Datetime.now(),
+                "sent_by_id": self.env.user.id,
+            })
+            order.line_ids.mapped("requirement_id").action_mark_ordered()
+        return True
