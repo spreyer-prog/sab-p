@@ -122,3 +122,67 @@ class SabPurchaseOrderProcurementCorrections(models.Model):
             })
             order.line_ids.mapped("requirement_id").action_mark_ordered()
         return True
+
+
+class SabPurchaseOrderLineProcurementCorrections(models.Model):
+    _inherit = "sab.purchase.order.line"
+
+    def _post_receipt(self):
+        """Book incoming goods and reserve only the quantity still needed by the project.
+
+        Supplier packaging or minimum-order quantities can make the ordered amount
+        larger than the project shortage. The excess must stay freely available in
+        the warehouse instead of being commissioned to the project that triggered
+        the order.
+        """
+        Movement = self.env["sab.stock.movement"]
+        for line in self:
+            quantity = line.quantity_to_receive or 0.0
+            if quantity <= 0:
+                continue
+            if quantity > line.quantity_remaining + 1e-9:
+                raise ValidationError(
+                    f"Bei {line.supplier_article_number or line.requirement_id.name} wurden mehr Teile "
+                    "als noch offen eingegeben."
+                )
+
+            requirement = line.requirement_id
+            requirement.invalidate_recordset()
+            project_needed = max(
+                (requirement.quantity or 0.0)
+                - (requirement.project_reserved_quantity or 0.0),
+                0.0,
+            )
+            reserve_quantity = min(quantity, project_needed)
+
+            product_values = requirement._movement_product_values()
+            common = {
+                **product_values,
+                "quantity": quantity,
+                "unit": line.unit,
+                "project_id": line.project_id.id,
+                "purchase_requirement_id": requirement.id,
+                "purchase_order_line_id": line.id,
+            }
+            Movement.create({
+                **common,
+                "movement_type": "receipt",
+                "unit_cost": line.unit_purchase_price,
+                "note": f"Wareneingang {line.order_id.name}",
+            })
+
+            if reserve_quantity > 0:
+                Movement.create({
+                    **common,
+                    "quantity": reserve_quantity,
+                    "movement_type": "reserve",
+                    "note": f"Kommissionierung {line.project_id.display_name} aus {line.order_id.name}",
+                })
+
+            line.write({
+                "quantity_received": line.quantity_received + quantity,
+                "quantity_to_receive": 0.0,
+            })
+            if line.quantity_remaining <= 0:
+                requirement.state = "received"
+        return True
