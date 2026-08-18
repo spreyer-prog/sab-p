@@ -32,6 +32,8 @@
                        decoration-success="sab_status == 'won'"
                        decoration-danger="sab_status == 'lost'"
                        decoration-info="sab_status == 'customer_awarded'"/>
+                <field name="sab_procurement_state" string="Materialstatus" widget="badge" optional="show"/>
+                <field name="sab_material_missing_percent" string="Material fehlt (%)" optional="show"/>
                 <field name="name" string="Projekt"/>
                 <field name="sab_commission" string="Kommission" optional="show"/>
                 <field name="sab_offer_identifier" string="Angebotskennzeichen" optional="hide"/>
@@ -40,6 +42,18 @@
                 <field name="user_id" string="Bearbeiter"/>
                 <field name="sab_follow_up_date" string="Wiedervorlage" optional="hide"/>
                 <field name="sab_offer_amount" string="Gesamtangebot" sum="Gesamt" optional="show"/>
+                <field name="sab_switchboard_count" string="Verteiler" optional="show"/>
+                <field name="sab_purchase_order_count" string="Bestellungen" optional="show"/>
+                <button name="action_view_sab_switchboards"
+                        type="object"
+                        string="Verteiler öffnen"
+                        icon="fa-th-large"
+                        invisible="sab_switchboard_count == 0"/>
+                <button name="action_view_sab_purchase_orders"
+                        type="object"
+                        string="Bestellungen öffnen"
+                        icon="fa-shopping-cart"
+                        invisible="sab_purchase_order_count == 0"/>
                 <field name="sab_inquiry_type_id" string="Art der Anfrage" optional="show"/>
                 <field name="sab_technology_id" string="Technik" optional="show"/>
                 <field name="sab_service_type_id" string="Leistungsart" optional="show"/>
