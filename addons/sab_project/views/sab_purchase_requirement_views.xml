@@ -48,13 +48,12 @@
                 <field name="odoo_product_id"/>
                 <field name="supplier_id"/>
                 <field name="purchase_order_id"/>
-                <filter name="open_shortage" string="Offener Fehlbestand" domain="[('state','=','open'),('shortage_quantity','&gt;',0)]"/>
+                <filter name="open" string="Offen" domain="[('state','=','open')]"/>
                 <filter name="not_ordered" string="Noch nicht bestellt" domain="[('state','=','open'),('purchase_order_line_id','=',False)]"/>
                 <filter name="ordered" string="Bestellt" domain="[('purchase_order_id','!=',False)]"/>
                 <group expand="0" string="Gruppieren">
                     <filter name="group_project" string="Projekt" context="{'group_by':'project_id'}"/>
                     <filter name="group_supplier" string="Lieferant" context="{'group_by':'supplier_id'}"/>
-                    <filter name="group_status" string="Materialstatus" context="{'group_by':'stock_status'}"/>
                 </group>
             </search>
         </field>
@@ -109,7 +108,7 @@
         <field name="res_model">sab.purchase.requirement</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_sab_purchase_requirement_search"/>
-        <field name="context">{'search_default_open_shortage': 1, 'search_default_group_project': 1}</field>
+        <field name="context">{'search_default_group_project': 1}</field>
     </record>
 
     <menuitem id="sab_purchase_requirement_menu" name="Einkaufsbedarf" parent="sab_calculation_root_menu" action="action_sab_purchase_requirement" sequence="110"/>
