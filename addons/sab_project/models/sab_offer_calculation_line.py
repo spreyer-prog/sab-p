@@ -8,9 +8,13 @@ class SabOfferCalculationLine(models.Model):
     _order = "sequence, id"
 
     order_id = fields.Many2one("sale.order", string="Angebot", required=True, ondelete="cascade", index=True)
+    line_type = fields.Selection([
+        ("item", "Kalkulationsartikel"),
+        ("info", "Infofeld"),
+    ], string="Zeilentyp", required=True, default="item", index=True)
     group_id = fields.Many2one("sab.offer.calculation.group", string="Bauteil", ondelete="set null", index=True, domain="[('order_id', '=', order_id)]", help="Mehrere Kalkulationspositionen können zu einem Bauteil zusammengefasst werden. Im Angebot wird dann nur der Gruppenpreis des Bauteils gezeigt.")
     sequence = fields.Integer(string="Pos.", default=10, index=True)
-    calculation_item_id = fields.Many2one("sab.calculation.item", string="Kalkulationsartikel", required=True, ondelete="restrict", index=True)
+    calculation_item_id = fields.Many2one("sab.calculation.item", string="Kalkulationsartikel", ondelete="restrict", index=True)
     quantity = fields.Float(string="Menge", default=1.0, required=True, digits=(16, 3))
     description = fields.Text(string="Angebotstext")
     source_write_date = fields.Datetime(string="Kalkulationsstand übernommen am", readonly=True, copy=True)
@@ -60,9 +64,19 @@ class SabOfferCalculationLine(models.Model):
             commands.append((0, 0, {"sequence": source_line.sequence, "product_id": source_line.product_id.id, "quantity_per_unit": source_line.quantity or 0.0, "unit": source_line.unit, "fixed_quantity": source_line.fixed_quantity, "optional": source_line.optional, "source_calculation_line_id": source_line.id, "supplier_product_id": source_line.selected_supplier_product_id.id or False, "unit_purchase_price": source_line.unit_purchase_price or 0.0, "note": source_line.note}))
         return commands
 
-    @api.depends("quantity", "unit_material_purchase", "unit_auxiliary_purchase", "unit_mechanical_minutes", "unit_wiring_minutes", "unit_testing_minutes", "unit_total_minutes", "unit_space_units")
+    @api.depends("line_type", "quantity", "unit_material_purchase", "unit_auxiliary_purchase", "unit_mechanical_minutes", "unit_wiring_minutes", "unit_testing_minutes", "unit_total_minutes", "unit_space_units")
     def _compute_totals(self):
         for record in self:
+            if record.line_type == "info":
+                record.material_purchase_total = 0.0
+                record.auxiliary_purchase_total = 0.0
+                record.mechanical_time_minutes = 0.0
+                record.wiring_time_minutes = 0.0
+                record.testing_time_minutes = 0.0
+                record.total_time_minutes = 0.0
+                record.total_hours = 0.0
+                record.space_units = 0.0
+                continue
             qty = record.quantity or 0.0
             record.material_purchase_total = record.unit_material_purchase * qty
             record.auxiliary_purchase_total = record.unit_auxiliary_purchase * qty
@@ -73,13 +87,15 @@ class SabOfferCalculationLine(models.Model):
             record.total_hours = record.total_time_minutes / 60.0
             record.space_units = record.unit_space_units * qty
 
-    @api.depends("material_purchase_total", "auxiliary_purchase_total", "total_hours", "order_id.sab_material_factor", "order_id.sab_aux_material_factor", "order_id.sab_hourly_rate", "order_id.sab_time_factor", "order_id.sab_difficulty_factor", "order_id.sab_packaging_factor", "order_id.sab_skonto_factor", "order_id.sab_margin_factor", "order_id.sab_rebate_factor", "quantity")
+    @api.depends("line_type", "material_purchase_total", "auxiliary_purchase_total", "total_hours", "order_id.sab_material_factor", "order_id.sab_aux_material_factor", "order_id.sab_hourly_rate", "order_id.sab_time_factor", "order_id.sab_difficulty_factor", "order_id.sab_packaging_factor", "order_id.sab_skonto_factor", "order_id.sab_margin_factor", "order_id.sab_rebate_factor", "quantity")
     def _compute_recommended_net_price(self):
         for record in self:
+            if record.line_type == "info":
+                record.recommended_net_price = 0.0
+                record.unit_recommended_net_price = 0.0
+                continue
             order = record.order_id
-            # Normales Material bekommt ausschließlich den Materialfaktor.
             normal_material_cost = record.material_purchase_total * (order.sab_material_factor or 0.0)
-            # Nur explizit als Hilfsmaterial markierte Positionen erhalten zusätzlich den Hilfsmaterialfaktor.
             auxiliary_material_cost = record.auxiliary_purchase_total * (order.sab_material_factor or 0.0) * (order.sab_aux_material_factor or 0.0)
             labor_cost = record.total_hours * (order.sab_hourly_rate or 0.0) * (order.sab_time_factor or 0.0) * (order.sab_difficulty_factor or 0.0)
             commercial_factor = (order.sab_packaging_factor or 0.0) * (order.sab_skonto_factor or 0.0) * (order.sab_margin_factor or 0.0) * (order.sab_rebate_factor or 0.0)
@@ -91,12 +107,19 @@ class SabOfferCalculationLine(models.Model):
     def _onchange_calculation_item_id(self):
         for record in self:
             if record.calculation_item_id:
-                for field_name, value in self._snapshot_values(record.calculation_item_id).items(): record[field_name] = value
+                record.line_type = "item"
+                for field_name, value in self._snapshot_values(record.calculation_item_id).items():
+                    record[field_name] = value
 
-    @api.constrains("quantity")
-    def _check_quantity(self):
+    @api.constrains("line_type", "calculation_item_id", "description", "quantity")
+    def _check_line_content(self):
         for record in self:
-            if record.quantity < 0: raise ValidationError("Die Menge einer Kalkulationsposition darf nicht negativ sein.")
+            if record.quantity < 0:
+                raise ValidationError("Die Menge einer Kalkulationsposition darf nicht negativ sein.")
+            if record.line_type == "item" and not record.calculation_item_id:
+                raise ValidationError("Bei einer Kalkulationsposition muss ein Kalkulationsartikel ausgewählt werden.")
+            if record.line_type == "info" and not (record.description or "").strip():
+                raise ValidationError("Ein Infofeld benötigt einen Text.")
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -104,9 +127,11 @@ class SabOfferCalculationLine(models.Model):
         for incoming in vals_list:
             vals = dict(incoming)
             order_id = vals.get("order_id")
-            if order_id and self.env["sale.order"].browse(order_id).state not in ("draft", "sent"): raise ValidationError("Kalkulationspositionen dürfen nach Auftragsbestätigung nicht neu angelegt werden.")
+            if order_id and self.env["sale.order"].browse(order_id).state not in ("draft", "sent"):
+                raise ValidationError("Kalkulationspositionen dürfen nach Auftragsbestätigung nicht neu angelegt werden.")
             item_id = vals.get("calculation_item_id")
             if item_id:
+                vals["line_type"] = "item"
                 item = self.env["sab.calculation.item"].browse(item_id).exists()
                 if item:
                     for field_name, value in self._snapshot_values(item).items(): vals.setdefault(field_name, value)
@@ -116,24 +141,34 @@ class SabOfferCalculationLine(models.Model):
 
     def write(self, vals):
         for record in self:
-            if record.order_id.state not in ("draft", "sent"): raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
+            if record.order_id.state not in ("draft", "sent"):
+                raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
         vals = dict(vals)
         if vals.get("calculation_item_id"):
+            vals["line_type"] = "item"
             item = self.env["sab.calculation.item"].browse(vals["calculation_item_id"]).exists()
             if item:
                 snapshot = self._snapshot_values(item)
                 if "description" in vals: snapshot.pop("description", None)
-                snapshot.update(vals); snapshot["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(item); vals = snapshot
+                snapshot.update(vals)
+                snapshot["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(item)
+                vals = snapshot
+        elif vals.get("line_type") == "info":
+            vals.update({"calculation_item_id": False, "group_id": False, "quantity": 1.0, "component_snapshot_ids": [(5, 0, 0)]})
         return super().write(vals)
 
     def action_refresh_from_calculation_item(self):
-        for record in self:
-            if record.order_id.state not in ("draft", "sent"): raise ValidationError("Ein bestätigtes Angebot darf nicht aus aktuellen Stammdaten neu berechnet werden.")
+        for record in self.filtered(lambda r: r.line_type == "item"):
+            if record.order_id.state not in ("draft", "sent"):
+                raise ValidationError("Ein bestätigtes Angebot darf nicht aus aktuellen Stammdaten neu berechnet werden.")
             if record.calculation_item_id:
-                values = self._snapshot_values(record.calculation_item_id); values["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(record.calculation_item_id); record.write(values)
+                values = self._snapshot_values(record.calculation_item_id)
+                values["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(record.calculation_item_id)
+                record.write(values)
         return True
 
     def unlink(self):
         for record in self:
-            if record.order_id.state not in ("draft", "sent"): raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
+            if record.order_id.state not in ("draft", "sent"):
+                raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
         return super().unlink()
