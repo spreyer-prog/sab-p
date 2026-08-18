@@ -102,6 +102,8 @@ class SabOfferCalculationLineSwitchboard(models.Model):
                 {
                     "sequence": line.sequence,
                     "product_id": line.product_id.id,
+                    "odoo_product_id": line.odoo_product_id.id
+                    or (line.product_id.odoo_product_id.id if line.product_id else False),
                     "quantity_per_unit": line.quantity or 0.0,
                     "unit": line.unit,
                     "fixed_quantity": line.fixed_quantity,
