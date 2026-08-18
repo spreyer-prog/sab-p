@@ -34,6 +34,44 @@ class SabProduct(models.Model):
     testing_time_minutes = fields.Float(string="Prüfzeit in Minuten", default=0.0)
     notes = fields.Text(string="Interne Hinweise")
 
+    def init(self):
+        """Bestehende SAB-P Produktwerte beim Modulupgrade in den zentralen Odoo-Produktstamm übernehmen."""
+        cr = self.env.cr
+        cr.execute("""
+            UPDATE product_template pt
+               SET sab_product_type = COALESCE(sp.product_type, 'material'),
+                   sab_manufacturer_supplier_id = sp.manufacturer_supplier_id,
+                   sab_manufacturer_id = sp.manufacturer_id,
+                   sab_manufacturer_article_number = sp.manufacturer_article_number,
+                   sab_datanorm_number = sp.datanorm_number,
+                   sab_price_mode = COALESCE(sp.price_mode, 'supplier'),
+                   sab_fixed_purchase_price = COALESCE(sp.fixed_purchase_price, 0),
+                   sab_space_units = COALESCE(sp.space_units, 0),
+                   sab_mechanical_time_minutes = COALESCE(sp.mechanical_time_minutes, 0),
+                   sab_wiring_time_minutes = COALESCE(sp.wiring_time_minutes, 0),
+                   sab_testing_time_minutes = COALESCE(sp.testing_time_minutes, 0),
+                   sab_notes = sp.notes
+              FROM sab_product sp
+              JOIN product_product pp ON pp.id = sp.odoo_product_id
+             WHERE pt.id = pp.product_tmpl_id
+        """)
+        cr.execute("""
+            UPDATE sab_supplier_product ssp
+               SET odoo_product_id = sp.odoo_product_id
+              FROM sab_product sp
+             WHERE ssp.product_id = sp.id
+               AND ssp.odoo_product_id IS NULL
+               AND sp.odoo_product_id IS NOT NULL
+        """)
+        cr.execute("""
+            UPDATE sab_product_component c
+               SET odoo_product_id = sp.odoo_product_id
+              FROM sab_product sp
+             WHERE c.product_id = sp.id
+               AND c.odoo_product_id IS NULL
+               AND sp.odoo_product_id IS NOT NULL
+        """)
+
     @api.depends("price_mode", "fixed_purchase_price", "component_ids.total_price", "supplier_product_ids.active", "supplier_product_ids.preferred", "supplier_product_ids.net_purchase_price")
     def _compute_calculated_purchase_price(self):
         for product in self:
@@ -77,7 +115,6 @@ class SabProduct(models.Model):
             else: target = Product.create(vals)
             if record.odoo_product_id != target:
                 record.with_context(skip_odoo_product_sync=True).write({"odoo_product_id": target.id})
-            # Alt-Lieferantenartikel und Baugruppenpositionen an den zentralen Produktstamm hängen.
             record.supplier_product_ids.filtered(lambda r: not r.odoo_product_id).write({"odoo_product_id": target.id})
             record.component_ids.filtered(lambda r: not r.odoo_product_id).write({"odoo_product_id": target.id})
         return True
