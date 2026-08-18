@@ -85,6 +85,14 @@ class TestSabUiContracts(TransactionCase):
         for measure in ("offer_amount", "actual_direct_cost", "contribution_margin"):
             self.assertTrue(graph_arch.xpath(f"/graph/field[@name='{measure}'][@type='measure']"))
 
+    def test_sale_portal_extension_inherits_odoo19_content_template(self):
+        """The order line table lives in sale_order_portal_content in Odoo 19."""
+        inherited = self.env.ref("sab_project.sab_sale_order_portal_calculation")
+        parent = self.env.ref("sale.sale_order_portal_content")
+        self.assertEqual(inherited.inherit_id, parent)
+        arch = etree.fromstring(inherited.arch_db.encode("utf-8"))
+        self.assertEqual(len(arch.xpath("//xpath[@expr=\"//table[@id='sales_order_table']\"]")), 2)
+
     def test_primary_button_labels_match_documented_ui_contract(self):
         """Keep the user manual's SAB-P button names tied to the actual XML views."""
         expected = (
