@@ -9,23 +9,8 @@ class SabSupplierProduct(models.Model):
 
     active = fields.Boolean(string="Aktiv", default=True)
     supplier_id = fields.Many2one("sab.supplier", string="Lieferant", required=True, ondelete="restrict", index=True)
-
-    # Zielmodell: normaler Odoo-Produktstamm.
-    odoo_product_id = fields.Many2one(
-        "product.product",
-        string="Produkt",
-        ondelete="cascade",
-        index=True,
-        help="Produkt aus dem normalen Odoo-Produktstamm.",
-    )
-    # Nur noch für Altbestände während der Migration vorhanden.
-    product_id = fields.Many2one(
-        "sab.product",
-        string="SAB-P Produkt (Altbestand)",
-        ondelete="cascade",
-        index=True,
-    )
-
+    odoo_product_id = fields.Many2one("product.product", string="Produkt", ondelete="cascade", index=True, help="Produkt aus dem normalen Odoo-Produktstamm.")
+    product_id = fields.Many2one("sab.product", string="SAB-P Produkt (Altbestand)", ondelete="cascade", index=True)
     supplier_article_number = fields.Char(string="Lieferantenartikelnummer", required=True, index=True)
     datanorm_number = fields.Char(string="DATANORM-Nummer", index=True)
     datanorm_type_name = fields.Char(string="Herstellertyp", index=True)
@@ -38,16 +23,25 @@ class SabSupplierProduct(models.Model):
     net_purchase_price = fields.Float(string="Netto-Einkaufspreis", digits=(16, 4), compute="_compute_net_purchase_price", store=True)
     packaging_quantity = fields.Float(string="Verpackungseinheit", digits=(16, 3), default=1.0)
     minimum_order_quantity = fields.Float(string="Mindestbestellmenge", digits=(16, 3), default=1.0)
-    unit = fields.Selection([
-        ("pcs", "Stück"), ("m", "Meter"), ("kg", "kg"), ("set", "Satz"),
-        ("pack", "Packung"), ("other", "Sonstiges")
-    ], string="Mengeneinheit", required=True, default="pcs")
+    unit = fields.Selection([("pcs", "Stück"), ("m", "Meter"), ("kg", "kg"), ("set", "Satz"), ("pack", "Packung"), ("other", "Sonstiges")], string="Mengeneinheit", required=True, default="pcs")
     delivery_time_days = fields.Integer(string="Lieferzeit in Tagen", default=0)
     valid_from = fields.Date(string="Gültig ab")
     valid_until = fields.Date(string="Gültig bis")
     preferred = fields.Boolean(string="Bevorzugter Lieferant", default=False)
     note = fields.Text(string="Interne Hinweise")
     datanorm_surcharge_ids = fields.One2many("sab.datanorm.surcharge", "supplier_product_id", string="DATANORM Zu-/Abschläge")
+
+    def init(self):
+        # Bestehende Lieferantenartikel automatisch auf den bereits synchronisierten
+        # Odoo-Produktstamm umhängen. Die Altverknüpfung bleibt nur als Rückfallanker.
+        self.env.cr.execute("""
+            UPDATE sab_supplier_product sp
+               SET odoo_product_id = p.odoo_product_id
+              FROM sab_product p
+             WHERE sp.product_id = p.id
+               AND sp.odoo_product_id IS NULL
+               AND p.odoo_product_id IS NOT NULL
+        """)
 
     @api.depends("purchase_price", "discount_percent")
     def _compute_net_purchase_price(self):
