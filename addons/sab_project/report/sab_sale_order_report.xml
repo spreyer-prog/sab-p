@@ -44,10 +44,10 @@
                             <t t-set="sab_pos" t-value="sab_pos + 1"/>
                             <tr>
                                 <td class="text-start">
-                                    <span t-if="line.parent_section_id or line.parent_cabinet_id">↳ </span>
-                                    <span t-out="line.lv_position or line.schematic_reference or (('NTG ' + str(sab_pos)) if line.is_ntg else sab_pos)"/>
+                                    <span t-if="line.parent_section_id">↳ </span>
+                                    <span t-if="not line.parent_section_id" t-out="line.lv_position or line.schematic_reference or (('NTG ' + str(sab_pos)) if line.is_ntg else sab_pos)"/>
                                 </td>
-                                <td class="text-start" t-att-style="'padding-left: 16px;' if line.parent_section_id and line.parent_cabinet_id else ('padding-left: 8px;' if line.parent_section_id or line.parent_cabinet_id else '')">
+                                <td class="text-start" t-att-style="'padding-left: 16px;' if line.parent_section_id and line.parent_cabinet_id else ('padding-left: 8px;' if line.parent_section_id else '')">
                                     <span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/>
                                 </td>
                                 <td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
