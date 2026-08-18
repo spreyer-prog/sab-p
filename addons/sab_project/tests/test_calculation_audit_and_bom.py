@@ -41,11 +41,44 @@ class TestSabCalculationAuditAndBom(TransactionCase):
         return self.env["sale.order"].create({
             "partner_id": self.partner.id,
             "sab_project_id": self.project.id,
+            "sab_calculation_source": "lv",
             "sab_calculation_line_ids": [(0, 0, {
                 "calculation_item_id": self.calculation_item.id,
                 "quantity": 3.0,
             })],
         })
+
+    def _schematic_order(self):
+        lv_order = self._order()
+        lv_order.sab_calculation_line_ids.write({"lv_position": "01.01.03"})
+        lv_order.write({"state": "sent"})
+
+        order = self.env["sale.order"].create({
+            "partner_id": self.partner.id,
+            "sab_project_id": self.project.id,
+            "sab_calculation_source": "schematic",
+        })
+        cabinet = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet",
+            "description": "UV1",
+            "sequence": 10,
+        })
+        item = self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "calculation_item_id": self.calculation_item.id,
+            "quantity": 3.0,
+            "sequence": 20,
+        })
+        self.env["sab.offer.calculation.line"].create({
+            "order_id": order.id,
+            "line_type": "cabinet_end",
+            "sequence": 30,
+        })
+        order.sab_calculation_line_ids._normalize_section_membership()
+        self.assertEqual(item.parent_cabinet_id, cabinet)
+        self.assertEqual(item.lv_position, "01.01.03")
+        return order, cabinet
 
     def test_component_snapshot_is_stable(self):
         order = self._order()
@@ -57,23 +90,30 @@ class TestSabCalculationAuditAndBom(TransactionCase):
         source_line.quantity = 9.0
         self.assertAlmostEqual(calc_line.component_snapshot_ids.quantity_per_unit, 2.0)
 
-    def test_confirmed_order_generates_bom_from_snapshot(self):
-        order = self._order()
+    def test_confirmed_schematic_order_generates_distributor_and_total_bom_from_snapshot(self):
+        order, cabinet = self._schematic_order()
         order.state = "sale"
         action = order.action_generate_sab_bom()
-        bom = self.env["sab.project.bom"].browse(action["res_id"])
 
-        self.assertEqual(bom.order_id, order)
-        self.assertEqual(bom.project_id, self.project)
-        self.assertEqual(len(bom.line_ids), 1)
-        self.assertEqual(bom.line_ids.product_id, self.product)
-        self.assertAlmostEqual(bom.line_ids.quantity, 6.0)
-        self.assertAlmostEqual(bom.line_ids.unit_purchase_price, 5.0)
-        self.assertAlmostEqual(bom.line_ids.purchase_total, 30.0)
+        self.assertEqual(action["res_model"], "sab.project.bom")
+        self.assertEqual(len(order.sab_bom_ids), 2)
+        cabinet_bom = order.sab_bom_ids.filtered(lambda bom: bom.bom_scope == "cabinet")
+        total_bom = order.sab_bom_ids.filtered(lambda bom: bom.bom_scope == "total")
 
-        bom.action_release()
+        self.assertEqual(cabinet_bom.order_id, order)
+        self.assertEqual(cabinet_bom.project_id, self.project)
+        self.assertEqual(cabinet_bom.cabinet_line_id, cabinet)
+        self.assertEqual(len(cabinet_bom.line_ids), 1)
+        self.assertEqual(len(total_bom.line_ids), 1)
+        self.assertEqual(cabinet_bom.line_ids.product_id, self.product)
+        self.assertAlmostEqual(cabinet_bom.line_ids.quantity, 6.0)
+        self.assertAlmostEqual(total_bom.line_ids.quantity, 6.0)
+        self.assertAlmostEqual(cabinet_bom.line_ids.unit_purchase_price, 5.0)
+        self.assertAlmostEqual(cabinet_bom.line_ids.purchase_total, 30.0)
+
+        cabinet_bom.action_release()
         with self.assertRaises(ValidationError):
-            bom.line_ids.write({"quantity": 7.0})
+            cabinet_bom.line_ids.write({"quantity": 7.0})
 
     def test_calculation_setting_requires_code_and_creates_log(self):
         params = self.env["ir.config_parameter"].sudo()
