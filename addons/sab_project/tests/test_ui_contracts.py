@@ -85,8 +85,8 @@ class TestSabUiContracts(TransactionCase):
         for measure in ("offer_amount", "actual_direct_cost", "contribution_margin"):
             self.assertTrue(graph_arch.xpath(f"/graph/field[@name='{measure}'][@type='measure']"))
 
-    def test_sale_portal_extension_keeps_odoo_table_in_dom_and_renders_sub_lines(self):
-        """Odoo portal JS needs its own table while SAB-P displays the LV hierarchy."""
+    def test_sale_portal_extension_keeps_odoo_table_in_dom_and_renders_only_component_sub_lines(self):
+        """Direct Schaltschrank positions stay flat; only Bauteil children are indented."""
         inherited = self.env.ref("sab_project.sab_sale_order_portal_calculation")
         parent = self.env.ref("sale.sale_order_portal_content")
         self.assertEqual(inherited.inherit_id, parent)
@@ -99,12 +99,21 @@ class TestSabUiContracts(TransactionCase):
         self.assertFalse(xpath_nodes[0].xpath("./attribute[@name='t-if']"))
         item_templates = arch.xpath("//t[@t-elif=\"line.line_type == 'item'\"]")
         self.assertEqual(len(item_templates), 1)
-        self.assertTrue(
+        self.assertTrue(item_templates[0].xpath(".//span[@t-if='line.parent_section_id']"))
+        self.assertFalse(
             item_templates[0].xpath(
                 ".//span[@t-if='line.parent_section_id or line.parent_cabinet_id']"
             )
         )
         self.assertTrue(item_templates[0].xpath(".//td[contains(@t-att-style, 'padding-left')]"))
+
+        backend = self.env.ref("sab_project.sab_sale_order_form_switchboard_rules")
+        backend_arch = etree.fromstring(backend.arch_db.encode("utf-8"))
+        lv_attributes = backend_arch.xpath(
+            "//xpath[contains(@expr, \"field[@name='lv_position']\")]/attribute[@name='invisible']"
+        )
+        self.assertEqual(len(lv_attributes), 1)
+        self.assertIn("parent_section_id", lv_attributes[0].text or "")
 
     def test_primary_button_labels_match_documented_ui_contract(self):
         """Keep the user manual's SAB-P button names tied to the actual XML views."""
