@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_form_lv_rules" model="ir.ui.view">
+        <field name="name">sale.order.form.sab.lv.rules</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_calculation']//field[@name='lv_position']" position="attributes">
+                <attribute name="invisible">line_type in ('info', 'section_end')</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='is_ntg']" position="attributes">
+                <attribute name="invisible">line_type in ('info', 'section_end')</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='schematic_reference']" position="attributes">
+                <attribute name="invisible">line_type in ('info', 'section_end')</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
