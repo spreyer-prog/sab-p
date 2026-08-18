@@ -30,6 +30,7 @@ from . import sab_employee_confidential
 from . import sab_production_order
 from . import sab_production_employee_runtime
 from . import sab_purchase_requirement
+from . import sab_switchboard_bom
 from . import sab_stock_movement
 from . import sab_project_document
 from . import sab_time_entry
