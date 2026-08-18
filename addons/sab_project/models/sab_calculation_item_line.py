@@ -17,7 +17,6 @@ class SabCalculationItemLine(models.Model):
     alternative_odoo_product_ids = fields.Many2many(
         "product.product", relation="sab_calculation_line_alternative_odoo_product_rel",
         column1="calculation_line_id", column2="product_id", string="Alternativprodukte")
-    # Übergang für bestehende Kalkulationsdaten.
     product_id = fields.Many2one("sab.product", string="Standardprodukt (Altbestand)", ondelete="restrict", index=True)
     alternative_product_ids = fields.Many2many("sab.product", relation="sab_calculation_line_alternative_product_rel", column1="calculation_line_id", column2="product_id", string="Alternativprodukte (Altbestand)")
 
@@ -29,6 +28,16 @@ class SabCalculationItemLine(models.Model):
     selected_supplier_product_id = fields.Many2one("sab.supplier.product", string="Verwendeter Lieferantenartikel", compute="_compute_purchase_values")
     unit_purchase_price = fields.Float(string="EK je Einheit", digits=(16, 2), compute="_compute_purchase_values")
     purchase_total = fields.Float(string="EK gesamt", digits=(16, 2), compute="_compute_purchase_values")
+
+    def init(self):
+        self.env.cr.execute("""
+            UPDATE sab_calculation_item_line l
+               SET odoo_product_id = p.odoo_product_id
+              FROM sab_product p
+             WHERE l.product_id = p.id
+               AND l.odoo_product_id IS NULL
+               AND p.odoo_product_id IS NOT NULL
+        """)
 
     @api.depends(
         "odoo_product_id", "odoo_product_id.sab_price_mode", "odoo_product_id.sab_fixed_purchase_price",
