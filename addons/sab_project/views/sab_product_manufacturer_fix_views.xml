@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_odoo_product_tree_manufacturer_fix" model="ir.ui.view">
+        <field name="name">product.template.sab.p.tree.manufacturer.fix</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_sab_odoo_product_tree"/>
+        <field name="priority">200</field>
+        <field name="arch" type="xml">
+            <field name="sab_manufacturer_supplier_id" position="replace">
+                <field name="sab_manufacturer_id" string="Hersteller" optional="show"/>
+                <field name="sab_manufacturer_supplier_id" string="Datenquelle / Lieferant" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_odoo_product_form_manufacturer_fix" model="ir.ui.view">
+        <field name="name">product.template.sab.p.form.manufacturer.fix</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_sab_odoo_product_form"/>
+        <field name="priority">200</field>
+        <field name="arch" type="xml">
+            <field name="sab_manufacturer_supplier_id" position="replace">
+                <field name="sab_manufacturer_id" string="Hersteller" options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="sab_manufacturer_supplier_id" string="Datenquelle / Lieferant" options="{'no_create': True, 'no_create_edit': True}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_product_template_form_sab_p_manufacturer_fix" model="ir.ui.view">
+        <field name="name">product.template.form.sab.p.manufacturer.fix</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_product_template_form_sab_p"/>
+        <field name="priority">200</field>
+        <field name="arch" type="xml">
+            <field name="sab_manufacturer_supplier_id" position="before">
+                <field name="sab_manufacturer_id" string="Hersteller"/>
+            </field>
+            <field name="sab_manufacturer_supplier_id" position="attributes">
+                <attribute name="string">Datenquelle / Lieferant</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>
