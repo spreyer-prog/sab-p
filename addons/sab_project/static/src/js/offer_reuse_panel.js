@@ -35,6 +35,7 @@ export class SabOfferReusePanel extends Component {
             },
         });
         this.dropTarget = null;
+        this.dragPayload = null;
         this._boundDragOver = (event) => this.onExternalDragOver(event);
         this._boundDragLeave = (event) => this.onExternalDragLeave(event);
         this._boundDrop = (event) => this.onExternalDrop(event);
@@ -59,6 +60,7 @@ export class SabOfferReusePanel extends Component {
         onWillUnmount(() => {
             this.unbindCalculationDropTarget();
             this.toggleFormMode(false);
+            this.dragPayload = null;
         });
     }
 
@@ -76,7 +78,7 @@ export class SabOfferReusePanel extends Component {
     }
 
     get canEdit() {
-        return Boolean(this.state.payload.editable) && !this.state.busy;
+        return ["draft", "sent"].includes(this.props.record.data.state) && !this.state.busy;
     }
 
     get searchTerm() {
@@ -100,17 +102,13 @@ export class SabOfferReusePanel extends Component {
 
     get filteredCurrentComponents() {
         return this.state.payload.project_components.filter(
-            (item) =>
-                item.is_current &&
-                this.includesSearch(item.name, item.positions, item.offer)
+            (item) => item.is_current && this.includesSearch(item.name, item.positions, item.offer)
         );
     }
 
     get filteredPreviousComponents() {
         return this.state.payload.project_components.filter(
-            (item) =>
-                !item.is_current &&
-                this.includesSearch(item.name, item.positions, item.offer)
+            (item) => !item.is_current && this.includesSearch(item.name, item.positions, item.offer)
         );
     }
 
@@ -199,13 +197,18 @@ export class SabOfferReusePanel extends Component {
     }
 
     async ensureSavedOrder() {
-        if (!this.props.record.resId) {
-            await this.props.record.save();
-        }
+        // The insertion runs server-side. Flush pending list edits and quantities
+        // first so reloading the form can never discard unsaved quotation work.
+        await this.props.record.save();
         if (!this.props.record.resId) {
             throw new Error("Das Angebot konnte nicht gespeichert werden.");
         }
         return this.props.record.resId;
+    }
+
+    hasReuseDragType(event) {
+        const types = Array.from(event.dataTransfer?.types || []);
+        return Boolean(this.dragPayload || types.includes(REUSE_MIME));
     }
 
     onDragStart(event) {
@@ -215,29 +218,34 @@ export class SabOfferReusePanel extends Component {
             event.preventDefault();
             return;
         }
+        this.dragPayload = { kind, id };
         event.dataTransfer.effectAllowed = "copy";
-        event.dataTransfer.setData(REUSE_MIME, JSON.stringify({ kind, id }));
+        event.dataTransfer.setData(REUSE_MIME, JSON.stringify(this.dragPayload));
         event.dataTransfer.setData("text/plain", `${kind}:${id}`);
+    }
+
+    onDragEnd() {
+        this.dragPayload = null;
+        this.dropTarget?.classList.remove("o_sab_reuse_drop_ready");
     }
 
     readDropData(event) {
         const raw = event.dataTransfer?.getData(REUSE_MIME);
-        if (!raw) {
-            return false;
-        }
-        try {
-            const data = JSON.parse(raw);
-            if (data?.kind && Number(data.id)) {
-                return { kind: data.kind, id: Number(data.id) };
+        if (raw) {
+            try {
+                const data = JSON.parse(raw);
+                if (data?.kind && Number(data.id)) {
+                    return { kind: data.kind, id: Number(data.id) };
+                }
+            } catch {
+                // Fall through to the same-page drag payload.
             }
-        } catch {
-            return false;
         }
-        return false;
+        return this.dragPayload;
     }
 
     onExternalDragOver(event) {
-        if (!this.canEdit || !this.readDropData(event)) {
+        if (!this.canEdit || !this.hasReuseDragType(event)) {
             return;
         }
         event.preventDefault();
@@ -254,6 +262,7 @@ export class SabOfferReusePanel extends Component {
     async onExternalDrop(event) {
         const data = this.readDropData(event);
         this.dropTarget?.classList.remove("o_sab_reuse_drop_ready");
+        this.dragPayload = null;
         if (!data || !this.canEdit) {
             return;
         }
@@ -262,10 +271,11 @@ export class SabOfferReusePanel extends Component {
     }
 
     onPanelDragOver(event) {
-        if (!this.canEdit || !this.readDropData(event)) {
+        if (!this.canEdit || !this.hasReuseDragType(event)) {
             return;
         }
         event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
         event.currentTarget.classList.add("o_sab_reuse_drop_ready");
     }
 
@@ -276,6 +286,7 @@ export class SabOfferReusePanel extends Component {
     async onPanelDrop(event) {
         const data = this.readDropData(event);
         event.currentTarget.classList.remove("o_sab_reuse_drop_ready");
+        this.dragPayload = null;
         if (!data || !this.canEdit) {
             return;
         }
@@ -329,6 +340,9 @@ export class SabOfferReusePanel extends Component {
     }
 
     async refresh() {
+        if (this.props.record.data.sab_project_id) {
+            await this.props.record.save();
+        }
         await this.loadPayload();
     }
 
