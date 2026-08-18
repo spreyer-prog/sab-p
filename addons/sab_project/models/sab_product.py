@@ -12,8 +12,8 @@ class SabProduct(models.Model):
     product_type = fields.Selection([
         ("material", "Material"), ("mechanical", "Mechanik"), ("wiring", "Verdrahtung"),
         ("testing", "Prüfung"), ("labeling", "Beschriftung"), ("documentation", "Dokumentation"),
-        ("transport", "Transport"), ("packaging", "Verpackung"), ("other", "Sonstiges"),
-    ], string="Produkttyp", required=True, default="material", index=True)
+        ("transport", "Transport"), ("packaging", "Verpackung"), ("other", "Sonstiges")],
+        string="Produkttyp", required=True, default="material", index=True)
     name = fields.Char(string="Bezeichnung", required=True, index=True)
     manufacturer_supplier_id = fields.Many2one("sab.supplier", string="Hersteller", ondelete="restrict", index=True)
     manufacturer_id = fields.Many2one("sab.manufacturer", string="Hersteller (Altbestand)", ondelete="restrict", index=True)
@@ -37,14 +37,10 @@ class SabProduct(models.Model):
     @api.depends("price_mode", "fixed_purchase_price", "component_ids.total_price", "supplier_product_ids.active", "supplier_product_ids.preferred", "supplier_product_ids.net_purchase_price")
     def _compute_calculated_purchase_price(self):
         for product in self:
-            if product.price_mode == "fixed":
-                product.calculated_purchase_price = product.fixed_purchase_price or 0.0
-            elif product.price_mode == "assembly":
-                product.calculated_purchase_price = sum(product.component_ids.mapped("total_price"))
+            if product.price_mode == "fixed": product.calculated_purchase_price = product.fixed_purchase_price or 0.0
+            elif product.price_mode == "assembly": product.calculated_purchase_price = sum(product.component_ids.mapped("total_price"))
             else:
-                candidates = product.supplier_product_ids.filtered("active")
-                preferred = candidates.filtered("preferred")
-                pool = preferred or candidates
+                candidates = product.supplier_product_ids.filtered("active"); preferred = candidates.filtered("preferred"); pool = preferred or candidates
                 product.calculated_purchase_price = min(pool.mapped("net_purchase_price")) if pool else 0.0
 
     def _odoo_product_values(self):
@@ -57,56 +53,51 @@ class SabProduct(models.Model):
             "purchase_ok": True,
             "standard_price": self.calculated_purchase_price or 0.0,
             "type": "consu",
+            "sab_product_type": self.product_type,
             "sab_manufacturer_supplier_id": self.manufacturer_supplier_id.id or False,
             "sab_manufacturer_id": self.manufacturer_id.id or False,
             "sab_manufacturer_article_number": self.manufacturer_article_number or False,
             "sab_datanorm_number": self.datanorm_number or False,
-            "sab_price_mode": "fixed" if self.price_mode == "fixed" else "supplier",
+            "sab_price_mode": self.price_mode,
             "sab_fixed_purchase_price": self.fixed_purchase_price or 0.0,
             "sab_space_units": self.space_units or 0.0,
             "sab_mechanical_time_minutes": self.mechanical_time_minutes or 0.0,
             "sab_wiring_time_minutes": self.wiring_time_minutes or 0.0,
             "sab_testing_time_minutes": self.testing_time_minutes or 0.0,
+            "sab_notes": self.notes or False,
         }
 
     def _sync_to_odoo_product(self):
         Product = self.env["product.product"].sudo()
         for record in self:
-            vals = record._odoo_product_values()
-            target = record.odoo_product_id.sudo()
+            vals = record._odoo_product_values(); target = record.odoo_product_id.sudo()
             if not target:
-                code = vals.get("default_code")
-                target = Product.search([("default_code", "=", code)], limit=1) if code else Product.browse()
-            if target:
-                target.write(vals)
-            else:
-                target = Product.create(vals)
+                code = vals.get("default_code"); target = Product.search([("default_code", "=", code)], limit=1) if code else Product.browse()
+            if target: target.write(vals)
+            else: target = Product.create(vals)
             if record.odoo_product_id != target:
                 record.with_context(skip_odoo_product_sync=True).write({"odoo_product_id": target.id})
+            # Alt-Lieferantenartikel und Baugruppenpositionen an den zentralen Produktstamm hängen.
+            record.supplier_product_ids.filtered(lambda r: not r.odoo_product_id).write({"odoo_product_id": target.id})
+            record.component_ids.filtered(lambda r: not r.odoo_product_id).write({"odoo_product_id": target.id})
         return True
 
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
-        if not self.env.context.get("skip_odoo_product_sync"):
-            records._sync_to_odoo_product()
+        if not self.env.context.get("skip_odoo_product_sync"): records._sync_to_odoo_product()
         return records
 
     def write(self, vals):
         result = super().write(vals)
-        sync_fields = {"name", "manufacturer_supplier_id", "manufacturer_id", "manufacturer_article_number", "datanorm_number", "active", "price_mode", "fixed_purchase_price", "space_units", "mechanical_time_minutes", "wiring_time_minutes", "testing_time_minutes"}
-        if not self.env.context.get("skip_odoo_product_sync") and set(vals) & sync_fields:
-            self._sync_to_odoo_product()
+        watched = {"name", "manufacturer_supplier_id", "manufacturer_id", "manufacturer_article_number", "datanorm_number", "active", "product_type", "price_mode", "fixed_purchase_price", "space_units", "mechanical_time_minutes", "wiring_time_minutes", "testing_time_minutes", "notes"}
+        if not self.env.context.get("skip_odoo_product_sync") and set(vals) & watched: self._sync_to_odoo_product()
         return result
 
     @api.depends("stock_movement_ids.movement_type", "stock_movement_ids.quantity")
     def _compute_stock_balances(self):
         for product in self:
             movements = product.stock_movement_ids
-            receipts = sum(movements.filtered(lambda m: m.movement_type == "receipt").mapped("quantity"))
-            issues = sum(movements.filtered(lambda m: m.movement_type == "issue").mapped("quantity"))
-            reservations = sum(movements.filtered(lambda m: m.movement_type == "reserve").mapped("quantity"))
-            releases = sum(movements.filtered(lambda m: m.movement_type == "release").mapped("quantity"))
-            product.stock_on_hand = receipts - issues
-            product.stock_reserved = reservations - releases
-            product.stock_available = product.stock_on_hand - product.stock_reserved
+            receipts = sum(movements.filtered(lambda m: m.movement_type == "receipt").mapped("quantity")); issues = sum(movements.filtered(lambda m: m.movement_type == "issue").mapped("quantity"))
+            reservations = sum(movements.filtered(lambda m: m.movement_type == "reserve").mapped("quantity")); releases = sum(movements.filtered(lambda m: m.movement_type == "release").mapped("quantity"))
+            product.stock_on_hand = receipts - issues; product.stock_reserved = reservations - releases; product.stock_available = product.stock_on_hand - product.stock_reserved
