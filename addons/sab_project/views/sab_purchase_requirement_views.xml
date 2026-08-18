@@ -4,18 +4,59 @@
         <field name="name">sab.purchase.requirement.list</field>
         <field name="model">sab.purchase.requirement</field>
         <field name="arch" type="xml">
-            <list string="Einkaufsbedarf">
-                <field name="name"/>
+            <list string="Einkaufsbedarf"
+                  create="0"
+                  delete="0"
+                  decoration-success="stock_status == 'in_stock' or stock_status == 'received'"
+                  decoration-warning="stock_status in ('partial', 'ordered', 'partial_received')"
+                  decoration-danger="stock_status == 'missing'">
+                <header>
+                    <button name="action_create_purchase_orders"
+                            type="object"
+                            string="Bestellung aus Auswahl erzeugen"
+                            class="btn-primary"
+                            groups="sab_project.group_sab_purchasing,project.group_project_manager"/>
+                </header>
                 <field name="project_id"/>
-                <field name="product_id"/>
-                <field name="quantity"/>
+                <field name="sequence" string="Pos." optional="show"/>
+                <field name="manufacturer_name" string="Hersteller" optional="show"/>
+                <field name="odoo_product_id" string="Produkt" optional="show"/>
+                <field name="product_id" string="Produkt (Altbestand)" optional="hide"/>
+                <field name="quantity" string="Bedarf"/>
                 <field name="unit"/>
-                <field name="supplier_id"/>
-                <field name="supplier_product_id" optional="show"/>
-                <field name="unit_purchase_price" optional="show"/>
-                <field name="purchase_total" optional="show"/>
-                <field name="state"/>
+                <field name="warehouse_on_hand" string="Lager gesamt" optional="show"/>
+                <field name="project_reserved_quantity" string="Für Projekt reserviert" optional="show"/>
+                <field name="shortage_quantity" string="Fehlbestand" optional="show"/>
+                <field name="suggested_order_quantity" string="Bestellvorschlag" optional="show"/>
+                <field name="supplier_id" string="Lieferant"/>
+                <field name="supplier_product_id" optional="hide"/>
+                <field name="unit_purchase_price" optional="hide"/>
+                <field name="purchase_total" optional="hide"/>
+                <field name="stock_status" string="Materialstatus" widget="badge"/>
+                <field name="purchase_order_id" string="Bestellung" optional="show"/>
+                <field name="state" optional="hide"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_search" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.search</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="arch" type="xml">
+            <search string="Einkaufsbedarf">
+                <field name="project_id"/>
+                <field name="odoo_product_id"/>
+                <field name="supplier_id"/>
+                <field name="purchase_order_id"/>
+                <filter name="open_shortage" string="Offener Fehlbestand" domain="[('state','=','open'),('shortage_quantity','&gt;',0)]"/>
+                <filter name="not_ordered" string="Noch nicht bestellt" domain="[('state','=','open'),('purchase_order_line_id','=',False)]"/>
+                <filter name="ordered" string="Bestellt" domain="[('purchase_order_id','!=',False)]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_project" string="Projekt" context="{'group_by':'project_id'}"/>
+                    <filter name="group_supplier" string="Lieferant" context="{'group_by':'supplier_id'}"/>
+                    <filter name="group_status" string="Materialstatus" context="{'group_by':'stock_status'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -23,26 +64,37 @@
         <field name="name">sab.purchase.requirement.form</field>
         <field name="model">sab.purchase.requirement</field>
         <field name="arch" type="xml">
-            <form string="SAB-P Einkaufsbedarf">
-                <header>
-                    <button name="action_mark_ordered" type="object" string="Als bestellt markieren" class="btn-primary" invisible="state != 'open'"/>
-                    <button name="action_mark_received" type="object" string="Als geliefert markieren" class="btn-primary" invisible="state not in ('open', 'ordered')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="open,ordered,received"/>
-                </header>
+            <form string="SAB-P Einkaufsbedarf" create="0" delete="0">
                 <sheet>
-                    <group col="4">
+                    <group string="Projekt und Produkt" col="4">
                         <field name="name" readonly="1"/>
                         <field name="project_id" readonly="1"/>
                         <field name="order_id" readonly="1"/>
                         <field name="bom_id" readonly="1"/>
-                        <field name="product_id" readonly="1"/>
+                        <field name="manufacturer_name" readonly="1"/>
+                        <field name="odoo_product_id" readonly="1"/>
+                        <field name="product_id" readonly="1" invisible="not product_id"/>
                         <field name="quantity" readonly="1"/>
                         <field name="unit" readonly="1"/>
+                        <field name="optional" readonly="1"/>
+                    </group>
+                    <group string="Lagerprüfung" col="4">
+                        <field name="warehouse_on_hand" readonly="1"/>
+                        <field name="warehouse_reserved" readonly="1"/>
+                        <field name="warehouse_available" readonly="1"/>
+                        <field name="project_reserved_quantity" readonly="1"/>
+                        <field name="shortage_quantity" readonly="1"/>
+                        <field name="stock_status" readonly="1" widget="badge"/>
+                    </group>
+                    <group string="Beschaffung" col="4">
                         <field name="supplier_id" readonly="1"/>
                         <field name="supplier_product_id" readonly="1"/>
+                        <field name="suggested_order_quantity" readonly="1"/>
                         <field name="unit_purchase_price" readonly="1"/>
                         <field name="purchase_total" readonly="1"/>
-                        <field name="optional" readonly="1"/>
+                        <field name="purchase_order_id" readonly="1"/>
+                        <field name="purchase_order_state" readonly="1"/>
+                        <field name="state" readonly="1"/>
                     </group>
                     <group>
                         <field name="note"/>
@@ -56,6 +108,8 @@
         <field name="name">Einkaufsbedarf</field>
         <field name="res_model">sab.purchase.requirement</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sab_purchase_requirement_search"/>
+        <field name="context">{'search_default_open_shortage': 1, 'search_default_group_project': 1}</field>
     </record>
 
     <menuitem id="sab_purchase_requirement_menu" name="Einkaufsbedarf" parent="sab_calculation_root_menu" action="action_sab_purchase_requirement" sequence="110"/>
