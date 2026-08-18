@@ -8,7 +8,7 @@
             <xpath expr="//page[@name='sab_calculation']//field[@name='sab_calculation_line_ids']/list" position="attributes">
                 <attribute name="decoration-info">line_type == 'cabinet'</attribute>
             </xpath>
-            <xpath expr="//page[@name='sab_calculation']//field[@name='sab_calculation_line_ids']/list/control/create[@string='Bauteil beenden']" position="after">
+            <xpath expr="//page[@name='sab_calculation']//field[@name='sab_calculation_line_ids']/list/control/create[contains(@context, &quot;'section_end'&quot;)]" position="after">
                 <create string="Schaltschrank erstellen"
                         context="{'default_line_type': 'cabinet', 'default_quantity': 1.0}"
                         invisible="parent.sab_calculation_source != 'schematic'"/>
