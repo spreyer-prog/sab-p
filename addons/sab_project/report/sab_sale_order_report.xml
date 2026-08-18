@@ -19,6 +19,9 @@
                     <t t-set="sab_pos" t-value="0"/>
                     <t t-foreach="doc.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
                         <t t-if="line.line_type == 'cabinet'">
+                            <tr class="sab-structure-spacer">
+                                <td colspan="5" style="height: 6px; padding: 0; border: 0;"></td>
+                            </tr>
                             <tr class="fw-bold border-top border-bottom">
                                 <td></td>
                                 <td class="text-center"><span t-out="line.description"/></td>
@@ -28,6 +31,9 @@
                             </tr>
                         </t>
                         <t t-elif="line.line_type == 'section'">
+                            <tr class="sab-structure-spacer">
+                                <td colspan="5" style="height: 4px; padding: 0; border: 0;"></td>
+                            </tr>
                             <t t-set="sab_pos" t-value="sab_pos + 1"/>
                             <tr class="fw-bold border-top">
                                 <td class="text-start"><span t-out="line.lv_position or line.schematic_reference or sab_pos"/></td>
@@ -53,6 +59,11 @@
                                 <td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
                                 <td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
                                 <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                        </t>
+                        <t t-elif="line.line_type in ('section_end', 'cabinet_end')">
+                            <tr class="sab-structure-spacer">
+                                <td colspan="5" t-att-style="'height: 6px; padding: 0; border: 0;' if line.line_type == 'cabinet_end' else 'height: 4px; padding: 0; border: 0;'"></td>
                             </tr>
                         </t>
                     </t>
