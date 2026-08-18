@@ -1,9 +1,31 @@
-from odoo import models
+from odoo import api, models
 from odoo.exceptions import ValidationError
 
 
 class SabOfferCalculationLineSchematicLv(models.Model):
     _inherit = "sab.offer.calculation.line"
+
+    @api.depends(
+        "order_id.sab_project_id",
+        "order_id.sab_calculation_source",
+        "calculation_item_id",
+        "odoo_product_id",
+        "lv_position",
+    )
+    def _compute_lv_position_locked(self):
+        for line in self:
+            mapping = self.env["sab.project.lv.mapping"]
+            if (
+                line.line_type == "item"
+                and line.order_id.sab_calculation_source in ("lv", "schematic")
+                and line.order_id.sab_project_id
+            ):
+                mapping = line._sab_lv_mapping(
+                    line.order_id,
+                    line.calculation_item_id.id,
+                    line.odoo_product_id.id,
+                )
+            line.lv_position_locked = bool(mapping)
 
     def _sab_apply_project_position(self, vals, order):
         if not order or not order.sab_project_id:
