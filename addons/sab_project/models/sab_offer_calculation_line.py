@@ -15,21 +15,22 @@ class SabOfferCalculationLine(models.Model):
     ], string="Zeilentyp", required=True, default="item", index=True)
     sequence = fields.Integer(string="Pos.", default=10, index=True)
 
+    # Wird automatisch nach Odoo-Abschnittslogik gepflegt: alle Positionen nach
+    # einem Bauteil gehören bis zum nächsten Bauteil zu diesem Abschnitt.
     parent_section_id = fields.Many2one(
         "sab.offer.calculation.line", string="Bauteil", ondelete="set null", index=True,
         domain="[('order_id', '=', order_id), ('line_type', '=', 'section')]",
-        help="Ordnet die Position einem Bauteil zu. Im Angebotsdruck wird dann nur der Gruppenpreis des Bauteils gezeigt.",
     )
     child_line_ids = fields.One2many("sab.offer.calculation.line", "parent_section_id", string="Enthaltene Positionen")
     section_total = fields.Monetary(string="Gruppenpreis", currency_field="currency_id", compute="_compute_section_total", store=True)
 
-    # Altbestand der früheren getrennten Bauteil-Tabelle bleibt technisch lesbar.
+    # Früherer separater Bauteil-Stamm bleibt nur für Altbestand technisch erhalten.
     group_id = fields.Many2one("sab.offer.calculation.group", string="Bauteil (Altbestand)", ondelete="set null", index=True)
 
     calculation_item_id = fields.Many2one("sab.calculation.item", string="Kalkulationsartikel", ondelete="restrict", index=True)
     odoo_product_id = fields.Many2one(
         "product.product", string="Produkt", ondelete="restrict", index=True,
-        help="Direkte Auswahl aus dem normalen Odoo-Produktstamm. DATANORM-Produkte sind dort ebenfalls verfügbar.",
+        help="Direkte Auswahl aus dem normalen Odoo-Produktstamm. DATANORM-Produkte werden dorthin synchronisiert.",
     )
     quantity = fields.Float(string="Menge", default=1.0, required=True, digits=(16, 3))
     description = fields.Text(string="Angebotstext")
@@ -60,7 +61,27 @@ class SabOfferCalculationLine(models.Model):
     @api.depends("child_line_ids.recommended_net_price", "child_line_ids.line_type")
     def _compute_section_total(self):
         for record in self:
-            record.section_total = sum(record.child_line_ids.filtered(lambda line: line.line_type == "item").mapped("recommended_net_price")) if record.line_type == "section" else 0.0
+            record.section_total = (
+                sum(record.child_line_ids.filtered(lambda line: line.line_type == "item").mapped("recommended_net_price"))
+                if record.line_type == "section" else 0.0
+            )
+
+    def _normalize_section_membership(self):
+        """Pflegt Bauteile exakt wie Odoo-Abschnitte anhand der Zeilenreihenfolge."""
+        orders = self.mapped("order_id")
+        for order in orders:
+            current_section = False
+            for line in order.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id)):
+                if line.line_type == "section":
+                    current_section = line
+                    desired = False
+                elif line.line_type == "item":
+                    desired = current_section.id if current_section else False
+                else:
+                    desired = False
+                if (line.parent_section_id.id or False) != desired:
+                    line.with_context(skip_section_normalize=True).write({"parent_section_id": desired})
+        return True
 
     @staticmethod
     def _snapshot_values(item):
@@ -108,7 +129,18 @@ class SabOfferCalculationLine(models.Model):
         for source_line in item.product_line_ids:
             if not source_line.product_id or source_line.position_type in ("information", "heading", "subtotal", "alternative"):
                 continue
-            commands.append((0, 0, {"sequence": source_line.sequence, "product_id": source_line.product_id.id, "quantity_per_unit": source_line.quantity or 0.0, "unit": source_line.unit, "fixed_quantity": source_line.fixed_quantity, "optional": source_line.optional, "source_calculation_line_id": source_line.id, "supplier_product_id": source_line.selected_supplier_product_id.id or False, "unit_purchase_price": source_line.unit_purchase_price or 0.0, "note": source_line.note}))
+            commands.append((0, 0, {
+                "sequence": source_line.sequence,
+                "product_id": source_line.product_id.id,
+                "quantity_per_unit": source_line.quantity or 0.0,
+                "unit": source_line.unit,
+                "fixed_quantity": source_line.fixed_quantity,
+                "optional": source_line.optional,
+                "source_calculation_line_id": source_line.id,
+                "supplier_product_id": source_line.selected_supplier_product_id.id or False,
+                "unit_purchase_price": source_line.unit_purchase_price or 0.0,
+                "note": source_line.note,
+            }))
         return commands
 
     @staticmethod
@@ -116,7 +148,16 @@ class SabOfferCalculationLine(models.Model):
         if not sab_product:
             return []
         supplier = sab_product.supplier_product_ids.filtered("preferred")[:1] or sab_product.supplier_product_ids.filtered("active")[:1]
-        return [(0, 0, {"sequence": 10, "product_id": sab_product.id, "quantity_per_unit": 1.0, "unit": "pcs", "fixed_quantity": False, "optional": False, "supplier_product_id": supplier.id or False, "unit_purchase_price": sab_product.calculated_purchase_price or 0.0})]
+        return [(0, 0, {
+            "sequence": 10,
+            "product_id": sab_product.id,
+            "quantity_per_unit": 1.0,
+            "unit": "pcs",
+            "fixed_quantity": False,
+            "optional": False,
+            "supplier_product_id": supplier.id or False,
+            "unit_purchase_price": sab_product.calculated_purchase_price or 0.0,
+        })]
 
     @api.depends("line_type", "quantity", "unit_material_purchase", "unit_auxiliary_purchase", "unit_mechanical_minutes", "unit_wiring_minutes", "unit_testing_minutes", "unit_total_minutes", "unit_space_units")
     def _compute_totals(self):
@@ -170,7 +211,7 @@ class SabOfferCalculationLine(models.Model):
                 for field_name, value in self._product_snapshot_values(sab_product, record.odoo_product_id).items():
                     record[field_name] = value
 
-    @api.constrains("line_type", "calculation_item_id", "odoo_product_id", "description", "quantity", "parent_section_id")
+    @api.constrains("line_type", "calculation_item_id", "odoo_product_id", "description", "quantity")
     def _check_line_content(self):
         for record in self:
             if record.quantity < 0:
@@ -179,8 +220,6 @@ class SabOfferCalculationLine(models.Model):
                 raise ValidationError("Bitte einen Kalkulationsartikel oder ein Produkt auswählen.")
             if record.line_type in ("section", "info") and not (record.description or "").strip():
                 raise ValidationError("Bauteil bzw. Infofeld benötigt einen Text.")
-            if record.parent_section_id and record.parent_section_id.order_id != record.order_id:
-                raise ValidationError("Bauteil und Position müssen zum selben Angebot gehören.")
 
     def _prepare_source_values(self, vals):
         item_id = vals.get("calculation_item_id")
@@ -188,18 +227,28 @@ class SabOfferCalculationLine(models.Model):
         if item_id:
             item = self.env["sab.calculation.item"].browse(item_id).exists()
             if item:
-                vals["line_type"] = "item"; vals["odoo_product_id"] = False
-                for key, value in self._snapshot_values(item).items(): vals.setdefault(key, value)
+                vals["line_type"] = "item"
+                vals["odoo_product_id"] = False
+                for key, value in self._snapshot_values(item).items():
+                    vals.setdefault(key, value)
                 vals.setdefault("component_snapshot_ids", self._component_commands(item))
         elif product_id:
             product = self.env["product.product"].browse(product_id).exists()
             if product:
                 sab_product = self.env["sab.product"].search([("odoo_product_id", "=", product.id)], limit=1)
-                vals["line_type"] = "item"; vals["calculation_item_id"] = False
-                for key, value in self._product_snapshot_values(sab_product, product).items(): vals.setdefault(key, value)
+                vals["line_type"] = "item"
+                vals["calculation_item_id"] = False
+                for key, value in self._product_snapshot_values(sab_product, product).items():
+                    vals.setdefault(key, value)
                 vals.setdefault("component_snapshot_ids", self._direct_product_component(sab_product))
         elif vals.get("line_type") in ("section", "info"):
-            vals.update({"calculation_item_id": False, "odoo_product_id": False, "parent_section_id": False, "quantity": 1.0, "component_snapshot_ids": [(5, 0, 0)]})
+            vals.update({
+                "calculation_item_id": False,
+                "odoo_product_id": False,
+                "parent_section_id": False,
+                "quantity": 1.0,
+                "component_snapshot_ids": [(5, 0, 0)],
+            })
         return vals
 
     @api.model_create_multi
@@ -211,14 +260,19 @@ class SabOfferCalculationLine(models.Model):
             if order_id and self.env["sale.order"].browse(order_id).state not in ("draft", "sent"):
                 raise ValidationError("Kalkulationspositionen dürfen nach Auftragsbestätigung nicht neu angelegt werden.")
             prepared.append(self._prepare_source_values(vals))
-        return super().create(prepared)
+        records = super().create(prepared)
+        if not self.env.context.get("skip_section_normalize"):
+            records._normalize_section_membership()
+        return records
 
     def write(self, vals):
         for record in self:
             if record.order_id.state not in ("draft", "sent"):
                 raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
-        vals = self._prepare_source_values(dict(vals))
-        return super().write(vals)
+        result = super().write(self._prepare_source_values(dict(vals)))
+        if not self.env.context.get("skip_section_normalize") and set(vals) & {"sequence", "line_type", "order_id"}:
+            self._normalize_section_membership()
+        return result
 
     def action_refresh_from_calculation_item(self):
         for record in self.filtered(lambda r: r.line_type == "item" and r.calculation_item_id):
@@ -230,7 +284,13 @@ class SabOfferCalculationLine(models.Model):
         return True
 
     def unlink(self):
+        orders = self.mapped("order_id")
         for record in self:
             if record.order_id.state not in ("draft", "sent"):
                 raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
-        return super().unlink()
+        result = super().unlink()
+        if orders and not self.env.context.get("skip_section_normalize"):
+            remaining = orders.mapped("sab_calculation_line_ids")
+            if remaining:
+                remaining._normalize_section_membership()
+        return result
