@@ -11,9 +11,15 @@ class SabOfferCalculationLineSchematicLv(models.Model):
         "calculation_item_id",
         "odoo_product_id",
         "lv_position",
+        "parent_section_id",
+        "parent_section_id.lv_position",
+        "parent_section_id.is_ntg",
     )
     def _compute_lv_position_locked(self):
         for line in self:
+            if line.line_type == "item" and line.parent_section_id:
+                line.lv_position_locked = True
+                continue
             mapping = self.env["sab.project.lv.mapping"]
             if (
                 line.line_type == "item"
@@ -28,9 +34,52 @@ class SabOfferCalculationLineSchematicLv(models.Model):
             line.lv_position_locked = bool(mapping)
 
     def _sab_apply_project_position(self, vals, order):
+        if self.env.context.get("sab_inherit_section_position"):
+            return vals
         if not order or not order.sab_project_id:
             return vals
-        if vals.get("line_type", "item") != "item":
+
+        line_type = vals.get("line_type", "item")
+
+        # A new Bauteil is one commercial LV/NTG position. In a schematic
+        # quotation it receives the next project-wide NTG number only when no
+        # known LV position has already been supplied, for example by reusing a
+        # Bauteil from an earlier offer.
+        if line_type == "section":
+            if order.sab_calculation_source == "schematic" and not self._sab_has_prior_lv_offer(order):
+                raise ValidationError(
+                    "Ein Schaltplan-Angebot setzt ein zuvor bepreistes LV-Angebot im selben Projekt voraus. "
+                    "Bitte zuerst mindestens ein LV-Angebot senden oder bestätigen."
+                )
+            position = (vals.get("lv_position") or "").strip()
+            if not position and (
+                order.sab_calculation_source == "schematic"
+                or (
+                    order.sab_calculation_source == "lv"
+                    and self._sab_has_prior_lv_offer(order)
+                )
+            ):
+                number = self.env["sab.project.lv.mapping"].next_ntg_number(order.sab_project_id)
+                position = f"NTG {number}"
+                vals["lv_position"] = position
+                vals["is_ntg"] = True
+            elif position.upper().startswith("NTG"):
+                vals["is_ntg"] = True
+            return vals
+
+        if line_type != "item":
+            return vals
+
+        parent_section = self._sab_parent_section_from_values(vals)
+        if parent_section:
+            vals["lv_position"] = parent_section.lv_position or False
+            vals["is_ntg"] = bool(
+                parent_section.lv_position
+                and (
+                    parent_section.is_ntg
+                    or parent_section.lv_position.upper().startswith("NTG")
+                )
+            )
             return vals
 
         calc_id = vals.get("calculation_item_id")
