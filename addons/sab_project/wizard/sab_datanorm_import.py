@@ -103,7 +103,6 @@ class SabDatanormImport(models.TransientModel):
 
     @staticmethod
     def _has_http_request():
-        """Werkzeug LocalProxy darf außerhalb eines HTTP-Kontexts nicht direkt gelesen werden."""
         try:
             from odoo.http import request
             return bool(request and request.httprequest)
@@ -123,42 +122,84 @@ class SabDatanormImport(models.TransientModel):
         article_lines = (self.import_payload or "").splitlines()
         if not article_lines:
             self.write({"import_state": "error", "last_error": "Temporäre Importdaten fehlen."}); return self._progress_response()
+
         start = self.processed_records; end = min(start + max(25, min(int(batch_size or 250), 1000)), len(article_lines)); chunk = article_lines[start:end]
-        Manufacturer = self.env["sab.manufacturer"]; Product = self.env["sab.product"]; SupplierProduct = self.env["sab.supplier.product"]
+        Manufacturer = self.env["sab.manufacturer"]
+        OdooProduct = self.env["product.product"].sudo()
+        LegacyProduct = self.env["sab.product"].sudo()
+        SupplierProduct = self.env["sab.supplier.product"].sudo()
         manufacturer = Manufacturer.search([("name", "=ilike", self.import_manufacturer_name)], limit=1) or Manufacturer.create({"name": self.import_manufacturer_name})
+
         parsed=[]; manufacturer_articles=[]; article_numbers=[]
         for raw_line in chunk:
             parts=raw_line.split(";")
             if len(parts)>=21:
                 article_number=parts[2].strip(); manufacturer_article=parts[16].strip() or article_number
-                if article_number and manufacturer_article: parsed.append((parts,article_number,manufacturer_article)); manufacturer_articles.append(manufacturer_article); article_numbers.append(article_number)
-        product_map={r.manufacturer_article_number:r for r in Product.search([("manufacturer_id","=",manufacturer.id),("manufacturer_article_number","in",list(set(manufacturer_articles)))])}
+                if article_number and manufacturer_article:
+                    parsed.append((parts,article_number,manufacturer_article)); manufacturer_articles.append(manufacturer_article); article_numbers.append(article_number)
+
+        product_map={r.sab_manufacturer_article_number:r for r in OdooProduct.search([("sab_manufacturer_id","=",manufacturer.id),("sab_manufacturer_article_number","in",list(set(manufacturer_articles)))])}
+        legacy_map={r.manufacturer_article_number:r for r in LegacyProduct.search([("manufacturer_id","=",manufacturer.id),("manufacturer_article_number","in",list(set(manufacturer_articles)))])}
         supplier_map={r.supplier_article_number:r for r in SupplierProduct.search([("supplier_id","=",self.supplier_id.id),("supplier_article_number","in",list(set(article_numbers)))])}
+
         counters={k:getattr(self,k) for k in ("created_products","updated_products","unchanged_products","created_supplier","updated_supplier","unchanged_supplier","synced_odoo","skipped_records","error_records")}; counters["skipped_records"] += len(chunk)-len(parsed); last_error=False
+
         for parts, article_number, manufacturer_article in parsed:
             try:
                 short_text=" ".join(v.strip() for v in parts[3:5] if v.strip()).strip(); unit=parts[5].strip(); price=self._parse_price(parts[8].strip()); price_code=parts[9].strip(); type_name=parts[12].strip(); ean=parts[18].strip()
-                product=product_map.get(manufacturer_article); vals_product={"manufacturer_id":manufacturer.id,"manufacturer_article_number":manufacturer_article,"datanorm_number":article_number,"name":short_text or type_name or manufacturer_article}
+                name=short_text or type_name or manufacturer_article
+                legacy=legacy_map.get(manufacturer_article)
+                product=product_map.get(manufacturer_article)
+                if not product and legacy and legacy.odoo_product_id:
+                    product=legacy.odoo_product_id.sudo(); product_map[manufacturer_article]=product
+
+                product_vals={
+                    "name":name,
+                    "default_code":manufacturer_article,
+                    "sab_manufacturer_id":manufacturer.id,
+                    "sab_manufacturer_article_number":manufacturer_article,
+                    "sab_datanorm_number":article_number,
+                    "sale_ok":True,
+                    "purchase_ok":True,
+                }
+                if ean and not OdooProduct.search_count([("barcode","=",ean),("id","!=",product.id if product else 0)]): product_vals["barcode"]=ean
+
                 if product:
-                    if self._needs_write(product,vals_product): product.write(vals_product); counters["updated_products"]+=1
+                    if self._needs_write(product,product_vals): product.write(product_vals); counters["updated_products"]+=1
                     else: counters["unchanged_products"]+=1
-                elif self.create_missing_products: product=Product.create(vals_product); product_map[manufacturer_article]=product; counters["created_products"]+=1
-                else: counters["skipped_records"]+=1; continue
-                supplier_product=supplier_map.get(article_number); vals_supplier={"supplier_id":self.supplier_id.id,"product_id":product.id,"supplier_article_number":article_number,"datanorm_number":article_number,"datanorm_price":price,"list_price":price,"datanorm_price_code":price_code,"unit":self._unit_from_datanorm(unit),"valid_from":self.import_source_date,"datanorm_type_name":type_name,"ean":ean}
+                elif self.create_missing_products:
+                    product=OdooProduct.create(product_vals); product_map[manufacturer_article]=product; counters["created_products"]+=1
+                else:
+                    counters["skipped_records"]+=1; continue
+
+                # Altbestand nur aktualisieren/verknüpfen, niemals für neue DATANORM-Artikel neu anlegen.
+                if legacy:
+                    legacy_vals={"datanorm_number":article_number,"name":name}
+                    if self._needs_write(legacy,legacy_vals): legacy.write(legacy_vals)
+                    if legacy.odoo_product_id != product: legacy.with_context(skip_odoo_product_sync=True).write({"odoo_product_id":product.id})
+
+                supplier_product=supplier_map.get(article_number)
+                vals_supplier={"supplier_id":self.supplier_id.id,"odoo_product_id":product.id,"product_id":legacy.id if legacy else False,"supplier_article_number":article_number,"datanorm_number":article_number,"datanorm_price":price,"list_price":price,"datanorm_price_code":price_code,"unit":self._unit_from_datanorm(unit),"valid_from":self.import_source_date,"datanorm_type_name":type_name,"ean":ean}
                 if not supplier_product or not supplier_product.purchase_price or self.supplier_id.datanorm_price_as_purchase_price: vals_supplier["purchase_price"]=price
                 if supplier_product:
                     if self._needs_write(supplier_product,vals_supplier): supplier_product.write(vals_supplier); counters["updated_supplier"]+=1
                     else: counters["unchanged_supplier"]+=1
-                else: supplier_product=SupplierProduct.create(vals_supplier); supplier_map[article_number]=supplier_product; counters["created_supplier"]+=1
-                product._sync_to_odoo_product(); counters["synced_odoo"]+=1
-            except Exception as exc: counters["error_records"]+=1; last_error=f"Artikel {article_number or '?'}: {exc}"
+                else:
+                    supplier_product=SupplierProduct.create(vals_supplier); supplier_map[article_number]=supplier_product; counters["created_supplier"]+=1
+
+                if product.standard_price != product.sab_calculated_purchase_price:
+                    product.standard_price = product.sab_calculated_purchase_price
+                counters["synced_odoo"]+=1
+            except Exception as exc:
+                counters["error_records"]+=1; last_error=f"Artikel {article_number or '?'}: {exc}"
+
         processed=end; total=len(article_lines); progress=100.0 if not total else min(100.0,processed*100.0/total); done=processed>=total
         values=dict(counters); values.update({"processed_records":processed,"total_records":total,"progress_percent":progress,"current_status":f"{processed:,} von {total:,} Artikeln verarbeitet".replace(",","."),"last_error":last_error or self.last_error,"import_state":"done" if done else "running"}); self.write(values)
         if done: self._finish_import()
         return self._progress_response()
 
     def _finish_import(self):
-        self.result_text=(f"DATANORM 5: {self.import_manufacturer_name}\nQuelle: {self.source_file_name}\nDatenstand: {self.import_source_date or '-'}\nEK-Regel: vorhandenen EK behalten; ohne EK Listenpreis als Fallback\nA-Artikelsätze erkannt: {self.total_records}\nZ-Preis-/Zuschlagssätze erkannt: {self.import_z_count} (noch nicht preiswirksam importiert)\n\nProdukte neu: {self.created_products}\nProdukte aktualisiert: {self.updated_products}\nProdukte unverändert: {self.unchanged_products}\nLieferantenartikel neu: {self.created_supplier}\nLieferantenartikel aktualisiert: {self.updated_supplier}\nLieferantenartikel unverändert: {self.unchanged_supplier}\nMit Odoo-Produktstamm synchronisiert: {self.synced_odoo}\nÜbersprungen: {self.skipped_records}\nFehler: {self.error_records}")
+        self.result_text=(f"DATANORM 5: {self.import_manufacturer_name}\nQuelle: {self.source_file_name}\nDatenstand: {self.import_source_date or '-'}\nProduktstamm: normaler Odoo-Produktstamm\nEK-Regel: vorhandenen EK behalten; ohne EK Listenpreis als Fallback\nA-Artikelsätze erkannt: {self.total_records}\nZ-Preis-/Zuschlagssätze erkannt: {self.import_z_count} (noch nicht preiswirksam importiert)\n\nOdoo-Produkte neu: {self.created_products}\nOdoo-Produkte aktualisiert: {self.updated_products}\nOdoo-Produkte unverändert: {self.unchanged_products}\nLieferantenartikel neu: {self.created_supplier}\nLieferantenartikel aktualisiert: {self.updated_supplier}\nLieferantenartikel unverändert: {self.unchanged_supplier}\nIm Odoo-Produktstamm verarbeitet: {self.synced_odoo}\nÜbersprungen: {self.skipped_records}\nFehler: {self.error_records}")
 
     def _progress_response(self):
         return {"done":self.import_state=="done","failed":self.import_state=="error","state":self.import_state,"progress":round(self.progress_percent or 0.0,1),"processed":self.processed_records,"total":self.total_records,"status":self.current_status or "","errors":self.error_records,"last_error":self.last_error or ""}
