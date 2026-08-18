@@ -1,9 +1,14 @@
-from odoo import api, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
 class SabOfferCalculationLineLv(models.Model):
     _inherit = "sab.offer.calculation.line"
+
+    lv_position_locked = fields.Boolean(
+        string="LV-Position projektweit festgeschrieben",
+        compute="_compute_lv_position_locked",
+    )
 
     def _sab_lv_mapping(self, order=None, calculation_item_id=False, odoo_product_id=False):
         order = order or self.order_id
@@ -17,6 +22,22 @@ class SabOfferCalculationLineLv(models.Model):
         else:
             return self.env["sab.project.lv.mapping"]
         return self.env["sab.project.lv.mapping"].search(domain, limit=1)
+
+    @api.depends(
+        "order_id.sab_project_id",
+        "order_id.sab_calculation_source",
+        "calculation_item_id",
+        "odoo_product_id",
+        "lv_position",
+    )
+    def _compute_lv_position_locked(self):
+        for line in self:
+            mapping = line._sab_lv_mapping(
+                line.order_id,
+                line.calculation_item_id.id,
+                line.odoo_product_id.id,
+            ) if line.line_type == "item" and line.order_id.sab_calculation_source == "lv" else self.env["sab.project.lv.mapping"]
+            line.lv_position_locked = bool(mapping)
 
     @staticmethod
     def _sab_has_prior_lv_offer(order):
@@ -43,7 +64,13 @@ class SabOfferCalculationLineLv(models.Model):
             Mapping = self.env["sab.project.lv.mapping"]
             number = Mapping.next_ntg_number(order.sab_project_id)
             code = f"NTG {number}"
-            map_vals = {"project_id": order.sab_project_id.id, "position_code": code, "is_ntg": True, "ntg_number": number, "first_order_id": order.id}
+            map_vals = {
+                "project_id": order.sab_project_id.id,
+                "position_code": code,
+                "is_ntg": True,
+                "ntg_number": number,
+                "first_order_id": order.id,
+            }
             if calc_id:
                 map_vals["calculation_item_id"] = calc_id
             else:
@@ -53,31 +80,64 @@ class SabOfferCalculationLineLv(models.Model):
             vals["is_ntg"] = True
         return vals
 
-    def sab_lock_lv_positions(self):
+    def _sab_create_mapping_from_line(self):
+        """Persist the first entered LV position immediately for the whole project.
+
+        This deliberately happens already in a draft quotation. Once an article has
+        received an LV/NTG position in a project, every later project quotation must
+        reuse exactly that position.
+        """
         Mapping = self.env["sab.project.lv.mapping"]
-        for line in self.filtered(lambda l: l.line_type == "item" and not l.parent_section_id and l.order_id.sab_calculation_source == "lv"):
-            if not line.order_id.sab_project_id or not (line.lv_position or "").strip():
+        for line in self:
+            if (
+                line.line_type != "item"
+                or line.order_id.sab_calculation_source != "lv"
+                or not line.order_id.sab_project_id
+                or not (line.lv_position or "").strip()
+                or not (line.calculation_item_id or line.odoo_product_id)
+            ):
                 continue
-            mapping = line._sab_lv_mapping(line.order_id, line.calculation_item_id.id, line.odoo_product_id.id)
+            mapping = line._sab_lv_mapping(
+                line.order_id,
+                line.calculation_item_id.id,
+                line.odoo_product_id.id,
+            )
             if mapping:
                 if mapping.position_code != line.lv_position or mapping.is_ntg != line.is_ntg:
-                    raise ValidationError(f"Die Position {mapping.position_code} ist für diesen Artikel im Projekt festgeschrieben.")
+                    raise ValidationError(
+                        f"Die LV-/NTG-Position {mapping.position_code} ist für diesen Artikel "
+                        "im Projekt festgeschrieben und darf nicht geändert werden."
+                    )
                 continue
-            vals = {"project_id": line.order_id.sab_project_id.id, "position_code": line.lv_position.strip(), "is_ntg": line.is_ntg or line.lv_position.upper().startswith("NTG"), "first_order_id": line.order_id.id}
-            if vals["is_ntg"]:
+            position_code = line.lv_position.strip()
+            is_ntg = bool(line.is_ntg or position_code.upper().startswith("NTG"))
+            values = {
+                "project_id": line.order_id.sab_project_id.id,
+                "position_code": position_code,
+                "is_ntg": is_ntg,
+                "first_order_id": line.order_id.id,
+            }
+            if is_ntg:
                 try:
-                    vals["ntg_number"] = int(vals["position_code"].split()[-1])
+                    values["ntg_number"] = int(position_code.split()[-1])
                 except (ValueError, IndexError):
-                    vals["ntg_number"] = Mapping.next_ntg_number(line.order_id.sab_project_id)
-                    vals["position_code"] = f"NTG {vals['ntg_number']}"
-                    super(SabOfferCalculationLineLv, line).write({"lv_position": vals["position_code"], "is_ntg": True})
+                    values["ntg_number"] = Mapping.next_ntg_number(line.order_id.sab_project_id)
+                    values["position_code"] = f"NTG {values['ntg_number']}"
+                    super(SabOfferCalculationLineLv, line).write({
+                        "lv_position": values["position_code"],
+                        "is_ntg": True,
+                    })
             if line.calculation_item_id:
-                vals["calculation_item_id"] = line.calculation_item_id.id
-            elif line.odoo_product_id:
-                vals["odoo_product_id"] = line.odoo_product_id.id
+                values["calculation_item_id"] = line.calculation_item_id.id
             else:
-                continue
-            Mapping.create(vals)
+                values["odoo_product_id"] = line.odoo_product_id.id
+            Mapping.create(values)
+        return True
+
+    def sab_lock_lv_positions(self):
+        # Kept as validation gate when sending/confirming, but mappings are now
+        # already created immediately when the first LV position is entered.
+        self._sab_create_mapping_from_line()
         return True
 
     @api.model_create_multi
@@ -88,7 +148,9 @@ class SabOfferCalculationLineLv(models.Model):
             order = self.env["sale.order"].browse(values.get("order_id")).exists() if values.get("order_id") else self.env["sale.order"]
             values = self._sab_apply_project_position(values, order)
             prepared.append(values)
-        return super().create(prepared)
+        records = super().create(prepared)
+        records._sab_create_mapping_from_line()
+        return records
 
     def write(self, vals):
         if len(self) == 1:
@@ -100,7 +162,14 @@ class SabOfferCalculationLineLv(models.Model):
                 pos = vals.get("lv_position", record.lv_position)
                 is_ntg = vals.get("is_ntg", record.is_ntg)
                 if pos != mapping.position_code or is_ntg != mapping.is_ntg:
-                    raise ValidationError(f"Die LV-/NTG-Position {mapping.position_code} ist projektbezogen festgeschrieben und darf nicht geändert werden.")
+                    raise ValidationError(
+                        f"Die LV-/NTG-Position {mapping.position_code} ist projektbezogen "
+                        "festgeschrieben und darf nicht geändert werden."
+                    )
             values = self._sab_apply_project_position(dict(vals), record.order_id)
-            return super().write(values)
-        return super().write(vals)
+            result = super().write(values)
+            record._sab_create_mapping_from_line()
+            return result
+        result = super().write(vals)
+        self._sab_create_mapping_from_line()
+        return result
