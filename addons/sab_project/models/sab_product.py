@@ -35,42 +35,52 @@ class SabProduct(models.Model):
     notes = fields.Text(string="Interne Hinweise")
 
     def init(self):
-        """Bestehende SAB-P Produktwerte beim Modulupgrade in den zentralen Odoo-Produktstamm übernehmen."""
+        """Altwerte nur migrieren, wenn die jeweiligen Tabellen bereits existieren."""
         cr = self.env.cr
-        cr.execute("""
-            UPDATE product_template pt
-               SET sab_product_type = COALESCE(sp.product_type, 'material'),
-                   sab_manufacturer_supplier_id = sp.manufacturer_supplier_id,
-                   sab_manufacturer_id = sp.manufacturer_id,
-                   sab_manufacturer_article_number = sp.manufacturer_article_number,
-                   sab_datanorm_number = sp.datanorm_number,
-                   sab_price_mode = COALESCE(sp.price_mode, 'supplier'),
-                   sab_fixed_purchase_price = COALESCE(sp.fixed_purchase_price, 0),
-                   sab_space_units = COALESCE(sp.space_units, 0),
-                   sab_mechanical_time_minutes = COALESCE(sp.mechanical_time_minutes, 0),
-                   sab_wiring_time_minutes = COALESCE(sp.wiring_time_minutes, 0),
-                   sab_testing_time_minutes = COALESCE(sp.testing_time_minutes, 0),
-                   sab_notes = sp.notes
-              FROM sab_product sp
-              JOIN product_product pp ON pp.id = sp.odoo_product_id
-             WHERE pt.id = pp.product_tmpl_id
-        """)
-        cr.execute("""
-            UPDATE sab_supplier_product ssp
-               SET odoo_product_id = sp.odoo_product_id
-              FROM sab_product sp
-             WHERE ssp.product_id = sp.id
-               AND ssp.odoo_product_id IS NULL
-               AND sp.odoo_product_id IS NOT NULL
-        """)
-        cr.execute("""
-            UPDATE sab_product_component c
-               SET odoo_product_id = sp.odoo_product_id
-              FROM sab_product sp
-             WHERE c.product_id = sp.id
-               AND c.odoo_product_id IS NULL
-               AND sp.odoo_product_id IS NOT NULL
-        """)
+        cr.execute("SELECT to_regclass('public.sab_product')")
+        if not cr.fetchone()[0]:
+            return
+        cr.execute("SELECT to_regclass('public.product_product'), to_regclass('public.product_template')")
+        pp_table, pt_table = cr.fetchone()
+        if pp_table and pt_table:
+            cr.execute("""
+                UPDATE product_template pt
+                   SET sab_product_type = COALESCE(sp.product_type, 'material'),
+                       sab_manufacturer_supplier_id = sp.manufacturer_supplier_id,
+                       sab_manufacturer_id = sp.manufacturer_id,
+                       sab_manufacturer_article_number = sp.manufacturer_article_number,
+                       sab_datanorm_number = sp.datanorm_number,
+                       sab_price_mode = COALESCE(sp.price_mode, 'supplier'),
+                       sab_fixed_purchase_price = COALESCE(sp.fixed_purchase_price, 0),
+                       sab_space_units = COALESCE(sp.space_units, 0),
+                       sab_mechanical_time_minutes = COALESCE(sp.mechanical_time_minutes, 0),
+                       sab_wiring_time_minutes = COALESCE(sp.wiring_time_minutes, 0),
+                       sab_testing_time_minutes = COALESCE(sp.testing_time_minutes, 0),
+                       sab_notes = sp.notes
+                  FROM sab_product sp
+                  JOIN product_product pp ON pp.id = sp.odoo_product_id
+                 WHERE pt.id = pp.product_tmpl_id
+            """)
+        cr.execute("SELECT to_regclass('public.sab_supplier_product')")
+        if cr.fetchone()[0]:
+            cr.execute("""
+                UPDATE sab_supplier_product ssp
+                   SET odoo_product_id = sp.odoo_product_id
+                  FROM sab_product sp
+                 WHERE ssp.product_id = sp.id
+                   AND ssp.odoo_product_id IS NULL
+                   AND sp.odoo_product_id IS NOT NULL
+            """)
+        cr.execute("SELECT to_regclass('public.sab_product_component')")
+        if cr.fetchone()[0]:
+            cr.execute("""
+                UPDATE sab_product_component c
+                   SET odoo_product_id = sp.odoo_product_id
+                  FROM sab_product sp
+                 WHERE c.product_id = sp.id
+                   AND c.odoo_product_id IS NULL
+                   AND sp.odoo_product_id IS NOT NULL
+            """)
 
     @api.depends("price_mode", "fixed_purchase_price", "component_ids.total_price", "supplier_product_ids.active", "supplier_product_ids.preferred", "supplier_product_ids.net_purchase_price")
     def _compute_calculated_purchase_price(self):
@@ -84,25 +94,14 @@ class SabProduct(models.Model):
     def _odoo_product_values(self):
         self.ensure_one()
         return {
-            "name": self.name,
-            "default_code": self.manufacturer_article_number or self.datanorm_number or False,
-            "active": self.active,
-            "sale_ok": True,
-            "purchase_ok": True,
-            "standard_price": self.calculated_purchase_price or 0.0,
-            "type": "consu",
-            "sab_product_type": self.product_type,
-            "sab_manufacturer_supplier_id": self.manufacturer_supplier_id.id or False,
-            "sab_manufacturer_id": self.manufacturer_id.id or False,
-            "sab_manufacturer_article_number": self.manufacturer_article_number or False,
-            "sab_datanorm_number": self.datanorm_number or False,
-            "sab_price_mode": self.price_mode,
-            "sab_fixed_purchase_price": self.fixed_purchase_price or 0.0,
-            "sab_space_units": self.space_units or 0.0,
-            "sab_mechanical_time_minutes": self.mechanical_time_minutes or 0.0,
-            "sab_wiring_time_minutes": self.wiring_time_minutes or 0.0,
-            "sab_testing_time_minutes": self.testing_time_minutes or 0.0,
-            "sab_notes": self.notes or False,
+            "name": self.name, "default_code": self.manufacturer_article_number or self.datanorm_number or False,
+            "active": self.active, "sale_ok": True, "purchase_ok": True, "standard_price": self.calculated_purchase_price or 0.0, "type": "consu",
+            "sab_product_type": self.product_type, "sab_manufacturer_supplier_id": self.manufacturer_supplier_id.id or False,
+            "sab_manufacturer_id": self.manufacturer_id.id or False, "sab_manufacturer_article_number": self.manufacturer_article_number or False,
+            "sab_datanorm_number": self.datanorm_number or False, "sab_price_mode": self.price_mode,
+            "sab_fixed_purchase_price": self.fixed_purchase_price or 0.0, "sab_space_units": self.space_units or 0.0,
+            "sab_mechanical_time_minutes": self.mechanical_time_minutes or 0.0, "sab_wiring_time_minutes": self.wiring_time_minutes or 0.0,
+            "sab_testing_time_minutes": self.testing_time_minutes or 0.0, "sab_notes": self.notes or False,
         }
 
     def _sync_to_odoo_product(self):
@@ -113,8 +112,7 @@ class SabProduct(models.Model):
                 code = vals.get("default_code"); target = Product.search([("default_code", "=", code)], limit=1) if code else Product.browse()
             if target: target.write(vals)
             else: target = Product.create(vals)
-            if record.odoo_product_id != target:
-                record.with_context(skip_odoo_product_sync=True).write({"odoo_product_id": target.id})
+            if record.odoo_product_id != target: record.with_context(skip_odoo_product_sync=True).write({"odoo_product_id": target.id})
             record.supplier_product_ids.filtered(lambda r: not r.odoo_product_id).write({"odoo_product_id": target.id})
             record.component_ids.filtered(lambda r: not r.odoo_product_id).write({"odoo_product_id": target.id})
         return True
