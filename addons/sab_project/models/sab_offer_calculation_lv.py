@@ -23,15 +23,31 @@ class SabOfferCalculationLineLv(models.Model):
             return self.env["sab.project.lv.mapping"]
         return self.env["sab.project.lv.mapping"].search(domain, limit=1)
 
+    def _sab_parent_section_from_values(self, vals):
+        section_id = vals.get("parent_section_id")
+        if section_id:
+            return self.env["sab.offer.calculation.line"].browse(section_id).exists()
+        if len(self) == 1 and self.parent_section_id:
+            return self.parent_section_id
+        return self.env["sab.offer.calculation.line"]
+
     @api.depends(
         "order_id.sab_project_id",
         "order_id.sab_calculation_source",
         "calculation_item_id",
         "odoo_product_id",
         "lv_position",
+        "parent_section_id",
+        "parent_section_id.lv_position",
+        "parent_section_id.is_ntg",
     )
     def _compute_lv_position_locked(self):
         for line in self:
+            if line.line_type == "item" and line.parent_section_id:
+                # A Bauteil child never owns an independent LV-/NTG-position.
+                # Its position is always controlled by the Bauteil heading.
+                line.lv_position_locked = True
+                continue
             mapping = line._sab_lv_mapping(
                 line.order_id,
                 line.calculation_item_id.id,
@@ -49,10 +65,21 @@ class SabOfferCalculationLineLv(models.Model):
         ]))
 
     def _sab_apply_project_position(self, vals, order):
+        if self.env.context.get("sab_inherit_section_position"):
+            return vals
         if not order or order.sab_calculation_source != "lv" or not order.sab_project_id:
             return vals
         if vals.get("line_type", "item") != "item":
+            if vals.get("line_type") == "section" and (vals.get("lv_position") or "").strip().upper().startswith("NTG"):
+                vals["is_ntg"] = True
             return vals
+
+        parent_section = self._sab_parent_section_from_values(vals)
+        if parent_section:
+            vals["lv_position"] = parent_section.lv_position or False
+            vals["is_ntg"] = bool(parent_section.lv_position and parent_section.is_ntg)
+            return vals
+
         calc_id = vals.get("calculation_item_id")
         product_id = vals.get("odoo_product_id")
         mapping = self._sab_lv_mapping(order, calc_id, product_id)
@@ -83,14 +110,14 @@ class SabOfferCalculationLineLv(models.Model):
     def _sab_create_mapping_from_line(self):
         """Persist the first entered LV position immediately for the whole project.
 
-        This deliberately happens already in a draft quotation. Once an article has
-        received an LV/NTG position in a project, every later project quotation must
-        reuse exactly that position.
+        Items contained in a Bauteil deliberately do not create a product-level
+        mapping. Their effective LV-/NTG-position is the position of the Bauteil.
         """
         Mapping = self.env["sab.project.lv.mapping"]
         for line in self:
             if (
                 line.line_type != "item"
+                or line.parent_section_id
                 or line.order_id.sab_calculation_source != "lv"
                 or not line.order_id.sab_project_id
                 or not (line.lv_position or "").strip()
@@ -134,9 +161,80 @@ class SabOfferCalculationLineLv(models.Model):
             Mapping.create(values)
         return True
 
+    def _sab_cleanup_child_only_auto_mapping(self, previous_position):
+        """Remove an NTG mapping created only while a new line was not yet nested.
+
+        Odoo's editable list creates the item before the structural normalization
+        knows that it belongs to an open Bauteil. The provisional direct-item NTG
+        mapping is removed as soon as the Bauteil membership is known, unless the
+        same mapping is also used by a genuine direct position.
+        """
+        Line = self.env["sab.offer.calculation.line"]
+        for line in self.filtered(lambda item: item.line_type == "item" and item.parent_section_id):
+            code = (previous_position or "").strip()
+            if not code or not (line.calculation_item_id or line.odoo_product_id):
+                continue
+            mapping = line._sab_lv_mapping(
+                line.order_id,
+                line.calculation_item_id.id,
+                line.odoo_product_id.id,
+            )
+            if (
+                not mapping
+                or not mapping.is_ntg
+                or mapping.first_order_id != line.order_id
+                or mapping.position_code != code
+            ):
+                continue
+            domain = [
+                ("id", "!=", line.id),
+                ("order_id.sab_project_id", "=", line.order_id.sab_project_id.id),
+                ("line_type", "=", "item"),
+                ("parent_section_id", "=", False),
+                ("lv_position", "=", mapping.position_code),
+            ]
+            if line.calculation_item_id:
+                domain.append(("calculation_item_id", "=", line.calculation_item_id.id))
+            else:
+                domain.append(("odoo_product_id", "=", line.odoo_product_id.id))
+            if not Line.search_count(domain):
+                mapping.sudo().unlink()
+        return True
+
+    def _sab_sync_section_positions(self):
+        """Make the Bauteil position authoritative for every contained item."""
+        for order in self.mapped("order_id"):
+            sections = order.sab_calculation_line_ids.filtered(lambda line: line.line_type == "section")
+            for section in sections:
+                desired_position = (section.lv_position or "").strip() or False
+                desired_ntg = bool(
+                    desired_position
+                    and (section.is_ntg or desired_position.upper().startswith("NTG"))
+                )
+                if section.is_ntg != desired_ntg:
+                    section.with_context(
+                        sab_inherit_section_position=True,
+                        skip_section_normalize=True,
+                        skip_sale_line_sync=True,
+                    ).write({"is_ntg": desired_ntg})
+                children = section.child_line_ids.filtered(lambda line: line.line_type == "item")
+                for child in children:
+                    previous_position = child.lv_position
+                    child._sab_cleanup_child_only_auto_mapping(previous_position)
+                    values = {}
+                    if (child.lv_position or False) != desired_position:
+                        values["lv_position"] = desired_position
+                    if child.is_ntg != desired_ntg:
+                        values["is_ntg"] = desired_ntg
+                    if values:
+                        child.with_context(
+                            sab_inherit_section_position=True,
+                            skip_section_normalize=True,
+                            skip_sale_line_sync=True,
+                        ).write(values)
+        return True
+
     def sab_lock_lv_positions(self):
-        # Kept as validation gate when sending/confirming, but mappings are now
-        # already created immediately when the first LV position is entered.
         self._sab_create_mapping_from_line()
         return True
 
@@ -149,27 +247,56 @@ class SabOfferCalculationLineLv(models.Model):
             values = self._sab_apply_project_position(values, order)
             prepared.append(values)
         records = super().create(prepared)
+        records._sab_sync_section_positions()
         records._sab_create_mapping_from_line()
         return records
 
     def write(self, vals):
+        if self.env.context.get("sab_inherit_section_position"):
+            return super().write(vals)
+
         if len(self) == 1:
             record = self
-            calc_id = vals.get("calculation_item_id", record.calculation_item_id.id)
-            product_id = vals.get("odoo_product_id", record.odoo_product_id.id)
-            mapping = record._sab_lv_mapping(record.order_id, calc_id, product_id)
-            if mapping and ("lv_position" in vals or "is_ntg" in vals):
-                pos = vals.get("lv_position", record.lv_position)
-                is_ntg = vals.get("is_ntg", record.is_ntg)
-                if pos != mapping.position_code or is_ntg != mapping.is_ntg:
-                    raise ValidationError(
-                        f"Die LV-/NTG-Position {mapping.position_code} ist projektbezogen "
-                        "festgeschrieben und darf nicht geändert werden."
+            values = dict(vals)
+            if record.line_type == "item" and record.parent_section_id:
+                inherited_position = record.parent_section_id.lv_position or False
+                inherited_ntg = bool(
+                    inherited_position
+                    and (
+                        record.parent_section_id.is_ntg
+                        or inherited_position.upper().startswith("NTG")
                     )
-            values = self._sab_apply_project_position(dict(vals), record.order_id)
+                )
+                if "lv_position" in values and (values.get("lv_position") or False) != inherited_position:
+                    raise ValidationError(
+                        "Eine Position innerhalb eines Bauteils übernimmt die LV-/NTG-Position des Bauteils. "
+                        "Bitte die Position in der Bauteilzeile ändern."
+                    )
+                if "is_ntg" in values and bool(values.get("is_ntg")) != inherited_ntg:
+                    raise ValidationError(
+                        "Die NTG-Kennzeichnung einer Bauteilposition wird vom Bauteil vorgegeben."
+                    )
+                values["lv_position"] = inherited_position
+                values["is_ntg"] = inherited_ntg
+            else:
+                calc_id = values.get("calculation_item_id", record.calculation_item_id.id)
+                product_id = values.get("odoo_product_id", record.odoo_product_id.id)
+                mapping = record._sab_lv_mapping(record.order_id, calc_id, product_id)
+                if mapping and ("lv_position" in values or "is_ntg" in values):
+                    pos = values.get("lv_position", record.lv_position)
+                    is_ntg = values.get("is_ntg", record.is_ntg)
+                    if pos != mapping.position_code or is_ntg != mapping.is_ntg:
+                        raise ValidationError(
+                            f"Die LV-/NTG-Position {mapping.position_code} ist projektbezogen "
+                            "festgeschrieben und darf nicht geändert werden."
+                        )
+                values = self._sab_apply_project_position(values, record.order_id)
             result = super().write(values)
+            record._sab_sync_section_positions()
             record._sab_create_mapping_from_line()
             return result
+
         result = super().write(vals)
+        self._sab_sync_section_positions()
         self._sab_create_mapping_from_line()
         return result
