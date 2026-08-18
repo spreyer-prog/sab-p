@@ -14,6 +14,14 @@ class SabOfferCalculationLine(models.Model):
         ondelete="cascade",
         index=True,
     )
+    group_id = fields.Many2one(
+        comodel_name="sab.offer.calculation.group",
+        string="Bauteil",
+        ondelete="set null",
+        index=True,
+        domain="[('order_id', '=', order_id)]",
+        help="Mehrere Kalkulationspositionen können zu einem Bauteil zusammengefasst werden. Im Angebot wird dann nur der Gruppenpreis des Bauteils gezeigt.",
+    )
     sequence = fields.Integer(string="Pos.", default=10, index=True)
     calculation_item_id = fields.Many2one(
         comodel_name="sab.calculation.item",
@@ -22,18 +30,9 @@ class SabOfferCalculationLine(models.Model):
         ondelete="restrict",
         index=True,
     )
-    quantity = fields.Float(
-        string="Menge",
-        default=1.0,
-        required=True,
-        digits=(16, 3),
-    )
+    quantity = fields.Float(string="Menge", default=1.0, required=True, digits=(16, 3))
     description = fields.Text(string="Angebotstext")
-    source_write_date = fields.Datetime(
-        string="Kalkulationsstand übernommen am",
-        readonly=True,
-        copy=True,
-    )
+    source_write_date = fields.Datetime(string="Kalkulationsstand übernommen am", readonly=True, copy=True)
     component_snapshot_ids = fields.One2many(
         comodel_name="sab.offer.calculation.component",
         inverse_name="offer_calculation_line_id",
@@ -42,36 +41,34 @@ class SabOfferCalculationLine(models.Model):
         readonly=True,
     )
 
-    unit_material_purchase = fields.Monetary(
-        string="Material-EK je Einheit",
-        currency_field="currency_id",
-        readonly=True,
-        copy=True,
-    )
+    unit_material_purchase = fields.Monetary(string="Material-EK je Einheit", currency_field="currency_id", readonly=True, copy=True)
     unit_mechanical_minutes = fields.Float(string="Mechanik min je Einheit", readonly=True, copy=True)
     unit_wiring_minutes = fields.Float(string="Verdrahtung min je Einheit", readonly=True, copy=True)
     unit_testing_minutes = fields.Float(string="Prüfung min je Einheit", readonly=True, copy=True)
     unit_total_minutes = fields.Float(string="Gesamtzeit min je Einheit", readonly=True, copy=True)
     unit_space_units = fields.Float(string="Platzeinheiten je Einheit", readonly=True, copy=True)
 
-    material_purchase_total = fields.Monetary(
-        string="Material-EK",
-        currency_field="currency_id",
-        compute="_compute_totals",
-        store=True,
-    )
+    material_purchase_total = fields.Monetary(string="Material-EK", currency_field="currency_id", compute="_compute_totals", store=True)
     mechanical_time_minutes = fields.Float(string="Mechanik min", compute="_compute_totals", store=True)
     wiring_time_minutes = fields.Float(string="Verdrahtung min", compute="_compute_totals", store=True)
     testing_time_minutes = fields.Float(string="Prüfung min", compute="_compute_totals", store=True)
     total_time_minutes = fields.Float(string="Gesamtzeit min", compute="_compute_totals", store=True)
     total_hours = fields.Float(string="Gesamtstunden", compute="_compute_totals", store=True)
     space_units = fields.Float(string="Platzeinheiten", compute="_compute_totals", store=True)
-    currency_id = fields.Many2one(
-        related="order_id.currency_id",
-        string="Währung",
-        readonly=True,
+    recommended_net_price = fields.Monetary(
+        string="Verkaufspreis netto",
+        currency_field="currency_id",
+        compute="_compute_recommended_net_price",
+        store=True,
+        help="Kalkulatorischer Netto-Verkaufspreis dieser SAB-P Position einschließlich der im Angebot gespeicherten Faktoren.",
+    )
+    unit_recommended_net_price = fields.Monetary(
+        string="VK je Einheit",
+        currency_field="currency_id",
+        compute="_compute_recommended_net_price",
         store=True,
     )
+    currency_id = fields.Many2one(related="order_id.currency_id", string="Währung", readonly=True, store=True)
     note = fields.Char(string="Bemerkung")
 
     @staticmethod
@@ -109,15 +106,7 @@ class SabOfferCalculationLine(models.Model):
             }))
         return commands
 
-    @api.depends(
-        "quantity",
-        "unit_material_purchase",
-        "unit_mechanical_minutes",
-        "unit_wiring_minutes",
-        "unit_testing_minutes",
-        "unit_total_minutes",
-        "unit_space_units",
-    )
+    @api.depends("quantity", "unit_material_purchase", "unit_mechanical_minutes", "unit_wiring_minutes", "unit_testing_minutes", "unit_total_minutes", "unit_space_units")
     def _compute_totals(self):
         for record in self:
             qty = record.quantity or 0.0
@@ -128,6 +117,24 @@ class SabOfferCalculationLine(models.Model):
             record.total_time_minutes = record.unit_total_minutes * qty
             record.total_hours = record.total_time_minutes / 60.0
             record.space_units = record.unit_space_units * qty
+
+    @api.depends(
+        "material_purchase_total", "total_hours",
+        "order_id.sab_material_factor", "order_id.sab_aux_material_factor",
+        "order_id.sab_hourly_rate", "order_id.sab_time_factor", "order_id.sab_difficulty_factor",
+        "order_id.sab_packaging_factor", "order_id.sab_skonto_factor",
+        "order_id.sab_margin_factor", "order_id.sab_rebate_factor",
+        "quantity",
+    )
+    def _compute_recommended_net_price(self):
+        for record in self:
+            order = record.order_id
+            material_cost = record.material_purchase_total * (order.sab_material_factor or 0.0) * (order.sab_aux_material_factor or 0.0)
+            labor_cost = record.total_hours * (order.sab_hourly_rate or 0.0) * (order.sab_time_factor or 0.0) * (order.sab_difficulty_factor or 0.0)
+            commercial_factor = (order.sab_packaging_factor or 0.0) * (order.sab_skonto_factor or 0.0) * (order.sab_margin_factor or 0.0) * (order.sab_rebate_factor or 0.0)
+            total = (material_cost + labor_cost) * commercial_factor
+            record.recommended_net_price = total
+            record.unit_recommended_net_price = total / record.quantity if record.quantity else 0.0
 
     @api.onchange("calculation_item_id")
     def _onchange_calculation_item_id(self):
@@ -151,10 +158,7 @@ class SabOfferCalculationLine(models.Model):
             if order_id:
                 order = self.env["sale.order"].browse(order_id)
                 if order.state not in ("draft", "sent"):
-                    raise ValidationError(
-                        "Kalkulationspositionen dürfen nach Auftragsbestätigung nicht neu angelegt werden."
-                    )
-
+                    raise ValidationError("Kalkulationspositionen dürfen nach Auftragsbestätigung nicht neu angelegt werden.")
             item_id = vals.get("calculation_item_id")
             if item_id:
                 item = self.env["sab.calculation.item"].browse(item_id).exists()
@@ -169,10 +173,7 @@ class SabOfferCalculationLine(models.Model):
     def write(self, vals):
         for record in self:
             if record.order_id.state not in ("draft", "sent"):
-                raise ValidationError(
-                    "Kalkulationspositionen eines bestätigten Angebots sind gesperrt."
-                )
-
+                raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
         vals = dict(vals)
         if vals.get("calculation_item_id"):
             item = self.env["sab.calculation.item"].browse(vals["calculation_item_id"]).exists()
@@ -188,21 +189,15 @@ class SabOfferCalculationLine(models.Model):
     def action_refresh_from_calculation_item(self):
         for record in self:
             if record.order_id.state not in ("draft", "sent"):
-                raise ValidationError(
-                    "Ein bestätigtes Angebot darf nicht aus aktuellen Stammdaten neu berechnet werden."
-                )
+                raise ValidationError("Ein bestätigtes Angebot darf nicht aus aktuellen Stammdaten neu berechnet werden.")
             if record.calculation_item_id:
                 values = self._snapshot_values(record.calculation_item_id)
-                values["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(
-                    record.calculation_item_id
-                )
+                values["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(record.calculation_item_id)
                 record.write(values)
         return True
 
     def unlink(self):
         for record in self:
             if record.order_id.state not in ("draft", "sent"):
-                raise ValidationError(
-                    "Kalkulationspositionen eines bestätigten Angebots sind gesperrt."
-                )
+                raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
         return super().unlink()
