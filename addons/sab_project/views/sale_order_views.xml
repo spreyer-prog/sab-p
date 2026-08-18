@@ -34,6 +34,7 @@
                     <group string="Kalkulationspositionen" col="1">
                         <field name="sab_calculation_line_ids" nolabel="1" readonly="state not in ('draft', 'sent')">
                             <list editable="bottom" default_order="sequence">
+                                <field name="order_id" column_invisible="1"/>
                                 <field name="sequence" widget="handle" string="Pos."/>
                                 <field name="group_id" string="Bauteil" optional="show" options="{'no_create_edit': True}"/>
                                 <field name="calculation_item_id"/>
