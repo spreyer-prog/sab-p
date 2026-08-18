@@ -27,8 +27,8 @@
                                 </control>
                                 <field name="order_id" column_invisible="1"/>
                                 <field name="line_type" column_invisible="1"/>
+                                <field name="parent_section_id" column_invisible="1"/>
                                 <field name="sequence" widget="handle" string="Pos."/>
-                                <field name="parent_section_id" string="Bauteil" options="{'no_create': True, 'no_create_edit': True}" invisible="line_type != 'item'" optional="show"/>
                                 <field name="calculation_item_id" string="Kalkulationsartikel" invisible="line_type != 'item'" optional="show"/>
                                 <field name="odoo_product_id" string="Produkt" invisible="line_type != 'item'" optional="show"/>
                                 <field name="quantity" string="Menge" invisible="line_type != 'item'"/>
