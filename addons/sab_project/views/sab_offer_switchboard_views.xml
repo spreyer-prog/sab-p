@@ -20,10 +20,10 @@
                 <field name="parent_cabinet_id" column_invisible="1"/>
             </xpath>
             <xpath expr="//page[@name='sab_calculation']//field[@name='lv_position']" position="attributes">
-                <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end')</attribute>
+                <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end') or parent_section_id</attribute>
             </xpath>
             <xpath expr="//page[@name='sab_calculation']//field[@name='is_ntg']" position="attributes">
-                <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end')</attribute>
+                <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end') or parent_section_id</attribute>
             </xpath>
             <xpath expr="//page[@name='sab_calculation']//field[@name='schematic_reference']" position="attributes">
                 <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end')</attribute>
