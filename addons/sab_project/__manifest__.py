@@ -28,7 +28,6 @@
             "sab_project/static/src/scss/offer_reuse_panel.scss",
             "sab_project/static/src/js/datanorm_progress.js",
             "sab_project/static/src/js/offer_reuse_panel.js",
-            "sab_project/static/src/js/offer_reuse_panel_safety.js",
             "sab_project/static/src/xml/datanorm_progress.xml",
             "sab_project/static/src/xml/offer_reuse_panel.xml"
         ]
