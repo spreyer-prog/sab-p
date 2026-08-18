@@ -21,7 +21,6 @@
                 </thead>
                 <tbody>
                     <t t-set="sab_pos" t-value="0"/>
-
                     <t t-foreach="doc.sab_calculation_group_ids.sorted(key=lambda g: (g.sequence, g.id))" t-as="group">
                         <t t-if="group.line_ids">
                             <t t-set="sab_pos" t-value="sab_pos + 1"/>
@@ -29,37 +28,22 @@
                                 <td class="text-start"><span t-out="sab_pos"/></td>
                                 <td class="text-start">
                                     <span t-field="group.name"/>
-                                    <div t-if="group.description" class="fw-normal mt-1">
-                                        <span t-field="group.description"/>
-                                    </div>
+                                    <div t-if="group.description" class="fw-normal mt-1"><span t-field="group.description"/></div>
                                 </td>
                                 <td class="text-end text-nowrap">1,00</td>
-                                <td class="text-end text-nowrap">
-                                    <span t-out="group.group_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
-                                </td>
-                                <td class="text-end text-nowrap">
-                                    <span t-out="group.group_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
-                                </td>
+                                <td class="text-end text-nowrap"><span t-out="group.group_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                                <td class="text-end text-nowrap"><span t-out="group.group_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
                             </tr>
                         </t>
                     </t>
-
                     <t t-foreach="doc.sab_calculation_line_ids.filtered(lambda l: not l.group_id).sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
                         <t t-set="sab_pos" t-value="sab_pos + 1"/>
                         <tr>
                             <td class="text-start"><span t-out="sab_pos"/></td>
-                            <td class="text-start">
-                                <span t-out="line.description or line.calculation_item_id.quotation_text or line.calculation_item_id.name"/>
-                            </td>
-                            <td class="text-end text-nowrap">
-                                <span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/>
-                            </td>
-                            <td class="text-end text-nowrap">
-                                <span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
-                            </td>
-                            <td class="text-end text-nowrap">
-                                <span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
-                            </td>
+                            <td class="text-start"><span t-out="line.description or line.calculation_item_id.quotation_text or line.calculation_item_id.name"/></td>
+                            <td class="text-end text-nowrap"><span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                            <td class="text-end text-nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
                         </tr>
                     </t>
                 </tbody>
@@ -73,13 +57,11 @@
         <xpath expr="//div[@name='so_total_summary']" position="after">
             <div t-if="doc.sab_calculation_line_ids" class="clearfix" name="sab_total_summary">
                 <div class="row mt-2">
-                    <div t-attf-class="# {'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
+                    <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
                         <table class="o_total_table table table-borderless">
                             <tr class="fw-bold border-top">
                                 <td class="text-start">Netto-Angebotssumme</td>
-                                <td class="text-end">
-                                    <span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
-                                </td>
+                                <td class="text-end"><span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
                             </tr>
                         </table>
                     </div>
