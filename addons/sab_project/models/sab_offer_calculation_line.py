@@ -9,12 +9,28 @@ class SabOfferCalculationLine(models.Model):
 
     order_id = fields.Many2one("sale.order", string="Angebot", required=True, ondelete="cascade", index=True)
     line_type = fields.Selection([
-        ("item", "Kalkulationsartikel"),
+        ("item", "Kalkulationsartikel / Produkt"),
+        ("section", "Bauteil"),
         ("info", "Infofeld"),
     ], string="Zeilentyp", required=True, default="item", index=True)
-    group_id = fields.Many2one("sab.offer.calculation.group", string="Bauteil", ondelete="set null", index=True, domain="[('order_id', '=', order_id)]", help="Mehrere Kalkulationspositionen können zu einem Bauteil zusammengefasst werden. Im Angebot wird dann nur der Gruppenpreis des Bauteils gezeigt.")
     sequence = fields.Integer(string="Pos.", default=10, index=True)
+
+    parent_section_id = fields.Many2one(
+        "sab.offer.calculation.line", string="Bauteil", ondelete="set null", index=True,
+        domain="[('order_id', '=', order_id), ('line_type', '=', 'section')]",
+        help="Ordnet die Position einem Bauteil zu. Im Angebotsdruck wird dann nur der Gruppenpreis des Bauteils gezeigt.",
+    )
+    child_line_ids = fields.One2many("sab.offer.calculation.line", "parent_section_id", string="Enthaltene Positionen")
+    section_total = fields.Monetary(string="Gruppenpreis", currency_field="currency_id", compute="_compute_section_total", store=True)
+
+    # Altbestand der früheren getrennten Bauteil-Tabelle bleibt technisch lesbar.
+    group_id = fields.Many2one("sab.offer.calculation.group", string="Bauteil (Altbestand)", ondelete="set null", index=True)
+
     calculation_item_id = fields.Many2one("sab.calculation.item", string="Kalkulationsartikel", ondelete="restrict", index=True)
+    odoo_product_id = fields.Many2one(
+        "product.product", string="Produkt", ondelete="restrict", index=True,
+        help="Direkte Auswahl aus dem normalen Odoo-Produktstamm. DATANORM-Produkte sind dort ebenfalls verfügbar.",
+    )
     quantity = fields.Float(string="Menge", default=1.0, required=True, digits=(16, 3))
     description = fields.Text(string="Angebotstext")
     source_write_date = fields.Datetime(string="Kalkulationsstand übernommen am", readonly=True, copy=True)
@@ -41,6 +57,11 @@ class SabOfferCalculationLine(models.Model):
     currency_id = fields.Many2one(related="order_id.currency_id", string="Währung", readonly=True, store=True)
     note = fields.Char(string="Bemerkung")
 
+    @api.depends("child_line_ids.recommended_net_price", "child_line_ids.line_type")
+    def _compute_section_total(self):
+        for record in self:
+            record.section_total = sum(record.child_line_ids.filtered(lambda line: line.line_type == "item").mapped("recommended_net_price")) if record.line_type == "section" else 0.0
+
     @staticmethod
     def _snapshot_values(item):
         return {
@@ -56,6 +77,32 @@ class SabOfferCalculationLine(models.Model):
         }
 
     @staticmethod
+    def _product_snapshot_values(sab_product, odoo_product):
+        if sab_product:
+            return {
+                "description": sab_product.name,
+                "source_write_date": sab_product.write_date,
+                "unit_material_purchase": sab_product.calculated_purchase_price or 0.0,
+                "unit_auxiliary_purchase": 0.0,
+                "unit_mechanical_minutes": sab_product.mechanical_time_minutes or 0.0,
+                "unit_wiring_minutes": sab_product.wiring_time_minutes or 0.0,
+                "unit_testing_minutes": sab_product.testing_time_minutes or 0.0,
+                "unit_total_minutes": (sab_product.mechanical_time_minutes or 0.0) + (sab_product.wiring_time_minutes or 0.0) + (sab_product.testing_time_minutes or 0.0),
+                "unit_space_units": sab_product.space_units or 0.0,
+            }
+        return {
+            "description": odoo_product.display_name,
+            "source_write_date": odoo_product.write_date,
+            "unit_material_purchase": odoo_product.standard_price or 0.0,
+            "unit_auxiliary_purchase": 0.0,
+            "unit_mechanical_minutes": 0.0,
+            "unit_wiring_minutes": 0.0,
+            "unit_testing_minutes": 0.0,
+            "unit_total_minutes": 0.0,
+            "unit_space_units": 0.0,
+        }
+
+    @staticmethod
     def _component_commands(item):
         commands = []
         for source_line in item.product_line_ids:
@@ -64,18 +111,20 @@ class SabOfferCalculationLine(models.Model):
             commands.append((0, 0, {"sequence": source_line.sequence, "product_id": source_line.product_id.id, "quantity_per_unit": source_line.quantity or 0.0, "unit": source_line.unit, "fixed_quantity": source_line.fixed_quantity, "optional": source_line.optional, "source_calculation_line_id": source_line.id, "supplier_product_id": source_line.selected_supplier_product_id.id or False, "unit_purchase_price": source_line.unit_purchase_price or 0.0, "note": source_line.note}))
         return commands
 
+    @staticmethod
+    def _direct_product_component(sab_product):
+        if not sab_product:
+            return []
+        supplier = sab_product.supplier_product_ids.filtered("preferred")[:1] or sab_product.supplier_product_ids.filtered("active")[:1]
+        return [(0, 0, {"sequence": 10, "product_id": sab_product.id, "quantity_per_unit": 1.0, "unit": "pcs", "fixed_quantity": False, "optional": False, "supplier_product_id": supplier.id or False, "unit_purchase_price": sab_product.calculated_purchase_price or 0.0})]
+
     @api.depends("line_type", "quantity", "unit_material_purchase", "unit_auxiliary_purchase", "unit_mechanical_minutes", "unit_wiring_minutes", "unit_testing_minutes", "unit_total_minutes", "unit_space_units")
     def _compute_totals(self):
         for record in self:
-            if record.line_type == "info":
-                record.material_purchase_total = 0.0
-                record.auxiliary_purchase_total = 0.0
-                record.mechanical_time_minutes = 0.0
-                record.wiring_time_minutes = 0.0
-                record.testing_time_minutes = 0.0
-                record.total_time_minutes = 0.0
-                record.total_hours = 0.0
-                record.space_units = 0.0
+            if record.line_type != "item":
+                record.material_purchase_total = record.auxiliary_purchase_total = 0.0
+                record.mechanical_time_minutes = record.wiring_time_minutes = record.testing_time_minutes = 0.0
+                record.total_time_minutes = record.total_hours = record.space_units = 0.0
                 continue
             qty = record.quantity or 0.0
             record.material_purchase_total = record.unit_material_purchase * qty
@@ -90,9 +139,8 @@ class SabOfferCalculationLine(models.Model):
     @api.depends("line_type", "material_purchase_total", "auxiliary_purchase_total", "total_hours", "order_id.sab_material_factor", "order_id.sab_aux_material_factor", "order_id.sab_hourly_rate", "order_id.sab_time_factor", "order_id.sab_difficulty_factor", "order_id.sab_packaging_factor", "order_id.sab_skonto_factor", "order_id.sab_margin_factor", "order_id.sab_rebate_factor", "quantity")
     def _compute_recommended_net_price(self):
         for record in self:
-            if record.line_type == "info":
-                record.recommended_net_price = 0.0
-                record.unit_recommended_net_price = 0.0
+            if record.line_type != "item":
+                record.recommended_net_price = record.unit_recommended_net_price = 0.0
                 continue
             order = record.order_id
             normal_material_cost = record.material_purchase_total * (order.sab_material_factor or 0.0)
@@ -108,18 +156,51 @@ class SabOfferCalculationLine(models.Model):
         for record in self:
             if record.calculation_item_id:
                 record.line_type = "item"
+                record.odoo_product_id = False
                 for field_name, value in self._snapshot_values(record.calculation_item_id).items():
                     record[field_name] = value
 
-    @api.constrains("line_type", "calculation_item_id", "description", "quantity")
+    @api.onchange("odoo_product_id")
+    def _onchange_odoo_product_id(self):
+        for record in self:
+            if record.odoo_product_id:
+                record.line_type = "item"
+                record.calculation_item_id = False
+                sab_product = self.env["sab.product"].search([("odoo_product_id", "=", record.odoo_product_id.id)], limit=1)
+                for field_name, value in self._product_snapshot_values(sab_product, record.odoo_product_id).items():
+                    record[field_name] = value
+
+    @api.constrains("line_type", "calculation_item_id", "odoo_product_id", "description", "quantity", "parent_section_id")
     def _check_line_content(self):
         for record in self:
             if record.quantity < 0:
                 raise ValidationError("Die Menge einer Kalkulationsposition darf nicht negativ sein.")
-            if record.line_type == "item" and not record.calculation_item_id:
-                raise ValidationError("Bei einer Kalkulationsposition muss ein Kalkulationsartikel ausgewählt werden.")
-            if record.line_type == "info" and not (record.description or "").strip():
-                raise ValidationError("Ein Infofeld benötigt einen Text.")
+            if record.line_type == "item" and not (record.calculation_item_id or record.odoo_product_id):
+                raise ValidationError("Bitte einen Kalkulationsartikel oder ein Produkt auswählen.")
+            if record.line_type in ("section", "info") and not (record.description or "").strip():
+                raise ValidationError("Bauteil bzw. Infofeld benötigt einen Text.")
+            if record.parent_section_id and record.parent_section_id.order_id != record.order_id:
+                raise ValidationError("Bauteil und Position müssen zum selben Angebot gehören.")
+
+    def _prepare_source_values(self, vals):
+        item_id = vals.get("calculation_item_id")
+        product_id = vals.get("odoo_product_id")
+        if item_id:
+            item = self.env["sab.calculation.item"].browse(item_id).exists()
+            if item:
+                vals["line_type"] = "item"; vals["odoo_product_id"] = False
+                for key, value in self._snapshot_values(item).items(): vals.setdefault(key, value)
+                vals.setdefault("component_snapshot_ids", self._component_commands(item))
+        elif product_id:
+            product = self.env["product.product"].browse(product_id).exists()
+            if product:
+                sab_product = self.env["sab.product"].search([("odoo_product_id", "=", product.id)], limit=1)
+                vals["line_type"] = "item"; vals["calculation_item_id"] = False
+                for key, value in self._product_snapshot_values(sab_product, product).items(): vals.setdefault(key, value)
+                vals.setdefault("component_snapshot_ids", self._direct_product_component(sab_product))
+        elif vals.get("line_type") in ("section", "info"):
+            vals.update({"calculation_item_id": False, "odoo_product_id": False, "parent_section_id": False, "quantity": 1.0, "component_snapshot_ids": [(5, 0, 0)]})
+        return vals
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -129,42 +210,23 @@ class SabOfferCalculationLine(models.Model):
             order_id = vals.get("order_id")
             if order_id and self.env["sale.order"].browse(order_id).state not in ("draft", "sent"):
                 raise ValidationError("Kalkulationspositionen dürfen nach Auftragsbestätigung nicht neu angelegt werden.")
-            item_id = vals.get("calculation_item_id")
-            if item_id:
-                vals["line_type"] = "item"
-                item = self.env["sab.calculation.item"].browse(item_id).exists()
-                if item:
-                    for field_name, value in self._snapshot_values(item).items(): vals.setdefault(field_name, value)
-                    vals.setdefault("component_snapshot_ids", self._component_commands(item))
-            prepared.append(vals)
+            prepared.append(self._prepare_source_values(vals))
         return super().create(prepared)
 
     def write(self, vals):
         for record in self:
             if record.order_id.state not in ("draft", "sent"):
                 raise ValidationError("Kalkulationspositionen eines bestätigten Angebots sind gesperrt.")
-        vals = dict(vals)
-        if vals.get("calculation_item_id"):
-            vals["line_type"] = "item"
-            item = self.env["sab.calculation.item"].browse(vals["calculation_item_id"]).exists()
-            if item:
-                snapshot = self._snapshot_values(item)
-                if "description" in vals: snapshot.pop("description", None)
-                snapshot.update(vals)
-                snapshot["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(item)
-                vals = snapshot
-        elif vals.get("line_type") == "info":
-            vals.update({"calculation_item_id": False, "group_id": False, "quantity": 1.0, "component_snapshot_ids": [(5, 0, 0)]})
+        vals = self._prepare_source_values(dict(vals))
         return super().write(vals)
 
     def action_refresh_from_calculation_item(self):
-        for record in self.filtered(lambda r: r.line_type == "item"):
+        for record in self.filtered(lambda r: r.line_type == "item" and r.calculation_item_id):
             if record.order_id.state not in ("draft", "sent"):
                 raise ValidationError("Ein bestätigtes Angebot darf nicht aus aktuellen Stammdaten neu berechnet werden.")
-            if record.calculation_item_id:
-                values = self._snapshot_values(record.calculation_item_id)
-                values["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(record.calculation_item_id)
-                record.write(values)
+            values = self._snapshot_values(record.calculation_item_id)
+            values["component_snapshot_ids"] = [(5, 0, 0)] + self._component_commands(record.calculation_item_id)
+            record.write(values)
         return True
 
     def unlink(self):
