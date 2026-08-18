@@ -20,6 +20,11 @@ class SabOfferCalculationRuntime(models.Model):
                 if (line.parent_cabinet_id.id or False) != dc: vals["parent_cabinet_id"] = dc
                 if (line.parent_section_id.id or False) != ds: vals["parent_section_id"] = ds
                 if vals: line.with_context(skip_section_normalize=True, skip_sale_line_sync=True).write(vals)
+
+            # Only after all structural parents are known can Bauteil children
+            # reliably inherit the one commercial LV-/NTG-position of the
+            # Bauteil. This also removes provisional child-only NTG mappings.
+            order.sab_calculation_line_ids._sab_sync_section_positions()
         return True
 
     def _prepare_source_values(self, vals):
