@@ -8,42 +8,26 @@ class SabProduct(models.Model):
     _rec_name = "name"
 
     active = fields.Boolean(string="Aktiv", default=True)
-    odoo_product_id = fields.Many2one(
-        "product.product",
-        string="Odoo-Produkt",
-        copy=False,
-        ondelete="set null",
-        index=True,
-        help="Verknüpfung zum normalen Odoo-Produktstamm. DATANORM-Produkte werden automatisch synchronisiert.",
-    )
-
-    product_type = fields.Selection(
-        selection=[
-            ("material", "Material"), ("mechanical", "Mechanik"), ("wiring", "Verdrahtung"),
-            ("testing", "Prüfung"), ("labeling", "Beschriftung"), ("documentation", "Dokumentation"),
-            ("transport", "Transport"), ("packaging", "Verpackung"), ("other", "Sonstiges"),
-        ],
-        string="Produkttyp", required=True, default="material", index=True,
-    )
+    odoo_product_id = fields.Many2one("product.product", string="Odoo-Produkt", copy=False, ondelete="set null", index=True)
+    product_type = fields.Selection([
+        ("material", "Material"), ("mechanical", "Mechanik"), ("wiring", "Verdrahtung"),
+        ("testing", "Prüfung"), ("labeling", "Beschriftung"), ("documentation", "Dokumentation"),
+        ("transport", "Transport"), ("packaging", "Verpackung"), ("other", "Sonstiges"),
+    ], string="Produkttyp", required=True, default="material", index=True)
     name = fields.Char(string="Bezeichnung", required=True, index=True)
     manufacturer_supplier_id = fields.Many2one("sab.supplier", string="Hersteller", ondelete="restrict", index=True)
     manufacturer_id = fields.Many2one("sab.manufacturer", string="Hersteller (Altbestand)", ondelete="restrict", index=True)
     manufacturer_article_number = fields.Char(string="Herstellerartikelnummer", index=True)
     datanorm_number = fields.Char(string="DATANORM-Nummer", index=True)
-
-    price_mode = fields.Selection([
-        ("supplier", "Lieferantenartikel"), ("fixed", "Fixpreis"), ("assembly", "Baugruppe")
-    ], string="Preisermittlung", required=True, default="supplier")
+    price_mode = fields.Selection([("supplier", "Lieferantenartikel"), ("fixed", "Fixpreis"), ("assembly", "Baugruppe")], string="Preisermittlung", required=True, default="supplier")
     fixed_purchase_price = fields.Float(string="Fixpreis EK", digits=(16, 2), default=0.0)
     component_ids = fields.One2many("sab.product.component", "product_id", string="Baugruppenpositionen", copy=True)
     calculated_purchase_price = fields.Float(string="Kalkulatorischer EK", digits=(16, 2), compute="_compute_calculated_purchase_price")
     supplier_product_ids = fields.One2many("sab.supplier.product", "product_id", string="Lieferantenartikel")
-
     stock_movement_ids = fields.One2many("sab.stock.movement", "product_id", string="Lagerbewegungen")
     stock_on_hand = fields.Float(string="Lagerbestand", digits=(16, 3), compute="_compute_stock_balances")
     stock_reserved = fields.Float(string="Reserviert", digits=(16, 3), compute="_compute_stock_balances")
     stock_available = fields.Float(string="Verfügbar", digits=(16, 3), compute="_compute_stock_balances")
-
     space_units = fields.Float(string="Platzeinheiten", default=0.0)
     mechanical_time_minutes = fields.Float(string="Mechanikzeit in Minuten", default=0.0)
     wiring_time_minutes = fields.Float(string="Verdrahtungszeit in Minuten", default=0.0)
@@ -73,6 +57,16 @@ class SabProduct(models.Model):
             "purchase_ok": True,
             "standard_price": self.calculated_purchase_price or 0.0,
             "type": "consu",
+            "sab_manufacturer_supplier_id": self.manufacturer_supplier_id.id or False,
+            "sab_manufacturer_id": self.manufacturer_id.id or False,
+            "sab_manufacturer_article_number": self.manufacturer_article_number or False,
+            "sab_datanorm_number": self.datanorm_number or False,
+            "sab_price_mode": "fixed" if self.price_mode == "fixed" else "supplier",
+            "sab_fixed_purchase_price": self.fixed_purchase_price or 0.0,
+            "sab_space_units": self.space_units or 0.0,
+            "sab_mechanical_time_minutes": self.mechanical_time_minutes or 0.0,
+            "sab_wiring_time_minutes": self.wiring_time_minutes or 0.0,
+            "sab_testing_time_minutes": self.testing_time_minutes or 0.0,
         }
 
     def _sync_to_odoo_product(self):
@@ -81,7 +75,6 @@ class SabProduct(models.Model):
             vals = record._odoo_product_values()
             target = record.odoo_product_id.sudo()
             if not target:
-                # Erst nach bestehender Artikelnummer suchen, damit beim Upgrade keine Dubletten entstehen.
                 code = vals.get("default_code")
                 target = Product.search([("default_code", "=", code)], limit=1) if code else Product.browse()
             if target:
@@ -101,7 +94,8 @@ class SabProduct(models.Model):
 
     def write(self, vals):
         result = super().write(vals)
-        if not self.env.context.get("skip_odoo_product_sync") and set(vals) & {"name", "manufacturer_article_number", "datanorm_number", "active", "price_mode", "fixed_purchase_price"}:
+        sync_fields = {"name", "manufacturer_supplier_id", "manufacturer_id", "manufacturer_article_number", "datanorm_number", "active", "price_mode", "fixed_purchase_price", "space_units", "mechanical_time_minutes", "wiring_time_minutes", "testing_time_minutes"}
+        if not self.env.context.get("skip_odoo_product_sync") and set(vals) & sync_fields:
             self._sync_to_odoo_product()
         return result
 
