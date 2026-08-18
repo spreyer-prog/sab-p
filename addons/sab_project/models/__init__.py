@@ -4,6 +4,7 @@ from . import res_config_settings
 from . import project_project
 from . import project_customer_portal
 from . import sale_order
+from . import sab_sale_order_template
 from . import sab_calculation_item
 from . import sab_manufacturer
 from . import sab_product
