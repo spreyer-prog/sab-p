@@ -60,6 +60,15 @@ class SabProjectBomSwitchboard(models.Model):
 class SabProjectBomLineOdooLink(models.Model):
     _inherit = "sab.project.bom.line"
 
+    # During the transition to the native Odoo product database, a BOM line may
+    # originate from either a legacy SAB product or directly from product.product.
+    product_id = fields.Many2one(
+        "sab.product",
+        string="Produkt (Altbestand)",
+        required=False,
+        ondelete="restrict",
+        index=True,
+    )
     odoo_product_id = fields.Many2one(
         "product.product",
         string="Odoo-Produkt",
@@ -67,17 +76,15 @@ class SabProjectBomLineOdooLink(models.Model):
         index=True,
     )
 
+    @api.constrains("product_id", "odoo_product_id")
+    def _check_product_reference(self):
+        for line in self:
+            if not (line.product_id or line.odoo_product_id):
+                raise ValidationError("Eine Stücklistenposition benötigt ein SAB-P Produkt oder ein Odoo-Produkt.")
 
-class SabOfferCalculationComponentOdooLink(models.Model):
+
+class SabOfferCalculationComponentOdooBackfill(models.Model):
     _inherit = "sab.offer.calculation.component"
-
-    odoo_product_id = fields.Many2one(
-        "product.product",
-        string="Odoo-Produkt beim Snapshot",
-        readonly=True,
-        ondelete="restrict",
-        index=True,
-    )
 
     def init(self):
         self.env.cr.execute(
@@ -119,13 +126,18 @@ class SaleOrderSwitchboardBom(models.Model):
         })
         for calc_line in calculation_lines.filtered(lambda line: line.line_type == "item"):
             for component in calc_line.component_snapshot_ids:
-                source = component.source_calculation_line_id
-                if source and source.position_type == "auxiliary_material":
+                # Hilfsmaterial and every non-normal calculation helper line are
+                # price-calculation data only and must never enter the physical BOM.
+                if component.position_type != "normal":
                     continue
                 qty = component.quantity_per_unit or 0.0
                 if not component.fixed_quantity:
                     qty *= calc_line.quantity or 0.0
-                odoo_product = component.odoo_product_id or component.product_id.odoo_product_id
+                odoo_product = component.odoo_product_id or (
+                    component.product_id.odoo_product_id if component.product_id else False
+                )
+                if not (component.product_id or odoo_product):
+                    continue
                 key = (
                     component.product_id.id or 0,
                     odoo_product.id or 0,
