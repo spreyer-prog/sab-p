@@ -20,10 +20,6 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
             {"user_ids": [Command.link(cls.env.user.id)]}
         )
 
-        # Die Beschaffungsfreigabe prüft bewusst nicht nur technische Gruppen,
-        # sondern verlangt einen tatsächlich aktiven Einkaufsmitarbeiter aus dem
-        # SAB-P Mitarbeiterprofil. Der Test bildet deshalb denselben realen
-        # Einrichtungsweg ab wie die Produktivkonfiguration.
         cls.purchasing_profile = cls.env["sab.employee.profile"].create(
             {
                 "name": "Einkaufsmitarbeiter Dashboard-Test",
@@ -146,12 +142,21 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
         self.assertEqual(revision.sab_offer_release_state, "draft")
         self.assertFalse(revision.sab_offer_released_at)
 
-    def test_released_total_bom_is_pushed_to_purchasing_dashboard(self):
+    def test_selected_cabinet_package_is_pushed_to_purchasing_dashboard(self):
         order = self.env["sale.order"].create(
             {
                 "partner_id": self.partner.id,
                 "sab_project_id": self.project.id,
                 "sab_calculation_source": "schematic",
+                "state": "sale",
+            }
+        )
+        cabinet = self.env["sab.offer.calculation.line"].create(
+            {
+                "order_id": order.id,
+                "line_type": "cabinet",
+                "description": "UV1",
+                "sequence": 10,
             }
         )
         self.env["sab.stock.movement"].create(
@@ -165,49 +170,80 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
                 "note": "Anfangsbestand Dashboard-Test",
             }
         )
-        bom = self.env["sab.project.bom"].create(
+        line_values = {
+            "sequence": 10,
+            "product_id": self.product.id,
+            "odoo_product_id": self.product.odoo_product_id.id,
+            "quantity": 5.0,
+            "unit": "pcs",
+            "supplier_product_id": self.supplier_product.id,
+            "unit_purchase_price": 10.0,
+        }
+        total_bom = self.env["sab.project.bom"].create(
             {
                 "name": "STL Dashboard / GESAMT",
                 "order_id": order.id,
                 "project_id": self.project.id,
                 "bom_scope": "total",
-                "line_ids": [
-                    (
-                        0,
-                        0,
-                        {
-                            "sequence": 10,
-                            "product_id": self.product.id,
-                            "odoo_product_id": self.product.odoo_product_id.id,
-                            "quantity": 5.0,
-                            "unit": "pcs",
-                            "supplier_product_id": self.supplier_product.id,
-                            "unit_purchase_price": 10.0,
-                        },
-                    )
-                ],
+                "line_ids": [(0, 0, dict(line_values))],
             }
         )
+        cabinet_bom = self.env["sab.project.bom"].create(
+            {
+                "name": "STL Dashboard / UV1",
+                "order_id": order.id,
+                "project_id": self.project.id,
+                "bom_scope": "cabinet",
+                "cabinet_line_id": cabinet.id,
+                "line_ids": [(0, 0, dict(line_values))],
+            }
+        )
+        total_bom.action_release()
+        cabinet_bom.action_release()
+        self.assertFalse(total_bom.purchase_requirement_ids)
+        self.assertFalse(cabinet_bom.purchase_requirement_ids)
+        with self.assertRaises(ValidationError):
+            total_bom.action_open_procurement_workspace()
 
-        bom.action_release()
-        requirement = bom.purchase_requirement_ids
+        wizard = self.env["sab.procurement.package.wizard"].create(
+            {
+                "order_id": order.id,
+                "cabinet_bom_ids": [Command.set([cabinet_bom.id])],
+            }
+        )
+        package_action = wizard.action_create_procurement_package()
+        package = self.env["sab.project.bom"].browse(package_action["res_id"])
+        self.assertEqual(package.bom_scope, "procurement")
+        self.assertEqual(package.source_cabinet_bom_ids, cabinet_bom)
+        self.assertTrue(package.procurement_reference)
+
+        requirement = package.purchase_requirement_ids
         self.assertEqual(len(requirement), 1)
+        self.assertEqual(requirement.source_cabinet_bom_id, cabinet_bom)
         self.assertAlmostEqual(requirement.warehouse_on_hand, 2.0)
         self.assertAlmostEqual(requirement.project_reserved_quantity, 2.0)
         self.assertAlmostEqual(requirement.shortage_quantity, 3.0)
-        self.assertAlmostEqual(requirement.suggested_order_quantity, 3.0)
         self.assertAlmostEqual(requirement.quantity_to_order, 3.0)
         self.assertAlmostEqual(requirement.warehouse_stock_value, 20.0)
-        self.assertEqual(bom.purchase_release_state, "not_released")
+        self.assertEqual(package.purchase_release_state, "not_released")
 
-        workspace_action = bom.action_open_procurement_workspace()
+        package.picking_user_id = self.env.user
+        package.action_assign_picking()
+        picking_report = package.action_print_picking_list()
+        self.assertEqual(picking_report["type"], "ir.actions.report")
+        package.action_complete_picking()
+        requirement.invalidate_recordset()
+        self.assertAlmostEqual(requirement.commissioned_quantity, 2.0)
+        self.assertAlmostEqual(requirement.shortage_quantity, 3.0)
+        self.assertEqual(package.picking_state, "partial")
+
+        workspace_action = package.action_release_for_purchase()
         self.assertEqual(workspace_action["res_model"], "sab.purchase.requirement")
-        self.assertIn(("bom_id", "=", bom.id), workspace_action["domain"])
+        self.assertIn(("bom_id", "=", package.id), workspace_action["domain"])
 
         with self.assertRaises(ValidationError):
             requirement.write({"quantity_to_order": -1.0})
 
-        bom.action_release_for_purchase()
         requirement.write({"quantity_to_order": 2.0})
         purchase_action = requirement.action_create_purchase_orders()
         purchase_order = self.env["sab.purchase.order"].browse(
@@ -215,6 +251,10 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
         )
         self.assertEqual(purchase_order.state, "draft")
         self.assertEqual(purchase_order.supplier_id, self.supplier)
+        self.assertEqual(
+            purchase_order.line_ids.source_cabinet_bom_id,
+            cabinet_bom,
+        )
         self.assertAlmostEqual(
             purchase_order.line_ids.quantity_ordered,
             2.0,
@@ -236,6 +276,14 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
             )
         )
 
+        package_view = self.env.ref(
+            "sab_project.view_sab_project_bom_form_procurement_package"
+        )
+        package_arch = etree.fromstring(package_view.arch_db.encode("utf-8"))
+        self.assertTrue(package_arch.xpath("//field[@name='source_cabinet_bom_ids']"))
+        self.assertTrue(package_arch.xpath("//field[@name='picking_user_id']"))
+        self.assertTrue(package_arch.xpath("//button[@name='action_print_picking_list']"))
+
         requirement_view = self.env.ref(
             "sab_project.view_sab_purchase_requirement_list_workspace"
         )
@@ -254,6 +302,17 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
         self.assertTrue(
             sale_arch.xpath(
                 "//button[@name='action_sab_release_offer'][@string='Angebot zum Verschicken freigeben']"
+            )
+        )
+        package_button_view = self.env.ref(
+            "sab_project.view_sale_order_form_procurement_package"
+        )
+        package_button_arch = etree.fromstring(
+            package_button_view.arch_db.encode("utf-8")
+        )
+        self.assertTrue(
+            package_button_arch.xpath(
+                "//button[@name='action_open_procurement_package_wizard']"
             )
         )
         confirm_label = sale_arch.xpath(
