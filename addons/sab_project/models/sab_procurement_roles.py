@@ -1,4 +1,4 @@
-from odoo import api, fields, models, _
+from odoo import api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 from odoo.fields import Command
 
@@ -41,6 +41,7 @@ class SabEmployeeProfileProcurementRoles(models.Model):
 
 
 class SabProjectBomPurchaseApproval(models.Model):
+    _name = "sab.project.bom"
     _inherit = ["sab.project.bom", "mail.thread", "mail.activity.mixin"]
 
     def _sab_check_project_manager(self):
@@ -54,18 +55,6 @@ class SabProjectBomPurchaseApproval(models.Model):
             "Die Bestellfreigabe darf nur durch einen im Mitarbeiterprofil "
             "festgelegten Bestellfreigeber erteilt werden."
         )
-
-    def write(self, vals):
-        procurement_fields = {
-            "purchase_release_state",
-            "purchase_released_at",
-            "purchase_released_by_id",
-        }
-        if vals and set(vals).issubset(procurement_fields):
-            # The technical BOM lock remains active for all technical fields.
-            # Only the later procurement approval metadata may be written.
-            return models.Model.write(self, vals)
-        return super().write(vals)
 
 
 class SabPurchaseRequirementApproval(models.Model):
@@ -159,21 +148,21 @@ class SabPurchaseOrderApproval(models.Model):
             "sab_project.group_sab_purchase_approver",
             raise_if_not_found=False,
         )
-        approvers = approver_group.user_ids.filtered("active") if approver_group else self.env["res.users"]
+        approvers = (
+            approver_group.user_ids.filtered("active")
+            if approver_group
+            else self.env["res.users"]
+        )
         if not approvers:
             raise ValidationError(
                 "Es ist kein aktiver Bestellfreigeber im Mitarbeiterprofil hinterlegt."
             )
         result = super().action_submit_for_approval()
-        approver_group = self.env.ref(
-            "sab_project.group_sab_purchase_approver",
-            raise_if_not_found=False,
-        )
         activity_type = self.env.ref(
             "mail.mail_activity_data_todo",
             raise_if_not_found=False,
         )
-        if not approver_group or not activity_type:
+        if not activity_type:
             return result
 
         model_id = self.env["ir.model"]._get_id(self._name)
