@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_employee_profile_list_procurement_roles" model="ir.ui.view">
+        <field name="name">sab.employee.profile.list.procurement.roles</field>
+        <field name="model">sab.employee.profile</field>
+        <field name="inherit_id" ref="sab_project.view_sab_employee_profile_list"/>
+        <field name="priority">220</field>
+        <field name="arch" type="xml">
+            <field name="project_manager_access" position="after">
+                <field name="purchasing_access" string="Einkauf" optional="show"/>
+                <field name="purchase_approval_access" string="Bestellfreigabe" optional="show"/>
+                <field name="warehouse_access" string="Lager" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_employee_profile_form_procurement_roles" model="ir.ui.view">
+        <field name="name">sab.employee.profile.form.procurement.roles</field>
+        <field name="model">sab.employee.profile</field>
+        <field name="inherit_id" ref="sab_project.view_sab_employee_profile_form"/>
+        <field name="priority">220</field>
+        <field name="arch" type="xml">
+            <field name="project_manager_access" position="after">
+                <field name="purchasing_access"/>
+                <field name="purchase_approval_access"/>
+                <field name="warehouse_access"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_project_bom_form_purchase_release" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.purchase.release</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_switchboard"/>
+        <field name="priority">230</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_release_for_purchase"
+                        type="object"
+                        string="Zur Beschaffung freigeben"
+                        class="btn-primary"
+                        invisible="state != 'released' or bom_scope != 'total' or purchase_release_state == 'released'"
+                        groups="sab_project.group_sab_purchase_approver"/>
+            </xpath>
+            <button name="action_generate_purchase_requirements" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </button>
+            <field name="scope_key" position="after">
+                <field name="purchase_release_state" readonly="1" widget="badge"/>
+                <field name="purchase_released_at" readonly="1" invisible="not purchase_released_at"/>
+                <field name="purchase_released_by_id" readonly="1" invisible="not purchase_released_by_id"/>
+                <field name="sab_material_available_percent" readonly="1" widget="progressbar"/>
+                <field name="sab_material_missing_percent" readonly="1"/>
+                <field name="sab_expected_delivery_date" readonly="1" invisible="not sab_expected_delivery_date"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_project_bom_list_procurement_status" model="ir.ui.view">
+        <field name="name">sab.project.bom.list.procurement.status</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_list_switchboard"/>
+        <field name="priority">230</field>
+        <field name="arch" type="xml">
+            <field name="cabinet_line_id" position="after">
+                <field name="purchase_release_state" string="Bestellfreigabe" widget="badge" optional="show"/>
+                <field name="sab_material_missing_percent" string="Material fehlt (%)" optional="show"/>
+                <field name="sab_expected_delivery_date" string="Liefertermin" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_switchboard_bom_line_procurement_status" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.line.procurement.status</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_switchboard"/>
+        <field name="priority">240</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='line_ids']/list/field[@name='quantity']" position="after">
+                <field name="procurement_status" string="Materialstatus" widget="badge" optional="show"/>
+                <field name="expected_delivery_date" string="Liefertermin" optional="show"/>
+                <field name="project_reserved_quantity" string="Projektweit reserviert" optional="hide"/>
+                <field name="shortage_quantity" string="Projektweiter Fehlbestand" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_list_delivery" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.list.delivery</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_list"/>
+        <field name="priority">230</field>
+        <field name="arch" type="xml">
+            <button name="action_create_purchase_orders" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchasing</attribute>
+            </button>
+            <field name="purchase_order_id" position="after">
+                <field name="expected_delivery_date" string="Voraussichtlicher Liefertermin" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_form_delivery" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.form.delivery</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_form"/>
+        <field name="priority">230</field>
+        <field name="arch" type="xml">
+            <field name="purchase_order_state" position="after">
+                <field name="expected_delivery_date" readonly="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_order_list_delivery" model="ir.ui.view">
+        <field name="name">sab.purchase.order.list.delivery</field>
+        <field name="model">sab.purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_order_list"/>
+        <field name="priority">230</field>
+        <field name="arch" type="xml">
+            <field name="sent_at" position="after">
+                <field name="next_delivery_date" string="Nächster Liefertermin" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_order_form_delivery_and_approval" model="ir.ui.view">
+        <field name="name">sab.purchase.order.form.delivery.approval</field>
+        <field name="model">sab.purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_order_form"/>
+        <field name="priority">230</field>
+        <field name="arch" type="xml">
+            <button name="action_submit_for_approval" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchasing</attribute>
+            </button>
+            <button name="action_send_order_email" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchasing</attribute>
+            </button>
+            <button name="action_post_receipts" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing</attribute>
+            </button>
+            <button name="action_cancel" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchasing</attribute>
+            </button>
+            <button name="action_approve" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchase_approver</attribute>
+            </button>
+            <field name="sent_at" position="after">
+                <field name="next_delivery_date" readonly="1" invisible="not next_delivery_date"/>
+            </field>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='quantity_remaining']" position="after">
+                <field name="expected_delivery_date"
+                       string="Voraussichtlicher Liefertermin"
+                       readonly="parent.state in ('done','cancel')"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sab_project_project_form_procurement_detail" model="ir.ui.view">
+        <field name="name">project.project.form.procurement.detail</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_project_form_inherit"/>
+        <field name="priority">240</field>
+        <field name="arch" type="xml">
+            <page name="sab_order_billing" position="after">
+                <page string="Material / Einkauf" name="sab_material_procurement">
+                    <group col="4">
+                        <field name="sab_procurement_currency_id" invisible="1"/>
+                        <field name="sab_procurement_state" readonly="1" widget="badge"/>
+                        <field name="sab_material_available_percent" readonly="1" widget="progressbar"/>
+                        <field name="sab_material_missing_percent" readonly="1"/>
+                        <field name="sab_material_procured_percent" readonly="1" widget="progressbar"/>
+                        <field name="sab_material_required_value" readonly="1"/>
+                        <field name="sab_material_available_value" readonly="1"/>
+                        <field name="sab_material_procured_value" readonly="1"/>
+                        <field name="sab_material_received_value" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Gesamtmaterial" name="sab_total_material">
+                            <field name="sab_purchase_requirement_ids"
+                                   nolabel="1"
+                                   readonly="1"
+                                   domain="[('bom_id.bom_scope','=','total'),('state','!=','cancel')]">
+                                <list create="0" delete="0" default_order="sequence,id">
+                                    <field name="manufacturer_name" string="Hersteller" optional="show"/>
+                                    <field name="odoo_product_id" string="Produkt" optional="show"/>
+                                    <field name="product_id" string="Produkt (Altbestand)" optional="hide"/>
+                                    <field name="quantity" string="Bedarf"/>
+                                    <field name="unit"/>
+                                    <field name="warehouse_on_hand" string="Lager gesamt" optional="show"/>
+                                    <field name="project_reserved_quantity" string="Für Projekt reserviert" optional="show"/>
+                                    <field name="shortage_quantity" string="Fehlbestand" optional="show"/>
+                                    <field name="stock_status" string="Materialstatus" widget="badge"/>
+                                    <field name="purchase_order_id" string="Bestellung" optional="show"/>
+                                    <field name="expected_delivery_date" string="Liefertermin" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bestellungen" name="sab_project_purchase_orders">
+                            <field name="sab_purchase_order_ids" nolabel="1" readonly="1">
+                                <list create="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="supplier_id"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="amount_total" string="Bestellwert netto"/>
+                                    <field name="receipt_progress" widget="progressbar"/>
+                                    <field name="next_delivery_date" string="Nächster Liefertermin"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Schaltschränke / Verteiler" name="sab_project_switchboards">
+                            <field name="sab_bom_ids"
+                                   nolabel="1"
+                                   readonly="1"
+                                   domain="[('bom_scope','=','cabinet')]">
+                                <list create="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="cabinet_line_id" string="Schaltschrank"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="sab_material_available_percent" string="Material vorhanden (%)"/>
+                                    <field name="sab_material_missing_percent" string="Material fehlt (%)"/>
+                                    <field name="sab_expected_delivery_date" string="Liefertermin"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <record id="sab_project_overview_procurement_progress" model="ir.ui.view">
+        <field name="name">project.project.list.procurement.progress</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_overview_list"/>
+        <field name="priority">230</field>
+        <field name="arch" type="xml">
+            <field name="sab_procurement_state" position="after">
+                <field name="sab_material_available_percent"
+                       string="Material vorhanden (%)"
+                       optional="show"/>
+                <field name="sab_material_procured_percent"
+                       string="Beschaffung gesichert (%)"
+                       optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="sab_stock_root_menu" model="ir.ui.menu">
+        <field name="groups_id"
+               eval="[(6,0,[ref('sab_project.group_sab_warehouse'),ref('sab_project.group_sab_purchasing'),ref('sab_project.group_sab_purchase_approver'),ref('project.group_project_manager')])]"/>
+    </record>
+
+    <record id="sab_purchase_requirement_menu" model="ir.ui.menu">
+        <field name="groups_id"
+               eval="[(6,0,[ref('sab_project.group_sab_purchasing'),ref('sab_project.group_sab_purchase_approver'),ref('project.group_project_manager')])]"/>
+    </record>
+
+    <record id="sab_purchase_order_drafts_menu" model="ir.ui.menu">
+        <field name="groups_id"
+               eval="[(6,0,[ref('sab_project.group_sab_purchasing'),ref('sab_project.group_sab_purchase_approver'),ref('project.group_project_manager')])]"/>
+    </record>
+
+    <record id="sab_purchase_order_open_menu" model="ir.ui.menu">
+        <field name="groups_id"
+               eval="[(6,0,[ref('sab_project.group_sab_warehouse'),ref('sab_project.group_sab_purchasing'),ref('sab_project.group_sab_purchase_approver'),ref('project.group_project_manager')])]"/>
+    </record>
+
+    <record id="sab_purchase_order_all_menu" model="ir.ui.menu">
+        <field name="groups_id"
+               eval="[(6,0,[ref('sab_project.group_sab_warehouse'),ref('sab_project.group_sab_purchasing'),ref('sab_project.group_sab_purchase_approver'),ref('project.group_project_manager')])]"/>
+    </record>
+</odoo>
