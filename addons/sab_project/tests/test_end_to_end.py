@@ -91,10 +91,12 @@ class TestSabEndToEnd(TransactionCase):
         self.assertAlmostEqual(bom.line_ids.quantity, 6.0)
         self.assertAlmostEqual(total_bom.line_ids.quantity, 6.0)
         bom.action_release()
+        total_bom.action_release()
 
-        bom.action_generate_purchase_requirements()
-        requirement = bom.purchase_requirement_ids
+        total_bom.action_generate_purchase_requirements()
+        requirement = total_bom.purchase_requirement_ids
         self.assertEqual(len(requirement), 1)
+        self.assertFalse(bom.purchase_requirement_ids)
         requirement.action_mark_ordered(); requirement.action_mark_received()
         self.assertEqual(requirement.state, "received")
         self.assertTrue(requirement.stock_movement_id)
