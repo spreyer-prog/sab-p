@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sab_sale_order_portal_calculation" inherit_id="sale.sale_order_portal_content" priority="50">
-        <!-- Keep Odoo's original order table in the DOM for its portal JavaScript. -->
-        <xpath expr="//table[@id='sales_order_table']" position="attributes">
-            <attribute name="t-attf-class">#{'d-none' if sale_order.sab_calculation_line_ids else ''} table table-sm</attribute>
+        <!-- Odoo 19: die Standard-Angebotspositionen liegen im Container name="sol_table".
+             Bei SAB-P Angeboten bleibt ausschließlich die SAB-P Kalkulation kundenführend. -->
+        <xpath expr="//div[@name='sol_table']" position="attributes">
+            <attribute name="t-if">not sale_order.sab_calculation_line_ids</attribute>
         </xpath>
-        <xpath expr="//table[@id='sales_order_table']" position="after">
+
+        <xpath expr="//div[@name='sol_table']" position="after">
             <div t-if="sale_order.sab_calculation_line_ids" class="table-responsive" name="sab_calculation_portal_table">
                 <table class="table table-sm align-middle" id="sab_sales_order_table">
                     <thead>
@@ -44,15 +46,15 @@
                                 </tr>
                             </t>
                             <t t-elif="line.line_type == 'info'">
-                                <tr class="fst-italic"><td></td><td colspan="4"><span t-out="line.description"/></td></tr>
+                                <tr class="fst-italic">
+                                    <td></td>
+                                    <td colspan="4"><span t-out="line.description"/></td>
+                                </tr>
                             </t>
-                            <t t-elif="line.line_type == 'item'">
-                                <tr t-att-class="'sab-subline' if line.parent_section_id else ''">
-                                    <td>
-                                        <span t-if="line.parent_section_id" class="text-muted me-1">↳</span>
-                                        <span t-if="not line.parent_section_id" t-out="line.lv_position or line.schematic_reference or ''"/>
-                                    </td>
-                                    <td t-att-style="'padding-left: 2rem;' if line.parent_section_id and line.parent_cabinet_id else ('padding-left: 1.25rem;' if line.parent_section_id else '')">
+                            <t t-elif="line.line_type == 'item' and not line.parent_section_id">
+                                <tr>
+                                    <td><span t-out="line.lv_position or line.schematic_reference or ''"/></td>
+                                    <td t-att-style="'padding-left: 1rem;' if line.parent_cabinet_id else ''">
                                         <span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/>
                                     </td>
                                     <td class="text-end"><span t-out="line.quantity" t-options="{'widget':'float','precision':2}"/></td>
@@ -60,6 +62,7 @@
                                     <td class="text-end text-nowrap"><span t-out="line.recommended_net_price" t-options="{'widget':'monetary','display_currency':sale_order.currency_id}"/></td>
                                 </tr>
                             </t>
+                            <!-- Positionen innerhalb eines Bauteils bleiben intern und werden dem Kunden nicht einzeln angezeigt. -->
                             <t t-elif="line.line_type in ('section_end', 'cabinet_end')">
                                 <tr class="sab-structure-spacer" aria-hidden="true">
                                     <td colspan="5" t-att-style="'height: 6px; padding: 0; border: 0; background: transparent;' if line.line_type == 'cabinet_end' else 'height: 4px; padding: 0; border: 0; background: transparent;'"></td>
