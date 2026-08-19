@@ -26,6 +26,7 @@ from . import sab_offer_schematic_lv
 from . import sab_offer_component_context
 from . import sab_offer_calculation_component
 from . import sab_offer_reuse_library
+from . import sab_offer_release_workflow
 from . import sab_calculation_change_log
 from . import sab_project_bom
 from . import sab_employee
