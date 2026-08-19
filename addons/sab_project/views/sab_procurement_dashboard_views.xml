@@ -124,7 +124,7 @@
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_sab_procurement_dashboard_search"/>
         <field name="domain">[('state','=','released'),('bom_scope','=','total')]</field>
-        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sab_procurement_dashboard_kanban')}), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_procurement_dashboard_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('sab_project.view_sab_project_bom_form_purchase_release')})]"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sab_procurement_dashboard_kanban')}), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_procurement_dashboard_list')})]"/>
     </record>
 
     <record id="action_sab_procurement_new_boms" model="ir.actions.act_window">
@@ -133,7 +133,7 @@
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_sab_procurement_dashboard_search"/>
         <field name="domain">[('state','=','released'),('bom_scope','=','total'),('purchase_release_state','=','not_released')]</field>
-        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sab_procurement_dashboard_kanban')}), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_procurement_dashboard_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('sab_project.view_sab_project_bom_form_purchase_release')})]"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sab_procurement_dashboard_kanban')}), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_procurement_dashboard_list')})]"/>
     </record>
 
     <record id="sab_stock_root_menu" model="ir.ui.menu">
@@ -160,6 +160,9 @@
         <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_purchase_release"/>
         <field name="priority">260</field>
         <field name="arch" type="xml">
+            <button name="action_release" position="attributes">
+                <attribute name="groups">project.group_project_manager</attribute>
+            </button>
             <xpath expr="//form/header" position="inside">
                 <button name="action_open_procurement_workspace"
                         type="object"
@@ -179,6 +182,18 @@
                                   decoration-success="stock_status in ('in_stock','received')"
                                   decoration-warning="stock_status in ('partial','ordered','partial_received')"
                                   decoration-danger="stock_status == 'missing'">
+                                <header>
+                                    <button name="action_create_purchase_orders"
+                                            type="object"
+                                            string="Bestellung aus Auswahl erzeugen"
+                                            class="btn-primary"
+                                            groups="sab_project.group_sab_purchasing"/>
+                                    <button name="action_reset_order_quantity_to_suggestion"
+                                            type="object"
+                                            string="Bestellmenge auf Vorschlag setzen"
+                                            groups="sab_project.group_sab_purchasing"/>
+                                </header>
+                                <field name="company_currency_id" column_invisible="1"/>
                                 <field name="manufacturer_name" string="Hersteller" readonly="1"/>
                                 <field name="odoo_product_id" string="Produkt" readonly="1"/>
                                 <field name="quantity" string="Bedarf" readonly="1"/>
@@ -188,7 +203,9 @@
                                 <field name="project_reserved_quantity" string="Für Projekt reserviert" readonly="1"/>
                                 <field name="shortage_quantity" string="Fehlbestand" readonly="1"/>
                                 <field name="suggested_order_quantity" string="Vorschlag" readonly="1"/>
-                                <field name="quantity_to_order" string="Jetzt bestellen"/>
+                                <field name="quantity_to_order"
+                                       string="Jetzt bestellen"
+                                       groups="sab_project.group_sab_purchasing"/>
                                 <field name="supplier_id" string="Lieferant" readonly="1"/>
                                 <field name="stock_status" string="Status" widget="badge" readonly="1"/>
                                 <field name="purchase_order_id" string="Bestellung" readonly="1"/>
@@ -212,12 +229,18 @@
                         string="Bestellmenge auf Vorschlag setzen"
                         groups="sab_project.group_sab_purchasing"/>
             </xpath>
+            <xpath expr="//list" position="inside">
+                <field name="company_currency_id" column_invisible="1"/>
+            </xpath>
             <field name="warehouse_on_hand" position="after">
                 <field name="warehouse_stock_value" string="Lagerwert" optional="show"/>
                 <field name="warehouse_unit_value" string="Lager-EK" optional="hide"/>
             </field>
             <field name="suggested_order_quantity" position="after">
-                <field name="quantity_to_order" string="Jetzt bestellen" optional="show"/>
+                <field name="quantity_to_order"
+                       string="Jetzt bestellen"
+                       optional="show"
+                       groups="sab_project.group_sab_purchasing"/>
             </field>
         </field>
     </record>
@@ -228,12 +251,15 @@
         <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_form"/>
         <field name="priority">260</field>
         <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <field name="company_currency_id" invisible="1"/>
+            </xpath>
             <field name="warehouse_on_hand" position="after">
                 <field name="warehouse_stock_value" readonly="1"/>
                 <field name="warehouse_unit_value" readonly="1"/>
             </field>
             <field name="suggested_order_quantity" position="after">
-                <field name="quantity_to_order"/>
+                <field name="quantity_to_order" groups="sab_project.group_sab_purchasing"/>
             </field>
         </field>
     </record>
