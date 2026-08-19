@@ -502,19 +502,14 @@ class SabPurchaseRequirementProcurementPackage(models.Model):
         compute="_compute_procurement_quantities",
     )
     stock_status = fields.Selection(
-        [
-            ("in_stock", "Vollständig im Lager / reserviert"),
-            ("partial", "Teilbestand – Rest bestellen"),
+        selection_add=[
             ("partial_commissioned", "Teilweise kommissioniert"),
             ("commissioned", "Vollständig kommissioniert"),
-            ("missing", "Nicht im Lager"),
-            ("ordered", "Bestellt"),
-            ("partial_received", "Teilgeliefert"),
-            ("received", "Vollständig geliefert"),
-            ("cancel", "Storniert"),
         ],
-        string="Materialstatus",
-        compute="_compute_procurement_quantities",
+        ondelete={
+            "partial_commissioned": "set null",
+            "commissioned": "set null",
+        },
     )
 
     @api.depends(
