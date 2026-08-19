@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.53.4",
+    "version": "19.0.5.53.5",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
