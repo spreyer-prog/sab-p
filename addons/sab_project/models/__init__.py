@@ -39,6 +39,7 @@ from . import sab_procurement
 from . import project_procurement
 from . import sab_procurement_corrections
 from . import sab_procurement_roles
+from . import sab_procurement_transition_security
 from . import project_procurement_detail
 from . import sab_project_document
 from . import sab_time_entry
