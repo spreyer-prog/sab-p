@@ -14,6 +14,15 @@ class TestSabProcurementPermissions(TransactionCase):
             "email": "procurement.no.role@example.invalid",
             "group_ids": [Command.link(cls.env.ref("base.group_user").id)],
         })
+        cls.manager_user = cls.env["res.users"].create({
+            "name": "Projektleiter ohne Beschaffungsrolle",
+            "login": "project.manager.no.procurement@example.invalid",
+            "email": "project.manager.no.procurement@example.invalid",
+            "group_ids": [
+                Command.link(cls.env.ref("base.group_user").id),
+                Command.link(cls.env.ref("project.group_project_manager").id),
+            ],
+        })
         cls.partner = cls.env["res.partner"].create({
             "name": "Kunde Beschaffungsrechte",
         })
@@ -42,6 +51,12 @@ class TestSabProcurementPermissions(TransactionCase):
             })],
         })
         cls.bom.action_release()
+        cls.supplier = cls.env["sab.supplier"].create({
+            "name": "Lieferant Beschaffungsrechte",
+        })
+        cls.purchase_order = cls.env["sab.purchase.order"].create({
+            "supplier_id": cls.supplier.id,
+        })
 
     def test_regular_internal_user_can_read_but_not_create_procurement_records(self):
         self.assertTrue(
@@ -75,4 +90,22 @@ class TestSabProcurementPermissions(TransactionCase):
                 "quantity": 1.0,
                 "unit": "pcs",
                 "unit_cost": 1.0,
+            })
+
+    def test_approval_metadata_cannot_be_written_directly_without_role(self):
+        with self.assertRaises(AccessError):
+            self.bom.with_user(self.regular_user).write({
+                "purchase_release_state": "released",
+            })
+
+    def test_project_manager_is_read_only_without_procurement_profile_role(self):
+        self.assertTrue(
+            self.purchase_order.with_user(self.manager_user).has_access("read")
+        )
+        self.assertFalse(
+            self.purchase_order.with_user(self.manager_user).has_access("write")
+        )
+        with self.assertRaises(AccessError):
+            self.purchase_order.with_user(self.manager_user).write({
+                "state": "approved",
             })
