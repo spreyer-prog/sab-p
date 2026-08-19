@@ -18,6 +18,15 @@ class SaleOrderOfferReleaseServerSecurity(models.Model):
                 )
         return result
 
+    def sab_offer_reuse_payload(self):
+        self.ensure_one()
+        payload = super().sab_offer_reuse_payload()
+        payload["editable"] = bool(
+            payload.get("editable")
+            and self.sab_offer_release_state != "released"
+        )
+        return payload
+
 
 class SaleOrderLineOfferReleaseSecurity(models.Model):
     _inherit = "sale.order.line"
