@@ -114,9 +114,17 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
             self.env["sab.project.lv.mapping"].search(mapping_domain).position_code,
             "01.02.03",
         )
+        self.assertFalse(order.sab_offer_reuse_payload()["editable"])
 
         with self.assertRaises(ValidationError):
             line.write({"quantity": 2.0})
+        with self.assertRaises(ValidationError):
+            order.sab_offer_add_reuse_entry(
+                "lv",
+                self.env["sab.project.lv.mapping"].search(mapping_domain).id,
+            )
+        with self.assertRaises(ValidationError):
+            order.order_line.write({"price_unit": 999.0})
 
         revision_action = order.action_create_sab_revision()
         revision = self.env["sale.order"].browse(revision_action["res_id"])
@@ -181,6 +189,9 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
         self.assertEqual(workspace_action["res_model"], "sab.purchase.requirement")
         self.assertIn(("bom_id", "=", bom.id), workspace_action["domain"])
 
+        with self.assertRaises(ValidationError):
+            requirement.write({"quantity_to_order": -1.0})
+
         bom.action_release_for_purchase()
         requirement.write({"quantity_to_order": 2.0})
         purchase_action = requirement.action_create_purchase_orders()
@@ -194,7 +205,7 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
             2.0,
         )
 
-    def test_dashboard_and_order_quantity_controls_are_present(self):
+    def test_dashboard_and_offer_release_controls_are_present(self):
         dashboard = self.env.ref(
             "sab_project.view_sab_procurement_dashboard_kanban"
         )
@@ -222,3 +233,28 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
         self.assertTrue(
             requirement_arch.xpath("//field[@name='warehouse_stock_value']")
         )
+
+        sale_view = self.env.ref("sab_project.sab_sale_order_form_inherit")
+        sale_arch = etree.fromstring(sale_view.arch_db.encode("utf-8"))
+        self.assertTrue(
+            sale_arch.xpath(
+                "//button[@name='action_sab_release_offer'][@string='Angebot zum Verschicken freigeben']"
+            )
+        )
+        confirm_label = sale_arch.xpath(
+            "//xpath[@expr=\"//button[@name='action_confirm']\"]"
+            "/attribute[@name='string']"
+        )
+        self.assertEqual(len(confirm_label), 1)
+        self.assertEqual((confirm_label[0].text or "").strip(), "Auftrag erhalten")
+
+        send_control = self.env.ref(
+            "sab_project.sab_sale_order_form_offer_release_controls"
+        )
+        send_arch = etree.fromstring(send_control.arch_db.encode("utf-8"))
+        invisible = send_arch.xpath(
+            "//xpath[@expr=\"//button[@name='action_quotation_send']\"]"
+            "/attribute[@name='invisible']"
+        )
+        self.assertEqual(len(invisible), 1)
+        self.assertIn("sab_project_id and", invisible[0].text or "")
