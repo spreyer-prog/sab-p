@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="sab_sale_order_portal_calculation" inherit_id="sale.sale_order_portal_content" priority="50">
+    <template id="sab_sale_order_portal_calculation"
+              inherit_id="sale.sale_order_portal_content"
+              priority="50">
         <!--
             Odoo.sh 19 stellt die Standardpositionen zuverlässig über den Container
             name="sol_table" bereit. Der Container bleibt im DOM, damit die
@@ -28,8 +30,8 @@
                     <tbody>
                         <t t-foreach="sale_order.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
                             <t t-if="line.line_type == 'cabinet'">
-                                <tr class="sab-structure-spacer" aria-hidden="true">
-                                    <td colspan="5" style="height: 6px; padding: 0; border: 0; background: transparent;"></td>
+                                <tr class="sab-structure-spacer sab-cabinet-spacer" aria-hidden="true">
+                                    <td colspan="5" style="height: 18px; min-height: 18px; padding: 0; border: 0; line-height: 18px; background: transparent;">&#160;</td>
                                 </tr>
                                 <tr class="fw-bold border-top border-bottom">
                                     <td></td>
@@ -43,8 +45,8 @@
                                 </tr>
                             </t>
                             <t t-elif="line.line_type == 'section'">
-                                <tr class="sab-structure-spacer" aria-hidden="true">
-                                    <td colspan="5" style="height: 4px; padding: 0; border: 0; background: transparent;"></td>
+                                <tr class="sab-structure-spacer sab-component-spacer sab-component-spacer-before" aria-hidden="true">
+                                    <td colspan="5" style="height: 16px; min-height: 16px; padding: 0; border: 0; line-height: 16px; background: transparent;">&#160;</td>
                                 </tr>
                                 <tr class="fw-bold border-top bg-light">
                                     <td><span t-out="line.lv_position or line.schematic_reference or ''"/></td>
@@ -88,10 +90,14 @@
                                     </td>
                                 </tr>
                             </t>
-                            <t t-elif="line.line_type in ('section_end', 'cabinet_end')">
-                                <tr class="sab-structure-spacer" aria-hidden="true">
-                                    <td colspan="5"
-                                        t-att-style="'height: 6px; padding: 0; border: 0; background: transparent;' if line.line_type == 'cabinet_end' else 'height: 4px; padding: 0; border: 0; background: transparent;'"></td>
+                            <t t-elif="line.line_type == 'section_end'">
+                                <tr class="sab-structure-spacer sab-component-spacer sab-component-spacer-after" aria-hidden="true">
+                                    <td colspan="5" style="height: 16px; min-height: 16px; padding: 0; border: 0; line-height: 16px; background: transparent;">&#160;</td>
+                                </tr>
+                            </t>
+                            <t t-elif="line.line_type == 'cabinet_end'">
+                                <tr class="sab-structure-spacer sab-cabinet-spacer" aria-hidden="true">
+                                    <td colspan="5" style="height: 18px; min-height: 18px; padding: 0; border: 0; line-height: 18px; background: transparent;">&#160;</td>
                                 </tr>
                             </t>
                         </t>
