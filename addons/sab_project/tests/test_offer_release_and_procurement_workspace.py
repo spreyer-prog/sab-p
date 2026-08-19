@@ -20,6 +20,21 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
             {"user_ids": [Command.link(cls.env.user.id)]}
         )
 
+        # Die Beschaffungsfreigabe prüft bewusst nicht nur technische Gruppen,
+        # sondern verlangt einen tatsächlich aktiven Einkaufsmitarbeiter aus dem
+        # SAB-P Mitarbeiterprofil. Der Test bildet deshalb denselben realen
+        # Einrichtungsweg ab wie die Produktivkonfiguration.
+        cls.purchasing_profile = cls.env["sab.employee.profile"].create(
+            {
+                "name": "Einkaufsmitarbeiter Dashboard-Test",
+                "login": "einkauf-dashboard@example.invalid",
+                "email": "einkauf-dashboard@example.invalid",
+                "mobile_access": False,
+                "purchasing_access": True,
+            }
+        )
+        cls.purchasing_profile.action_create_or_update_user()
+
         cls.partner = cls.env["res.partner"].create(
             {"name": "Kunde Angebotsfreigabe"}
         )
