@@ -14,6 +14,7 @@ from . import test_employee_production_start
 from . import test_purchase_requirement
 from . import test_procurement_roles_and_delivery
 from . import test_procurement_permissions
+from . import test_procurement_statuses
 from . import test_stock_workflow
 from . import test_project_document
 from . import test_time_entry
