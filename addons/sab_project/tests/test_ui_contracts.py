@@ -140,7 +140,7 @@ class TestSabUiContracts(TransactionCase):
                 )
             )
 
-    def test_sale_portal_extension_keeps_odoo_table_in_dom_and_renders_only_component_sub_lines(self):
+    def test_sale_portal_extension_keeps_odoo_container_in_dom_and_renders_only_component_sub_lines(self):
         """Direct Schaltschrank positions stay flat; only Bauteil children are indented."""
         inherited = self.env.ref(
             "sab_project.sab_sale_order_portal_calculation"
@@ -149,7 +149,7 @@ class TestSabUiContracts(TransactionCase):
         self.assertEqual(inherited.inherit_id, parent)
         arch = etree.fromstring(inherited.arch_db.encode("utf-8"))
         xpath_nodes = arch.xpath(
-            "//xpath[@expr=\"//table[@id='sales_order_table']\"]"
+            "//xpath[@expr=\"//div[@name='sol_table']\"]"
         )
         self.assertEqual(len(xpath_nodes), 2)
         attrs = xpath_nodes[0].xpath(
