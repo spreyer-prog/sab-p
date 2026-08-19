@@ -20,9 +20,11 @@ Zusätzlich gehören verbindlich zur V1:
 
 Zuletzt bestätigter grüner Odoo.sh-Härtungsstand:
 
-- automatisierter Teststand weiterhin grün,
+- automatisierter Teststand vor dem Workflow-Paket `19.0.5.53.0` grün,
 - Entwicklungsbranch `agent/leitfaden-gesamtstand`,
 - `main` bleibt bis zur vollständigen Abnahme unverändert/stabil.
+
+Der aktuelle Entwicklungsstand `19.0.5.53.0` enthält das neue Angebotsfreigabe-, Bauteil- und Beschaffungsworkflow-Paket. Dessen Odoo.sh-Upgrade- und Testlauf muss vor dem nächsten Browser-Test vollständig grün sein.
 
 Der automatische technische Teststand muss bei jeder weiteren Änderung grün bleiben.
 
@@ -61,61 +63,93 @@ Der automatische technische Teststand muss bei jeder weiteren Änderung grün bl
 - technische SAB-P Werte werden nicht überschrieben,
 - vorhandener EK bleibt erhalten; fehlt ein EK, kann der Listenpreis als Fallback dienen.
 
-### 3.4 bis 3.14 Weitere bestehende V1-Bereiche
+### 3.4 Verbindliche Angebotsfreigabe vor Auftragsannahme
+
+- neuer Workflowstatus **In Bearbeitung / Zum Verschicken freigegeben**,
+- eigener Button **Angebot zum Verschicken freigeben**,
+- LV-Positionen werden erst mit dieser Freigabe projektweit festgeschrieben,
+- Senden und PDF-Ausgabe eines SAB-P Angebots setzen die Freigabe voraus,
+- ein freigegebenes Angebot ist einschließlich Kalkulation und kaufmännischer Positionen gesperrt,
+- Änderungen erfolgen über eine neue, wieder bearbeitbare Angebotsrevision,
+- der bisherige Odoo-Button **Bestätigen** heißt in der SAB-P Bedienoberfläche **Auftrag erhalten**,
+- erst **Auftrag erhalten** setzt das Projekt auf Auftrag gewonnen und startet den eigentlichen Auftragsprozess,
+- vorhandene gesendete bzw. bestätigte Altangebote werden beim Upgrade als freigegeben übernommen.
+
+### 3.5 LV-/NTG- und Bauteilregeln
+
+- ein zuvor freigegebenes LV-Angebot ist zwingende Grundlage für projektweite NTG-Zuordnungen,
+- ohne freigegebenes LV-Angebot entstehen keine automatischen NTG-Positionen,
+- einzeln ergänzte neue Positionen erhalten nach vorhandener LV-Grundlage fortlaufende NTG-Nummern,
+- ein vollständiges Bauteil ist genau eine kaufmännische LV-/NTG-Position,
+- alle Unterpositionen eines Bauteils übernehmen ausschließlich die Position des Bauteils,
+- beim vollständigen Übernehmen eines Bauteils entstehen keine separaten NTG-Nummern für dessen Unterpositionen,
+- dasselbe Bauteil wird in der rechten Projektpositionsliste nur einmal angezeigt,
+- unter dem Bauteil werden alle Angebotsnummern aufgeführt, in denen es verwendet wird,
+- nicht freigegebene Bauteile aus anderen Angebotsentwürfen werden nicht als projektweit feste Position angeboten,
+- PDF und Kundenportal enthalten eine vollständige sichtbare Leerzeile vor und nach jedem Bauteilblock.
+
+### 3.6 Stückliste → Einkauf / Lager
+
+- die technische Stücklistenfreigabe ist der Projektleitung vorbehalten,
+- eine freigegebene Gesamtstückliste wird automatisch in den Einkaufsarbeitsplatz übergeben,
+- neuer Menübereich **Einkauf / Lager** mit **Neue Stücklisten** und **Beschaffungs-Dashboard**,
+- Dashboard nach Projekt und Beschaffungsstatus,
+- automatische Erzeugung der projektweiten Einkaufsbedarfe,
+- automatische Prüfung und Reservierung des verfügbaren Lagerbestands,
+- je Position sichtbarer Bedarf, Lagerbestand, Lagerwert, Projektreservierung, Fehlbestand, Lieferant und Bestellstatus,
+- automatisch ermittelte Bestellvorschlagsmenge unter Berücksichtigung von Mindestbestellmenge und Verpackungseinheit,
+- vom Einkauf bearbeitbares Feld **Jetzt bestellen**; Wert `0` schließt die Position aus der aktuellen Bestellung aus,
+- ausgewählte Positionen werden lieferantenweise zu echten SAB-P Bestellvorschlägen zusammengefasst,
+- die erzeugten Entwürfe erscheinen im offenen Bestellbereich und durchlaufen anschließend Bestellfreigabe, Versand und Wareneingang,
+- technische Projektleitung erhält dadurch keine Einkaufsrechte; die automatische Übergabe läuft serverseitig, während Bearbeitung und Bestellung rollenbasiert bleiben,
+- vorhandene freigegebene Gesamtstücklisten werden beim Upgrade in den neuen Einkaufsarbeitsplatz übernommen.
+
+### 3.7 Artikel-Ampel – Grundstufe
+
+- eindeutige Einfachauswahl **Grün / Gelb / Rot** am Artikel,
+- Standardwert neuer und bestehender Artikel ist Grün,
+- bei Gelb wird die Höchstmenge je Bestellposition eingeblendet,
+- Gelb ohne Höchstmenge größer `0` ist technisch unzulässig,
+- Ampel und Höchstmenge bleiben bei DATANORM- und Preisimporten erhalten.
+
+### 3.8 bis 3.17 Weitere bestehende V1-Bereiche
 
 Die bereits umgesetzten Bereiche Angebotskalkulation, Stückliste, Einkauf/Lager, Fertigung, Dokumente, Zeit/Service/Montage, Nachkalkulation/Reporting, Mitarbeiteroberfläche, Kundenportal, Kundenstatus, Tests/Härtung und Dokumentation bleiben verbindlicher Bestandteil des Gesamtstands.
 
 ---
 
-## 4. Verbindlich vorgemerkt: Artikel-Ampel für Einkauf und Freigabe
+## 4. Verbindlich vorgemerkt: vollständiger Artikel-Ampel-Freigabeworkflow
 
-Für **jedes SAB-Produkt / jeden bestellbaren Artikel** wird eine zwingende Einkaufsfreigabe-Klassifizierung vorgesehen. Die Auswahl erfolgt als eindeutige Ampel-Kategorie; es darf immer nur **eine** Kategorie aktiv sein.
+Für **jedes SAB-Produkt / jeden bestellbaren Artikel** wird die bereits angelegte Einkaufsampel im tatsächlichen Bestellprozess vollständig erzwungen.
 
 ### Grün – Standardartikel
 
-- Standardwert bei jeder Neuanlage eines Artikels ist **Grün**.
 - Der Artikel darf ohne besondere Mengenbegrenzung über den normalen Einkaufsprozess bestellt werden.
-- Keine zusätzliche Begründung oder Freigabe erforderlich.
+- Keine zusätzliche Begründung oder Ampelfreigabe erforderlich.
 
 ### Gelb – mengenbegrenzter Artikel
 
-- Sobald **Gelb** ausgewählt wird, erscheint am Artikel zwingend das Feld **Höchstmenge**.
-- Ohne eingetragene Höchstmenge darf ein gelber Artikel nicht gespeichert bzw. nicht als vollständig konfiguriert gelten.
 - Bis einschließlich der hinterlegten Höchstmenge kann der Artikel über den normalen Einkaufsprozess bestellt werden.
-- Wird die Höchstmenge überschritten, greift automatisch derselbe begründungs- und freigabepflichtige Workflow wie bei einem roten Artikel.
-- Beim Überschreiten öffnet sich zwingend ein Eingabefenster mit **Begründung als Pflichtfeld**.
+- Wird die Höchstmenge überschritten, öffnet sich zwingend ein Eingabefenster mit **Begründung als Pflichtfeld**.
 - Ohne Begründung kann die Bestellung nicht weitergeführt werden.
 - Die Freigabeanforderung wird an die berechtigten Freigeber gestellt. **Einkaufsleiter oder Geschäftsführung** können die Überschreitung freigeben.
-- Sobald einer der dafür berechtigten Freigeber die Anforderung genehmigt hat, darf der Bestellvorgang fortgesetzt werden.
 - Eine Ablehnung sperrt die Bestellung in der beantragten Menge; für einen neuen Versuch ist eine neue bzw. geänderte Anforderung erforderlich.
 - Antragsteller, Artikel, normale Höchstmenge, beantragte Menge, Überschreitung, Begründung, Projekt/Bestellbezug, Zeitpunkt, Entscheidung und Freigebender werden nachvollziehbar gespeichert.
 - Die Mengenprüfung muss im tatsächlichen Bestell-/Freigabeprozess technisch erzwungen werden und darf nicht nur ein Hinweis sein.
-- Die Höchstmenge ist zunächst als **zulässige Menge je Bestellvorgang/Bestellposition** vorgesehen. Eine spätere zusätzliche Projekt- oder Zeitraumgrenze kann separat ergänzt werden, falls fachlich gewünscht.
 
 ### Rot – freigabepflichtiger Artikel
 
 - Der Artikel darf unabhängig von der Menge nicht ohne ausdrückliche Begründung bestellt werden.
-- Sobald ein roter Artikel bestellt bzw. zur Bestellung freigegeben werden soll, öffnet sich zwingend ein Eingabe-/Auswahlfenster.
-- In diesem Fenster muss der Mitarbeiter eine **Begründung als Pflichtfeld** erfassen.
 - Ohne Begründung kann der Vorgang nicht weitergeführt werden.
-- Anschließend wird eine Freigabeanforderung an die **Geschäftsführung** gesendet; der **Einkaufsleiter** wird zusätzlich informiert/CC gesetzt.
+- Anschließend wird eine Freigabeanforderung an die **Geschäftsführung** gesendet; der **Einkaufsleiter** wird zusätzlich informiert.
 - Die Bestellung darf erst nach dokumentierter Freigabe durch einen dafür berechtigten Freigeber fortgesetzt werden.
 - Begründung, Antragsteller, Artikel, Menge, Projekt/Bestellbezug, Zeitpunkt, Freigabeentscheidung und Freigebender müssen nachvollziehbar gespeichert werden.
-
-### Bedien- und Datenregel
-
-- Die Ampel muss am Artikel sichtbar und zwingend gepflegt sein.
-- Technisch ist sie als **Einfachauswahl** (Grün/Gelb/Rot) umzusetzen, nicht als drei unabhängig gleichzeitig aktivierbare Häkchen. Damit werden widersprüchliche Zustände ausgeschlossen.
-- In der Oberfläche wird die Auswahl farblich mit Grün, Gelb und Rot dargestellt.
-- Bei Auswahl **Gelb** wird das Feld **Höchstmenge** eingeblendet und verpflichtend.
-- Bei neu angelegten Artikeln wird automatisch **Grün** vorbelegt.
-- Bestehende Artikel erhalten bei der Einführung ebenfalls Grün, sofern keine abweichende Einstufung bewusst vorgenommen wird.
-- Die Ampelklassifizierung und eine hinterlegte Höchstmenge müssen bei DATANORM-/Preisimporten erhalten bleiben und dürfen durch Lieferanten- oder Preisupdates nicht überschrieben werden.
 
 ---
 
 ## 5. Noch technisch/fachlich abzuarbeiten
 
+- aktuellen Odoo.sh-Upgrade- und Testlauf für `19.0.5.53.0` grün abschließen,
 - expliziter Upgrade-Test auf bestehender/produktionsnaher Datenbank,
 - Browser-/Mobil-Smoke-Test,
 - reales Projekt Ende-zu-Ende,
@@ -123,8 +157,8 @@ Für **jedes SAB-Produkt / jeden bestellbaren Artikel** wird eine zwingende Eink
 - ABB-DATANORM praktisch prüfen,
 - Lageranfangsbestände und Anfangsbewertung,
 - Pflichtdokumente/Rollen/Managementgrenzen,
-- **Artikel-Ampel mit gelber Höchstmenge sowie gelbem/rotem Freigabeworkflow implementieren und testen**,
-- Geschäftsführer- und Einkaufsleiter-Benutzer/E-Mail für Freigaben konfigurierbar machen,
+- **gelben und roten Artikel-Ampel-Freigabeworkflow vollständig implementieren und testen**,
+- Geschäftsführer- und Einkaufsleiter-Benutzer/E-Mail für Ampelfreigaben konfigurierbar machen,
 - Handbuch und Produktivcheckliste finalisieren,
 - Backup-/Rollback-Test,
 - erst nach vollständiger Abnahme Merge in `main`.
