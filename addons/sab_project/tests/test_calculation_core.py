@@ -92,3 +92,10 @@ class TestSabCalculationCore(TransactionCase):
         self.assertAlmostEqual(item.testing_time_minutes, 4.0)
         self.assertAlmostEqual(item.total_time_minutes, 12.0)
         self.assertAlmostEqual(item.purchase_total, 16.0)
+
+    def test_product_variant_bridge_is_searchable(self):
+        template = self.product.odoo_product_id.product_tmpl_id
+        found = self.env["product.template"].search([
+            ("product_variant_id", "=", self.product.odoo_product_id.id),
+        ])
+        self.assertIn(template, found)
