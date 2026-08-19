@@ -47,7 +47,6 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
                 "partner_id": cls.partner.id,
                 "sab_project_id": cls.project.id,
                 "sab_calculation_source": "schematic",
-                "state": "sale",
             }
         )
         cls.supplier_partner = cls.env["res.partner"].create(
@@ -128,6 +127,7 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
             }
         )
         cabinet_bom.action_release()
+        self.sale_order.write({"state": "sale"})
         wizard = self.env["sab.procurement.package.wizard"].create(
             {
                 "order_id": self.sale_order.id,
