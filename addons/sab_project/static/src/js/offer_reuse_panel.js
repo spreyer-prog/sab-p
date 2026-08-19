@@ -69,6 +69,7 @@ export class SabOfferReusePanel extends Component {
             record.resId || 0,
             Boolean(record.data.sab_project_id),
             record.data.state || "",
+            record.data.sab_offer_release_state || "",
             record.data.sab_calculation_source || "",
         ].join("|");
     }
@@ -78,7 +79,11 @@ export class SabOfferReusePanel extends Component {
     }
 
     get canEdit() {
-        return ["draft", "sent"].includes(this.props.record.data.state) && !this.state.busy;
+        return (
+            ["draft", "sent"].includes(this.props.record.data.state) &&
+            this.props.record.data.sab_offer_release_state !== "released" &&
+            !this.state.busy
+        );
     }
 
     get searchTerm() {
@@ -102,13 +107,27 @@ export class SabOfferReusePanel extends Component {
 
     get filteredCurrentComponents() {
         return this.state.payload.project_components.filter(
-            (item) => item.is_current && this.includesSearch(item.name, item.positions, item.offer)
+            (item) =>
+                item.is_current &&
+                this.includesSearch(
+                    item.name,
+                    item.positions,
+                    item.offers_text,
+                    item.offer
+                )
         );
     }
 
     get filteredPreviousComponents() {
         return this.state.payload.project_components.filter(
-            (item) => !item.is_current && this.includesSearch(item.name, item.positions, item.offer)
+            (item) =>
+                !item.is_current &&
+                this.includesSearch(
+                    item.name,
+                    item.positions,
+                    item.offers_text,
+                    item.offer
+                )
         );
     }
 
@@ -197,8 +216,6 @@ export class SabOfferReusePanel extends Component {
     }
 
     async ensureSavedOrder() {
-        // The insertion runs server-side. Flush pending list edits and quantities
-        // first so reloading the form can never discard unsaved quotation work.
         await this.props.record.save();
         if (!this.props.record.resId) {
             throw new Error("Das Angebot konnte nicht gespeichert werden.");
@@ -368,6 +385,7 @@ registry.category("view_widgets").add("sab_offer_reuse_panel", {
     fieldDependencies: [
         { name: "sab_project_id", type: "many2one" },
         { name: "sab_offer_reference", type: "char" },
+        { name: "sab_offer_release_state", type: "selection" },
         { name: "sab_calculation_source", type: "selection" },
         { name: "state", type: "selection" },
     ],
