@@ -46,6 +46,8 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
             {
                 "partner_id": cls.partner.id,
                 "sab_project_id": cls.project.id,
+                "sab_calculation_source": "schematic",
+                "state": "sale",
             }
         )
         cls.supplier_partner = cls.env["res.partner"].create(
@@ -93,12 +95,21 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
                 "note": "Anfangsbestand Mindestbestand-Test",
             }
         )
-        bom = self.env["sab.project.bom"].create(
+        cabinet = self.env["sab.offer.calculation.line"].create(
             {
-                "name": "STL Mindestbestand / GESAMT",
+                "order_id": self.sale_order.id,
+                "line_type": "cabinet",
+                "description": "UV Mindestbestand",
+                "sequence": 10,
+            }
+        )
+        cabinet_bom = self.env["sab.project.bom"].create(
+            {
+                "name": "STL Mindestbestand / UV",
                 "order_id": self.sale_order.id,
                 "project_id": self.project.id,
-                "bom_scope": "total",
+                "bom_scope": "cabinet",
+                "cabinet_line_id": cabinet.id,
                 "line_ids": [
                     (
                         0,
@@ -116,25 +127,35 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
                 ],
             }
         )
-        bom.action_release()
-        return bom, bom.purchase_requirement_ids
+        cabinet_bom.action_release()
+        wizard = self.env["sab.procurement.package.wizard"].create(
+            {
+                "order_id": self.sale_order.id,
+                "cabinet_bom_ids": [Command.set([cabinet_bom.id])],
+            }
+        )
+        package_action = wizard.action_create_procurement_package()
+        package = self.env["sab.project.bom"].browse(
+            package_action["res_id"]
+        )
+        return package, package.purchase_requirement_ids
 
     def _create_purchase_order(self, replenish_minimum=False):
-        bom, requirement = self._create_requirement()
+        package, requirement = self._create_requirement()
         requirement.write(
             {
                 "include_minimum_stock_replenishment": replenish_minimum,
             }
         )
-        bom.action_release_for_purchase()
+        package.action_release_for_purchase()
         action = requirement.action_create_purchase_orders()
         order = self.env["sab.purchase.order"].browse(
             action["domain"][0][2][0]
         )
-        return bom, requirement, order
+        return package, requirement, order
 
     def test_default_order_proposal_is_exact_shortage_without_rounding(self):
-        bom, requirement = self._create_requirement()
+        package, requirement = self._create_requirement()
 
         self.assertAlmostEqual(
             self.product.odoo_product_id.product_tmpl_id.sab_minimum_stock_quantity,
@@ -166,10 +187,10 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
         self.assertAlmostEqual(requirement.quantity_to_order, 11.0)
         requirement.write({"include_minimum_stock_replenishment": False})
         self.assertAlmostEqual(requirement.quantity_to_order, 6.0)
-        self.assertEqual(bom.purchase_release_state, "not_released")
+        self.assertEqual(package.purchase_release_state, "not_released")
 
     def test_purchase_order_uses_exact_shortage_only_by_default(self):
-        _bom, requirement, purchase_order = self._create_purchase_order(False)
+        _package, requirement, purchase_order = self._create_purchase_order(False)
         self.assertAlmostEqual(requirement.quantity_to_order, 6.0)
         self.assertAlmostEqual(
             purchase_order.line_ids.quantity_ordered,
@@ -177,7 +198,7 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
         )
 
     def test_minimum_stock_is_added_only_after_explicit_selection(self):
-        _bom, requirement, purchase_order = self._create_purchase_order(True)
+        _package, requirement, purchase_order = self._create_purchase_order(True)
         self.assertAlmostEqual(requirement.quantity_to_order, 11.0)
         self.assertAlmostEqual(
             purchase_order.line_ids.quantity_ordered,
@@ -185,7 +206,7 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
         )
 
     def test_overdue_delivery_is_listed_and_supplier_can_be_reminded(self):
-        _bom, _requirement, purchase_order = self._create_purchase_order(False)
+        _package, _requirement, purchase_order = self._create_purchase_order(False)
         purchase_order.write({"state": "to_approve"})
         purchase_order.write(
             {
