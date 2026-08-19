@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_sab_procurement_package_wizard_manager,sab.procurement.package.wizard manager,model_sab_procurement_package_wizard,project.group_project_manager,1,1,1,1
-access_sab_procurement_extra_line_wizard_purchasing,sab.procurement.extra.line.wizard purchasing,model_sab_procurement_extra_line_wizard,sab_project.group_sab_purchasing,1,1,1,1
-access_sab_procurement_extra_line_wizard_manager,sab.procurement.extra.line.wizard manager,model_sab_procurement_extra_line_wizard,project.group_project_manager,1,1,1,1
