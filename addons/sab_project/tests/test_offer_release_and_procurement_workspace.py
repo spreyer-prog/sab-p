@@ -148,7 +148,6 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
                 "partner_id": self.partner.id,
                 "sab_project_id": self.project.id,
                 "sab_calculation_source": "schematic",
-                "state": "sale",
             }
         )
         cabinet = self.env["sab.offer.calculation.line"].create(
@@ -200,6 +199,7 @@ class TestSabOfferReleaseAndProcurementWorkspace(TransactionCase):
         )
         total_bom.action_release()
         cabinet_bom.action_release()
+        order.write({"state": "sale"})
         self.assertFalse(total_bom.purchase_requirement_ids)
         self.assertFalse(cabinet_bom.purchase_requirement_ids)
         with self.assertRaises(ValidationError):
