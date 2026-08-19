@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_product_tree_minimum_stock" model="ir.ui.view">
+        <field name="name">sab.product.tree.minimum.stock</field>
+        <field name="model">sab.product</field>
+        <field name="inherit_id" ref="sab_project.view_sab_product_tree"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <field name="stock_available" position="after">
+                <field name="minimum_stock_quantity"
+                       string="Mindestbestand"
+                       optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_product_form_minimum_stock" model="ir.ui.view">
+        <field name="name">sab.product.form.minimum.stock</field>
+        <field name="model">sab.product</field>
+        <field name="inherit_id" ref="sab_project.view_sab_product_form"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="minimum_stock_quantity"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_odoo_product_tree_minimum_stock" model="ir.ui.view">
+        <field name="name">product.template.sab.p.tree.minimum.stock</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_sab_odoo_product_tree"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <field name="sab_stock_available" position="after">
+                <field name="sab_minimum_stock_quantity"
+                       string="Mindestbestand"
+                       optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_odoo_product_form_minimum_stock" model="ir.ui.view">
+        <field name="name">product.template.sab.p.form.minimum.stock</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_sab_odoo_product_form"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <field name="sab_stock_available" position="after">
+                <field name="sab_minimum_stock_quantity"
+                       string="Mindestbestand"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_product_template_form_sab_p_minimum_stock" model="ir.ui.view">
+        <field name="name">product.template.form.sab.p.minimum.stock</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_product_template_form_sab_p"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_p_calculation']/group[@string='Preisermittlung']"
+                   position="after">
+                <group string="Lager" col="4">
+                    <field name="sab_minimum_stock_quantity"/>
+                    <field name="sab_stock_on_hand" readonly="1"/>
+                    <field name="sab_stock_reserved" readonly="1"/>
+                    <field name="sab_stock_available" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_list_minimum_stock" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.list.minimum.stock</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_list_workspace"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <field name="shortage_quantity" position="after">
+                <field name="minimum_stock_quantity"
+                       string="Mindestbestand"
+                       readonly="1"
+                       optional="show"/>
+                <field name="projected_free_stock"
+                       string="Voraussichtlich frei"
+                       readonly="1"
+                       optional="hide"/>
+                <field name="minimum_stock_replenishment_quantity"
+                       string="Zusatz bis Mindestbestand"
+                       readonly="1"
+                       optional="show"/>
+                <field name="minimum_stock_below"
+                       string="Mindestbestand unterschritten"
+                       readonly="1"
+                       optional="hide"/>
+            </field>
+            <field name="quantity_to_order" position="before">
+                <field name="include_minimum_stock_replenishment"
+                       string="Mindestbestand auffüllen"
+                       groups="sab_project.group_sab_purchasing"
+                       optional="show"/>
+            </field>
+            <field name="quantity_to_order" position="after">
+                <field name="supplier_quantity_warning"
+                       string="Lieferantenhinweis"
+                       readonly="1"
+                       optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_form_minimum_stock" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.form.minimum.stock</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_form_workspace"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <field name="shortage_quantity" position="after">
+                <field name="minimum_stock_quantity" readonly="1"/>
+                <field name="projected_free_stock" readonly="1"/>
+                <field name="minimum_stock_replenishment_quantity" readonly="1"/>
+                <field name="minimum_stock_below" readonly="1"/>
+            </field>
+            <field name="quantity_to_order" position="before">
+                <field name="include_minimum_stock_replenishment"
+                       groups="sab_project.group_sab_purchasing"/>
+            </field>
+            <field name="quantity_to_order" position="after">
+                <field name="supplier_quantity_warning" readonly="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_project_bom_form_minimum_stock" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.minimum.stock</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_procurement_package"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_bom_procurement_workspace']//field[@name='shortage_quantity']"
+                   position="after">
+                <field name="minimum_stock_quantity"
+                       string="Mindestbestand"
+                       readonly="1"
+                       optional="show"/>
+                <field name="minimum_stock_replenishment_quantity"
+                       string="Zusatz bis Mindestbestand"
+                       readonly="1"
+                       optional="show"/>
+            </xpath>
+            <xpath expr="//page[@name='sab_bom_procurement_workspace']//field[@name='quantity_to_order']"
+                   position="before">
+                <field name="include_minimum_stock_replenishment"
+                       string="Mindestbestand auffüllen"
+                       groups="sab_project.group_sab_purchasing"
+                       optional="show"/>
+            </xpath>
+            <xpath expr="//page[@name='sab_bom_procurement_workspace']//field[@name='quantity_to_order']"
+                   position="after">
+                <field name="supplier_quantity_warning"
+                       string="Lieferantenhinweis"
+                       readonly="1"
+                       optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
