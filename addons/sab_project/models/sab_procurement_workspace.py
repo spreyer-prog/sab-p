@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from odoo import api, fields, models, _
+from odoo import fields, models, _
 from odoo.exceptions import AccessError, ValidationError
 
 
@@ -22,7 +22,7 @@ class SabProjectBomProcurementWorkspace(models.Model):
         model_id = self.env["ir.model"]._get_id(self._name)
         for bom in self:
             for user in purchasing_group.user_ids.filtered("active"):
-                existing = self.env["mail.activity"].search_count(
+                existing = self.env["mail.activity"].sudo().search_count(
                     [
                         ("res_model_id", "=", model_id),
                         ("res_id", "=", bom.id),
@@ -31,7 +31,7 @@ class SabProjectBomProcurementWorkspace(models.Model):
                     ]
                 )
                 if not existing:
-                    self.env["mail.activity"].create(
+                    self.env["mail.activity"].sudo().create(
                         {
                             "activity_type_id": activity_type.id,
                             "res_model_id": model_id,
@@ -49,15 +49,21 @@ class SabProjectBomProcurementWorkspace(models.Model):
         return True
 
     def _sab_push_to_procurement_workspace(self):
+        """Create the purchasing work package as an internal server operation.
+
+        The project manager releases the technical BOM but deliberately does not
+        receive purchasing write rights. Requirement generation, stock reservation
+        and the initial proposal quantity therefore run with sudo while every
+        business transition remains protected by the dedicated role checks.
+        """
         total_boms = self.filtered(
             lambda bom: bom.state == "released"
             and getattr(bom, "bom_scope", "total") == "total"
         )
         for bom in total_boms:
-            bom.with_context(
-                sab_procurement_release=True
-            ).action_generate_purchase_requirements()
-            requirements = bom.purchase_requirement_ids.filtered(
+            server_bom = bom.sudo().with_context(sab_procurement_release=True)
+            server_bom.action_generate_purchase_requirements()
+            requirements = server_bom.purchase_requirement_ids.filtered(
                 lambda requirement: not requirement.optional
                 and requirement.state == "open"
             )
