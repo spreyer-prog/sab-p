@@ -104,35 +104,33 @@ class SabProcurementPackageWizard(models.TransientModel):
                 f"enthalten: {names}. Eine doppelte Bestellung wird dadurch verhindert."
             )
 
-        line_commands = []
+        line_values = []
         sequence = 10
         for cabinet in cabinets:
             for source_line in cabinet.line_ids.sorted(
                 key=lambda line: (line.sequence, line.id)
             ):
-                line_commands.append(
-                    Command.create(
-                        {
-                            "sequence": sequence,
-                            "product_id": source_line.product_id.id or False,
-                            "odoo_product_id": source_line.odoo_product_id.id
-                            or False,
-                            "quantity": source_line.quantity,
-                            "unit": source_line.unit,
-                            "optional": source_line.optional,
-                            "supplier_product_id": source_line.supplier_product_id.id
-                            or False,
-                            "unit_purchase_price": source_line.unit_purchase_price
-                            or 0.0,
-                            "note": source_line.note,
-                            "source_cabinet_bom_id": cabinet.id,
-                            "source_cabinet_line_id": source_line.id,
-                        }
-                    )
+                line_values.append(
+                    {
+                        "sequence": sequence,
+                        "product_id": source_line.product_id.id or False,
+                        "odoo_product_id": source_line.odoo_product_id.id
+                        or False,
+                        "quantity": source_line.quantity,
+                        "unit": source_line.unit,
+                        "optional": source_line.optional,
+                        "supplier_product_id": source_line.supplier_product_id.id
+                        or False,
+                        "unit_purchase_price": source_line.unit_purchase_price
+                        or 0.0,
+                        "note": source_line.note,
+                        "source_cabinet_bom_id": cabinet.id,
+                        "source_cabinet_line_id": source_line.id,
+                    }
                 )
                 sequence += 10
 
-        if not line_commands:
+        if not line_values:
             raise ValidationError(
                 "Die ausgewählten Schaltschränke enthalten keine Materialpositionen."
             )
@@ -148,6 +146,12 @@ class SabProcurementPackageWizard(models.TransientModel):
             cabinets.mapped("cabinet_line_id.description")
             or cabinets.mapped("name")
         )
+
+        # Das Beschaffungspaket und seine Quellschränke müssen zuerst vollständig
+        # gespeichert sein. Bei einer verschachtelten One2many-Erzeugung prüft
+        # Odoo die Positions-Constraints, bevor die Many2many-Zuordnung der
+        # Quellschränke sicher verfügbar ist. Dadurch wurden fachlich korrekte
+        # Verteilerzuordnungen fälschlich abgewiesen.
         package = self.env["sab.project.bom"].create(
             {
                 "name": f"{reference} / {cabinet_labels}",
@@ -156,10 +160,19 @@ class SabProcurementPackageWizard(models.TransientModel):
                 "project_id": order.sab_project_id.id,
                 "bom_scope": "procurement",
                 "source_cabinet_bom_ids": [Command.set(cabinets.ids)],
-                "line_ids": line_commands,
                 "note": self.note,
             }
         )
+        self.env["sab.project.bom.line"].create(
+            [
+                {
+                    **values,
+                    "bom_id": package.id,
+                }
+                for values in line_values
+            ]
+        )
+
         package.action_release()
         return {
             "type": "ir.actions.act_window",
