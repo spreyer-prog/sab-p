@@ -63,9 +63,16 @@ class SabProjectBom(models.Model):
 
     def write(self, vals):
         if any(record.state == "released" for record in self):
-            allowed = {"state"}
-            if set(vals) - allowed or vals.get("state") != "released":
-                raise ValidationError("Eine freigegebene Stückliste ist gesperrt.")
+            procurement_metadata = {
+                "purchase_release_state",
+                "purchase_released_at",
+                "purchase_released_by_id",
+            }
+            allowed = {"state"} | procurement_metadata
+            if set(vals) - allowed:
+                raise ValidationError("Eine freigegebene Stückliste ist technisch gesperrt.")
+            if "state" in vals and vals.get("state") != "released":
+                raise ValidationError("Eine freigegebene Stückliste darf nicht zurückgesetzt werden.")
         return super().write(vals)
 
     def unlink(self):
