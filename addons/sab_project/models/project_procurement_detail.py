@@ -86,7 +86,6 @@ class ProjectProjectProcurementDetail(models.Model):
                         required_quantity,
                     )
                     if requirement.purchase_order_id.state in (
-                        "to_approve",
                         "approved",
                         "sent",
                         "partial",
