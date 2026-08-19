@@ -48,10 +48,11 @@
                 <field name="odoo_product_id"/>
                 <field name="supplier_id"/>
                 <field name="purchase_order_id"/>
+                <separator/>
                 <filter name="open" string="Offen" domain="[('state','=','open')]"/>
                 <filter name="not_ordered" string="Noch nicht bestellt" domain="[('state','=','open'),('purchase_order_line_id','=',False)]"/>
                 <filter name="ordered" string="Bestellt" domain="[('purchase_order_id','!=',False)]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_project" string="Projekt" context="{'group_by':'project_id'}"/>
                     <filter name="group_supplier" string="Lieferant" context="{'group_by':'supplier_id'}"/>
                 </group>
