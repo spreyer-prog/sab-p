@@ -5,6 +5,24 @@ from odoo.exceptions import AccessError, ValidationError
 class SabProjectBomProcurementWriteSecurity(models.Model):
     _inherit = "sab.project.bom"
 
+    def action_release_for_purchase(self):
+        protected_self = self.with_context(sab_procurement_release=True)
+        return super(
+            SabProjectBomProcurementWriteSecurity,
+            protected_self,
+        ).action_release_for_purchase()
+
+    def action_generate_purchase_requirements(self):
+        for bom in self:
+            if getattr(bom, "bom_scope", "total") != "total":
+                raise ValidationError(
+                    "Einkaufsbedarf darf ausschließlich aus der Gesamtstückliste "
+                    "erzeugt werden. Verteilerstücklisten dienen nur der technischen Zuordnung."
+                )
+        if not self.env.context.get("sab_procurement_release"):
+            self._sab_check_project_manager()
+        return super().action_generate_purchase_requirements()
+
     def write(self, vals):
         approval_fields = {
             "purchase_release_state",
