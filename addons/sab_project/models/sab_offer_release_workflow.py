@@ -1,9 +1,22 @@
-from odoo import models
+from odoo import fields, models
 from odoo.exceptions import ValidationError
 
 
 class SabOfferCalculationLineReleaseMapping(models.Model):
     _inherit = "sab.offer.calculation.line"
+
+    component_origin_id = fields.Many2one(
+        "sab.offer.calculation.line",
+        string="Ursprüngliches Projektbauteil",
+        copy=True,
+        readonly=True,
+        ondelete="set null",
+        index=True,
+        help=(
+            "Verbindet dasselbe vollständig übernommene Bauteil über mehrere "
+            "Projektangebote, ohne seine LV-Position mehrfach aufzulisten."
+        ),
+    )
 
     def _sab_create_mapping_from_line(self):
         """Persist direct LV/NTG positions only during explicit offer release."""
