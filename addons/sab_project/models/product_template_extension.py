@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class ProductTemplate(models.Model):
@@ -46,6 +47,29 @@ class ProductTemplate(models.Model):
         index=True,
     )
     sab_datanorm_number = fields.Char(string="DATANORM-Nummer", index=True)
+
+    sab_purchase_signal = fields.Selection(
+        [
+            ("green", "Grün – Standardartikel"),
+            ("yellow", "Gelb – mengenbegrenzt"),
+            ("red", "Rot – freigabepflichtig"),
+        ],
+        string="Einkaufsampel",
+        default="green",
+        required=True,
+        index=True,
+        help=(
+            "Grün: normal bestellbar. Gelb: bis zur Höchstmenge normal bestellbar, "
+            "darüber begründungs- und freigabepflichtig. Rot: immer begründungs- "
+            "und freigabepflichtig."
+        ),
+    )
+    sab_purchase_max_quantity = fields.Float(
+        string="Höchstmenge je Bestellposition",
+        digits=(16, 3),
+        default=0.0,
+        help="Nur bei gelber Einkaufsampel relevant.",
+    )
 
     sab_price_mode = fields.Selection(
         [
@@ -113,6 +137,18 @@ class ProductTemplate(models.Model):
         string="Lagerbewegungen",
         compute="_compute_sab_stock",
     )
+
+    @api.constrains("sab_purchase_signal", "sab_purchase_max_quantity")
+    def _check_sab_purchase_signal(self):
+        for template in self:
+            if (
+                template.sab_purchase_signal == "yellow"
+                and template.sab_purchase_max_quantity <= 0
+            ):
+                raise ValidationError(
+                    "Bei einer gelben Einkaufsampel muss eine Höchstmenge größer 0 "
+                    "hinterlegt werden."
+                )
 
     @api.model
     def _search_sab_product_variant_id(self, operator, value):
