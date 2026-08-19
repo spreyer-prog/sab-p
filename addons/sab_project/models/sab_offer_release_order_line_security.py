@@ -2,6 +2,23 @@ from odoo import api, models, _
 from odoo.exceptions import ValidationError
 
 
+class SaleOrderOfferReleaseServerSecurity(models.Model):
+    _inherit = "sale.order"
+
+    def _sab_offer_reuse_assert_editable(self):
+        result = super()._sab_offer_reuse_assert_editable()
+        for order in self:
+            if order.sab_offer_release_state == "released":
+                raise ValidationError(
+                    _(
+                        "Das Angebot ist zum Verschicken freigegeben und "
+                        "festgeschrieben. Positionen können nur über eine neue "
+                        "Revision ergänzt werden."
+                    )
+                )
+        return result
+
+
 class SaleOrderLineOfferReleaseSecurity(models.Model):
     _inherit = "sale.order.line"
 
