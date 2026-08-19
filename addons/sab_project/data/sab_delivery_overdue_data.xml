@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_sab_delivery_overdue" model="mail.template">
+        <field name="name">SAB-P Nachfrage überfälliger Liefertermin</field>
+        <field name="model_id" ref="model_sab_purchase_order"/>
+        <field name="subject">Liefertermin überschritten – Bestellung {{ object.name }}</field>
+        <field name="email_to">{{ object.partner_id.email or '' }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Guten Tag <t t-out="object.partner_id.name or object.supplier_id.name"/>,</p>
+                <p>
+                    bei unserer Bestellung <strong><t t-out="object.name"/></strong>
+                    sind die nachfolgenden bestätigten Liefertermine überschritten:
+                </p>
+                <table style="border-collapse: collapse; width: 100%;" border="1" cellpadding="6">
+                    <thead>
+                        <tr>
+                            <th>Verteiler / Projekt</th>
+                            <th>Artikel</th>
+                            <th>Bezeichnung</th>
+                            <th>Offene Menge</th>
+                            <th>Bestätigter Liefertermin</th>
+                            <th>Überfällig</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="object._sab_get_overdue_lines_for_email()" t-as="line">
+                            <tr>
+                                <td>
+                                    <t t-out="line.source_cabinet_bom_id.name or line.project_id.sab_project_reference or line.project_id.display_name"/>
+                                </td>
+                                <td><t t-out="line.supplier_article_number or ''"/></td>
+                                <td>
+                                    <t t-out="line.odoo_product_id.display_name if line.odoo_product_id else line.product_id.display_name"/>
+                                </td>
+                                <td><t t-out="line.quantity_remaining"/></td>
+                                <td><t t-out="line.expected_delivery_date"/></td>
+                                <td><t t-out="line.delivery_overdue_days"/> Tag(e)</td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <p>
+                    Bitte teilen Sie uns kurzfristig den verbindlichen neuen Liefertermin
+                    unter Angabe unserer Bestellnummer mit.
+                </p>
+                <p>Vielen Dank.</p>
+                <p>Mit freundlichen Grüßen<br/>SAB-P GmbH</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+    <record id="ir_cron_sab_check_overdue_deliveries" model="ir.cron">
+        <field name="name">SAB-P: Überfällige Liefertermine prüfen</field>
+        <field name="model_id" ref="model_sab_purchase_order"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_overdue_deliveries()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>
