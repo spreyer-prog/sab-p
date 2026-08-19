@@ -13,26 +13,41 @@ class TestSabOfferStructureSpacing(TransactionCase):
         )
         self.assertGreaterEqual(
             len(spacers),
-            3,
-            f"{view_xmlid} benötigt Abstände vor Schaltschrank/Bauteil und nach Endmarken.",
-        )
-        self.assertTrue(
-            arch.xpath("//t[@t-if=\"line.line_type == 'cabinet'\"]//tr[contains(@class, 'sab-structure-spacer')]")
-        )
-        self.assertTrue(
-            arch.xpath("//t[@t-elif=\"line.line_type == 'section'\"]//tr[contains(@class, 'sab-structure-spacer')]")
+            4,
+            f"{view_xmlid} benötigt vollständige Leerzeilen vor und nach Bauteilen sowie bei Schaltschränken.",
         )
         self.assertTrue(
             arch.xpath(
-                "//t[@t-elif=\"line.line_type in ('section_end', 'cabinet_end')\"]//tr[contains(@class, 'sab-structure-spacer')]"
+                "//t[@t-elif=\"line.line_type == 'section'\"]//tr[contains(@class, 'sab-component-spacer-before')]"
             )
         )
         self.assertTrue(
-            arch.xpath("//tr[contains(@class, 'sab-structure-spacer')]/td[@colspan='5']")
+            arch.xpath(
+                "//t[@t-elif=\"line.line_type == 'section_end'\"]//tr[contains(@class, 'sab-component-spacer-after')]"
+            )
+        )
+        self.assertTrue(
+            arch.xpath(
+                "//tr[contains(@class, 'sab-component-spacer')]/td[@colspan='5' and contains(@style, 'height: 16px')]"
+            )
+        )
+        self.assertTrue(
+            arch.xpath(
+                "//t[@t-if=\"line.line_type == 'cabinet'\"]//tr[contains(@class, 'sab-cabinet-spacer')]"
+            )
+        )
+        self.assertTrue(
+            arch.xpath(
+                "//t[@t-elif=\"line.line_type == 'cabinet_end'\"]//tr[contains(@class, 'sab-cabinet-spacer')]"
+            )
         )
 
     def test_customer_portal_separates_switchboards_and_components(self):
-        self._assert_structure_spacers("sab_project.sab_sale_order_portal_calculation")
+        self._assert_structure_spacers(
+            "sab_project.sab_sale_order_portal_calculation"
+        )
 
     def test_offer_pdf_separates_switchboards_and_components(self):
-        self._assert_structure_spacers("sab_project.sab_report_saleorder_document")
+        self._assert_structure_spacers(
+            "sab_project.sab_report_saleorder_document"
+        )
