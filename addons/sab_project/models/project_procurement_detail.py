@@ -6,7 +6,7 @@ class ProjectProjectProcurementDetail(models.Model):
 
     sab_procurement_currency_id = fields.Many2one(
         related="company_id.currency_id",
-        string="Währung",
+        string="Beschaffungswährung",
         readonly=True,
     )
     sab_material_requirement_count = fields.Integer(
