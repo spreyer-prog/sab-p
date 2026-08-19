@@ -45,7 +45,7 @@ class SabProjectBomPurchaseApproval(models.Model):
     _inherit = ["sab.project.bom", "mail.thread", "mail.activity.mixin"]
 
     def _sab_check_project_manager(self):
-        """Compatibility method: approval now follows the employee profile role."""
+        """Compatibility method: approval follows the employee profile role."""
         if (
             self.env.is_superuser()
             or self.env.user.has_group("sab_project.group_sab_purchase_approver")
@@ -55,6 +55,24 @@ class SabProjectBomPurchaseApproval(models.Model):
             "Die Bestellfreigabe darf nur durch einen im Mitarbeiterprofil "
             "festgelegten Bestellfreigeber erteilt werden."
         )
+
+    def action_release_for_purchase(self):
+        purchasing_group = self.env.ref(
+            "sab_project.group_sab_purchasing",
+            raise_if_not_found=False,
+        )
+        purchasing_users = (
+            purchasing_group.user_ids.filtered("active")
+            if purchasing_group
+            else self.env["res.users"]
+        )
+        if not purchasing_users:
+            raise ValidationError(
+                "Es ist kein aktiver Einkaufsmitarbeiter im Mitarbeiterprofil "
+                "hinterlegt. Bitte zuerst die Berechtigung 'Einkauf' vergeben "
+                "und die Rechte übernehmen."
+            )
+        return super().action_release_for_purchase()
 
 
 class SabPurchaseRequirementApproval(models.Model):
@@ -132,7 +150,7 @@ class SabPurchaseOrderApproval(models.Model):
         )
 
     def _check_project_manager(self):
-        """Compatibility method: approval now follows the employee profile role."""
+        """Compatibility method: approval follows the employee profile role."""
         if (
             self.env.is_superuser()
             or self.env.user.has_group("sab_project.group_sab_purchase_approver")
@@ -237,37 +255,57 @@ class SabProjectBomLineProcurementStatus(models.Model):
     purchase_requirement_id = fields.Many2one(
         "sab.purchase.requirement",
         string="Projektweiter Einkaufsbedarf",
-        compute="_compute_purchase_requirement_id",
+        compute="_compute_procurement_status_fields",
+        compute_sudo=True,
     )
     procurement_status = fields.Selection(
-        related="purchase_requirement_id.stock_status",
+        [
+            ("in_stock", "Vollständig im Lager"),
+            ("partial", "Teilbestand – Rest bestellen"),
+            ("missing", "Nicht im Lager"),
+            ("ordered", "Bestellt"),
+            ("partial_received", "Teilgeliefert"),
+            ("received", "Vollständig geliefert"),
+            ("cancel", "Storniert"),
+        ],
         string="Materialstatus",
-        readonly=True,
+        compute="_compute_procurement_status_fields",
+        compute_sudo=True,
     )
     expected_delivery_date = fields.Date(
-        related="purchase_requirement_id.expected_delivery_date",
         string="Voraussichtlicher Liefertermin",
-        readonly=True,
+        compute="_compute_procurement_status_fields",
+        compute_sudo=True,
     )
     project_reserved_quantity = fields.Float(
-        related="purchase_requirement_id.project_reserved_quantity",
         string="Projektweit reserviert",
-        readonly=True,
+        digits=(16, 3),
+        compute="_compute_procurement_status_fields",
+        compute_sudo=True,
     )
     shortage_quantity = fields.Float(
-        related="purchase_requirement_id.shortage_quantity",
         string="Projektweiter Fehlbestand",
-        readonly=True,
+        digits=(16, 3),
+        compute="_compute_procurement_status_fields",
+        compute_sudo=True,
     )
 
     @api.depends(
         "bom_id.project_id",
+        "bom_id.order_id",
         "bom_id.bom_scope",
         "product_id",
         "odoo_product_id",
+        "bom_id.project_id.sab_purchase_requirement_ids.state",
+        "bom_id.project_id.sab_purchase_requirement_ids.product_id",
+        "bom_id.project_id.sab_purchase_requirement_ids.odoo_product_id",
+        "bom_id.project_id.sab_purchase_requirement_ids.project_reserved_quantity",
+        "bom_id.project_id.sab_purchase_requirement_ids.shortage_quantity",
+        "bom_id.project_id.sab_purchase_requirement_ids.stock_status",
+        "bom_id.project_id.sab_purchase_requirement_ids.expected_delivery_date",
     )
-    def _compute_purchase_requirement_id(self):
-        Requirement = self.env["sab.purchase.requirement"]
+    def _compute_procurement_status_fields(self):
+        Requirement = self.env["sab.purchase.requirement"].sudo()
         for line in self:
             requirement = Requirement
             if line.bom_id and line.bom_id.bom_scope == "total":
@@ -278,6 +316,7 @@ class SabProjectBomLineProcurementStatus(models.Model):
             elif line.bom_id and line.bom_id.project_id:
                 domain = [
                     ("project_id", "=", line.bom_id.project_id.id),
+                    ("bom_id.order_id", "=", line.bom_id.order_id.id),
                     ("bom_id.bom_scope", "=", "total"),
                     ("state", "!=", "cancel"),
                 ]
@@ -289,7 +328,18 @@ class SabProjectBomLineProcurementStatus(models.Model):
                     domain = []
                 if domain:
                     requirement = Requirement.search(domain, limit=1)
+
             line.purchase_requirement_id = requirement
+            line.procurement_status = requirement.stock_status if requirement else False
+            line.expected_delivery_date = (
+                requirement.expected_delivery_date if requirement else False
+            )
+            line.project_reserved_quantity = (
+                requirement.project_reserved_quantity if requirement else 0.0
+            )
+            line.shortage_quantity = (
+                requirement.shortage_quantity if requirement else 0.0
+            )
 
 
 class SabProjectBomProcurementSummary(models.Model):
@@ -298,23 +348,29 @@ class SabProjectBomProcurementSummary(models.Model):
     sab_material_available_percent = fields.Float(
         string="Material vorhanden (%)",
         compute="_compute_sab_procurement_summary",
+        compute_sudo=True,
     )
     sab_material_missing_percent = fields.Float(
         string="Material fehlt (%)",
         compute="_compute_sab_procurement_summary",
+        compute_sudo=True,
     )
     sab_expected_delivery_date = fields.Date(
         string="Spätester offener Liefertermin",
         compute="_compute_sab_procurement_summary",
+        compute_sudo=True,
     )
 
     @api.depends(
         "line_ids.quantity",
         "line_ids.unit_purchase_price",
-        "line_ids.purchase_requirement_id.project_reserved_quantity",
-        "line_ids.purchase_requirement_id.quantity",
-        "line_ids.purchase_requirement_id.expected_delivery_date",
-        "line_ids.purchase_requirement_id.stock_status",
+        "line_ids.product_id",
+        "line_ids.odoo_product_id",
+        "project_id.sab_purchase_requirement_ids.state",
+        "project_id.sab_purchase_requirement_ids.project_reserved_quantity",
+        "project_id.sab_purchase_requirement_ids.quantity",
+        "project_id.sab_purchase_requirement_ids.expected_delivery_date",
+        "project_id.sab_purchase_requirement_ids.stock_status",
     )
     def _compute_sab_procurement_summary(self):
         for bom in self:
