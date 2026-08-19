@@ -36,8 +36,8 @@ access_sab_purchase_requirement_user,sab.purchase.requirement user,model_sab_pur
 access_sab_stock_movement_user,sab.stock.movement user,model_sab_stock_movement,base.group_user,1,0,0,0
 access_sab_purchase_order_user_read,sab.purchase.order user read,model_sab_purchase_order,base.group_user,1,0,0,0
 access_sab_purchase_order_line_user_read,sab.purchase.order.line user read,model_sab_purchase_order_line,base.group_user,1,0,0,0
-access_sab_purchase_order_manager,sab.purchase.order manager,model_sab_purchase_order,project.group_project_manager,1,1,1,1
-access_sab_purchase_order_line_manager,sab.purchase.order.line manager,model_sab_purchase_order_line,project.group_project_manager,1,1,1,1
+access_sab_purchase_order_manager,sab.purchase.order manager,model_sab_purchase_order,project.group_project_manager,1,0,0,0
+access_sab_purchase_order_line_manager,sab.purchase.order.line manager,model_sab_purchase_order_line,project.group_project_manager,1,0,0,0
 access_sab_purchase_order_purchasing,sab.purchase.order purchasing,model_sab_purchase_order,sab_project.group_sab_purchasing,1,1,1,1
 access_sab_purchase_order_line_purchasing,sab.purchase.order.line purchasing,model_sab_purchase_order_line,sab_project.group_sab_purchasing,1,1,1,1
 access_sab_purchase_order_warehouse,sab.purchase.order warehouse,model_sab_purchase_order,sab_project.group_sab_warehouse,1,1,0,0
