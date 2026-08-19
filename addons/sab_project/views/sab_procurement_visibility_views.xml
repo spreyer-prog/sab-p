@@ -26,9 +26,11 @@
             </field>
             <field name="sab_material_available_percent" position="attributes">
                 <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+                <attribute name="widget">progressbar</attribute>
             </field>
             <field name="sab_material_procured_percent" position="attributes">
                 <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+                <attribute name="widget">progressbar</attribute>
             </field>
             <field name="sab_material_required_value" position="attributes">
                 <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
