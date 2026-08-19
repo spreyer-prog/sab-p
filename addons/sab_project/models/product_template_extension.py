@@ -4,6 +4,14 @@ from odoo import api, fields, models
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
+    # Odoo's product_variant_id is computed and normally not searchable. SAB-P
+    # uses it as the bridge to editable supplier/component child records. A
+    # search method lets Odoo resolve reverse recomputation cleanly instead of
+    # emitting repeated "should be searchable" registry warnings.
+    product_variant_id = fields.Many2one(
+        search="_search_sab_product_variant_id",
+    )
+
     sab_product_type = fields.Selection(
         [
             ("material", "Material"),
@@ -105,6 +113,10 @@ class ProductTemplate(models.Model):
         string="Lagerbewegungen",
         compute="_compute_sab_stock",
     )
+
+    @api.model
+    def _search_sab_product_variant_id(self, operator, value):
+        return [("product_variant_ids", operator, value)]
 
     @api.depends("product_variant_id")
     def _compute_sab_stock(self):
