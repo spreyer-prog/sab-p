@@ -39,7 +39,7 @@ class SaleOrderLineOfferReleaseSecurity(models.Model):
                 for vals in vals_list
                 if vals.get("order_id")
             }
-            released = self.env["sale.order"].browse(order_ids).filtered(
+            released = self.env["sale.order"].browse(list(order_ids)).filtered(
                 lambda order: order.sab_project_id
                 and order.sab_offer_release_state == "released"
             )
