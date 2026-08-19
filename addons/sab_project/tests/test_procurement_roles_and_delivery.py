@@ -177,6 +177,7 @@ class TestSabProcurementApprovalAndDelivery(TransactionCase):
         requirement = total_bom.purchase_requirement_ids
         self.assertAlmostEqual(requirement.project_reserved_quantity, 2.0)
         self.project.invalidate_recordset()
+        self.assertEqual(self.project.sab_material_requirement_count, 1)
         self.assertAlmostEqual(self.project.sab_material_required_value, 100.0)
         self.assertAlmostEqual(self.project.sab_material_available_value, 50.0)
         self.assertAlmostEqual(self.project.sab_material_available_percent, 50.0)
@@ -190,6 +191,10 @@ class TestSabProcurementApprovalAndDelivery(TransactionCase):
             action["domain"][0][2][0]
         )
         purchase_order.with_user(self.purchasing_user).action_submit_for_approval()
+        self.project.invalidate_recordset()
+        self.assertAlmostEqual(self.project.sab_material_procured_percent, 50.0)
+
+        purchase_order.with_user(self.approver_user).action_approve()
         self.project.invalidate_recordset()
         self.assertAlmostEqual(self.project.sab_material_procured_percent, 100.0)
 
@@ -215,6 +220,10 @@ class TestSabProcurementApprovalAndDelivery(TransactionCase):
             delivery_date,
         )
 
+        material_action = self.project.action_view_sab_material_requirements()
+        self.assertEqual(material_action["res_model"], "sab.purchase.requirement")
+        self.assertIn(("project_id", "=", self.project.id), material_action["domain"])
+
     def test_project_form_contains_total_material_orders_and_cabinets(self):
         view = self.env.ref(
             "sab_project.sab_project_project_form_procurement_detail"
@@ -224,6 +233,14 @@ class TestSabProcurementApprovalAndDelivery(TransactionCase):
         self.assertTrue(arch.xpath("//page[@name='sab_total_material']"))
         self.assertTrue(arch.xpath("//page[@name='sab_project_purchase_orders']"))
         self.assertTrue(arch.xpath("//page[@name='sab_project_switchboards']"))
+
+        overview_view = self.env.ref(
+            "sab_project.sab_project_overview_material_action"
+        )
+        overview_arch = etree.fromstring(overview_view.arch_db.encode("utf-8"))
+        self.assertTrue(overview_arch.xpath(
+            "//button[@name='action_view_sab_material_requirements']"
+        ))
 
         order_view = self.env.ref(
             "sab_project.view_sab_purchase_order_form_delivery_and_approval"
