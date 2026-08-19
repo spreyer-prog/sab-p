@@ -20,14 +20,16 @@ class SabProjectBomProcurementWorkspace(models.Model):
             return True
 
         model_id = self.env["ir.model"]._get_id(self._name)
-        for bom in self:
+        for bom in self.filtered(
+            lambda record: getattr(record, "bom_scope", "total") == "procurement"
+        ):
             for user in purchasing_group.user_ids.filtered("active"):
                 existing = self.env["mail.activity"].sudo().search_count(
                     [
                         ("res_model_id", "=", model_id),
                         ("res_id", "=", bom.id),
                         ("user_id", "=", user.id),
-                        ("summary", "=", "Neue freigegebene Stückliste prüfen"),
+                        ("summary", "=", "Neue Materialanforderung prüfen"),
                     ]
                 )
                 if not existing:
@@ -37,30 +39,31 @@ class SabProjectBomProcurementWorkspace(models.Model):
                             "res_model_id": model_id,
                             "res_id": bom.id,
                             "user_id": user.id,
-                            "summary": "Neue freigegebene Stückliste prüfen",
+                            "summary": "Neue Materialanforderung prüfen",
                             "note": (
-                                f"Projekt {bom.project_id.display_name}: Die technische "
-                                "Gesamtstückliste wurde freigegeben. Lagerbestand, "
-                                "Reservierung und Fehlbestand können jetzt im "
-                                "Einkaufs-Dashboard bearbeitet werden."
+                                f"Projekt {bom.project_id.display_name}: Das "
+                                f"Beschaffungspaket {bom.procurement_reference or bom.name} "
+                                "wurde aus ausgewählten Schaltschränken erzeugt. "
+                                "Lagerbestand, Kommissionierung, Fehlbestand und "
+                                "Bestellmengen können jetzt im Beschaffungs-Dashboard "
+                                "bearbeitet werden."
                             ),
                         }
                     )
         return True
 
     def _sab_push_to_procurement_workspace(self):
-        """Create the purchasing work package as an internal server operation.
+        """Create purchasing requirements only from a selected package.
 
-        The project manager releases the technical BOM but deliberately does not
-        receive purchasing write rights. Requirement generation, stock reservation
-        and the initial proposal quantity therefore run with sudo while every
-        business transition remains protected by the dedicated role checks.
+        Technical total and cabinet BOMs stay immutable planning documents. The
+        purchasing workspace starts only after the project manager explicitly
+        selected the cabinets that belong to one material request.
         """
-        total_boms = self.filtered(
+        procurement_boms = self.filtered(
             lambda bom: bom.state == "released"
-            and getattr(bom, "bom_scope", "total") == "total"
+            and getattr(bom, "bom_scope", "total") == "procurement"
         )
-        for bom in total_boms:
+        for bom in procurement_boms:
             server_bom = bom.sudo().with_context(sab_procurement_release=True)
             server_bom.action_generate_purchase_requirements()
             requirements = server_bom.purchase_requirement_ids.filtered(
@@ -69,7 +72,7 @@ class SabProjectBomProcurementWorkspace(models.Model):
             )
             requirements._reserve_available_stock()
             requirements._sab_prepare_order_quantities()
-        total_boms._sab_notify_purchasing_about_released_bom()
+        procurement_boms._sab_notify_purchasing_about_released_bom()
         return True
 
     def action_release(self):
@@ -82,23 +85,34 @@ class SabProjectBomProcurementWorkspace(models.Model):
                 "Die technische Stücklistenfreigabe ist der Projektleitung vorbehalten."
             )
         result = super().action_release()
-        self._sab_push_to_procurement_workspace()
+        self.filtered(
+            lambda bom: getattr(bom, "bom_scope", "total") == "procurement"
+        )._sab_push_to_procurement_workspace()
         return result
 
     def action_open_procurement_workspace(self):
         self.ensure_one()
         if self.state != "released":
             raise ValidationError(
-                "Der Einkaufsbereich steht erst nach technischer Freigabe der Stückliste zur Verfügung."
+                "Der Einkaufsbereich steht erst nach technischer Freigabe des Beschaffungspakets zur Verfügung."
             )
-        if getattr(self, "bom_scope", "total") != "total":
+        if getattr(self, "bom_scope", "total") != "procurement":
             raise ValidationError(
-                "Der projektweite Einkaufsbereich wird aus der Gesamtstückliste erzeugt."
+                "Der Einkaufsbereich wird aus einem Beschaffungspaket mit bewusst ausgewählten Schaltschränken erzeugt."
             )
         self._sab_push_to_procurement_workspace()
+        if not self.procurement_acknowledged:
+            self.write(
+                {
+                    "procurement_acknowledged": True,
+                    "procurement_acknowledged_at": fields.Datetime.now(),
+                    "procurement_acknowledged_by_id": self.env.user.id,
+                }
+            )
         return {
             "type": "ir.actions.act_window",
-            "name": _("Einkaufsbearbeitung – %s") % self.project_id.display_name,
+            "name": _("Einkaufsbearbeitung – %s")
+            % (self.procurement_reference or self.project_id.display_name),
             "res_model": "sab.purchase.requirement",
             "view_mode": "list,form",
             "domain": [
@@ -255,7 +269,7 @@ class SabPurchaseRequirementWorkspace(models.Model):
         )
         if not_released:
             raise ValidationError(
-                "Die Gesamtstückliste muss vor der Bestellerzeugung durch einen "
+                "Das Beschaffungspaket muss vor der Bestellerzeugung durch einen "
                 "hinterlegten Bestellfreigeber zur Beschaffung freigegeben werden."
             )
 
@@ -294,6 +308,7 @@ class SabPurchaseRequirementWorkspace(models.Model):
                         for requirement in supplier_requirements.sorted(
                             key=lambda record: (
                                 record.project_id.sab_project_reference or "",
+                                record.source_cabinet_bom_id.name or "",
                                 record.sequence,
                                 record.id,
                             )
