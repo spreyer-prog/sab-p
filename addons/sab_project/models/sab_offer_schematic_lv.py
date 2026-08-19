@@ -8,6 +8,7 @@ class SabOfferCalculationLineSchematicLv(models.Model):
     @api.depends(
         "order_id.sab_project_id",
         "order_id.sab_calculation_source",
+        "order_id.sab_offer_release_state",
         "calculation_item_id",
         "odoo_product_id",
         "lv_position",
@@ -41,15 +42,17 @@ class SabOfferCalculationLineSchematicLv(models.Model):
 
         line_type = vals.get("line_type", "item")
 
-        # A new Bauteil is one commercial LV/NTG position. In a schematic
-        # quotation it receives the next project-wide NTG number only when no
-        # known LV position has already been supplied, for example by reusing a
-        # Bauteil from an earlier offer.
+        # A new Bauteil is one commercial LV/NTG position. It receives only one
+        # provisional NTG number for the whole component. The contained products
+        # inherit this number and never receive individual NTG mappings.
         if line_type == "section":
-            if order.sab_calculation_source == "schematic" and not self._sab_has_prior_lv_offer(order):
+            if (
+                order.sab_calculation_source == "schematic"
+                and not self._sab_has_prior_lv_offer(order)
+            ):
                 raise ValidationError(
-                    "Ein Schaltplan-Angebot setzt ein zuvor bepreistes LV-Angebot im selben Projekt voraus. "
-                    "Bitte zuerst mindestens ein LV-Angebot senden oder bestätigen."
+                    "Ein Schaltplan-Angebot setzt ein zuvor zum Verschicken "
+                    "freigegebenes LV-Angebot im selben Projekt voraus."
                 )
             position = (vals.get("lv_position") or "").strip()
             if not position and (
@@ -59,7 +62,9 @@ class SabOfferCalculationLineSchematicLv(models.Model):
                     and self._sab_has_prior_lv_offer(order)
                 )
             ):
-                number = self.env["sab.project.lv.mapping"].next_ntg_number(order.sab_project_id)
+                number = self.env["sab.project.lv.mapping"].next_ntg_number(
+                    order.sab_project_id
+                )
                 position = f"NTG {number}"
                 vals["lv_position"] = position
                 vals["is_ntg"] = True
@@ -82,63 +87,40 @@ class SabOfferCalculationLineSchematicLv(models.Model):
             )
             return vals
 
-        calc_id = vals.get("calculation_item_id")
+        calculation_item_id = vals.get("calculation_item_id")
         product_id = vals.get("odoo_product_id")
-        if not (calc_id or product_id):
+        if not (calculation_item_id or product_id):
             return vals
 
-        # A schematic quotation is only valid after a priced LV quotation was
-        # actually sent/confirmed. A mapping created in an unsent LV draft alone
-        # must not bypass this prerequisite.
-        if order.sab_calculation_source == "schematic" and not self._sab_has_prior_lv_offer(order):
+        if (
+            order.sab_calculation_source == "schematic"
+            and not self._sab_has_prior_lv_offer(order)
+        ):
             raise ValidationError(
-                "Ein Schaltplan-Angebot setzt ein zuvor bepreistes LV-Angebot im selben Projekt voraus. "
-                "Bitte zuerst mindestens ein LV-Angebot senden oder bestätigen."
+                "Ein Schaltplan-Angebot setzt ein zuvor zum Verschicken "
+                "freigegebenes LV-Angebot im selben Projekt voraus."
             )
 
-        mapping = self._sab_lv_mapping(order, calc_id, product_id)
+        mapping = self._sab_lv_mapping(
+            order,
+            calculation_item_id,
+            product_id,
+        )
         if mapping:
             vals["lv_position"] = mapping.position_code
             vals["is_ntg"] = mapping.is_ntg
             return vals
 
-        if order.sab_calculation_source == "schematic":
-            Mapping = self.env["sab.project.lv.mapping"]
-            number = Mapping.next_ntg_number(order.sab_project_id)
-            code = f"NTG {number}"
-            map_vals = {
-                "project_id": order.sab_project_id.id,
-                "position_code": code,
-                "is_ntg": True,
-                "ntg_number": number,
-                "first_order_id": order.id,
-            }
-            if calc_id:
-                map_vals["calculation_item_id"] = calc_id
-            else:
-                map_vals["odoo_product_id"] = product_id
-            Mapping.create(map_vals)
-            vals["lv_position"] = code
-            vals["is_ntg"] = True
-            return vals
-
-        if order.sab_calculation_source == "lv" and self._sab_has_prior_lv_offer(order):
-            Mapping = self.env["sab.project.lv.mapping"]
-            number = Mapping.next_ntg_number(order.sab_project_id)
-            code = f"NTG {number}"
-            map_vals = {
-                "project_id": order.sab_project_id.id,
-                "position_code": code,
-                "is_ntg": True,
-                "ntg_number": number,
-                "first_order_id": order.id,
-            }
-            if calc_id:
-                map_vals["calculation_item_id"] = calc_id
-            else:
-                map_vals["odoo_product_id"] = product_id
-            Mapping.create(map_vals)
-            vals["lv_position"] = code
+        if order.sab_calculation_source == "schematic" or (
+            order.sab_calculation_source == "lv"
+            and self._sab_has_prior_lv_offer(order)
+        ):
+            # The code is provisional until this quotation is explicitly
+            # released. It is therefore not entered in the project mapping yet.
+            number = self.env["sab.project.lv.mapping"].next_ntg_number(
+                order.sab_project_id
+            )
+            vals["lv_position"] = f"NTG {number}"
             vals["is_ntg"] = True
         return vals
 
@@ -155,12 +137,14 @@ class SaleOrderSchematicLvRules(models.Model):
                     ("sab_project_id", "=", order.sab_project_id.id),
                     ("id", "!=", order.id),
                     ("sab_calculation_source", "=", "lv"),
-                    ("state", "in", ("sent", "sale", "done")),
+                    ("sab_offer_release_state", "=", "released"),
+                    ("state", "!=", "cancel"),
                 ]
             )
             if not prior:
                 raise ValidationError(
-                    "Ein Schaltplan-Angebot darf erst erstellt bzw. weitergeführt werden, "
-                    "wenn im Projekt bereits ein bepreistes LV-Angebot gesendet oder bestätigt wurde."
+                    "Ein Schaltplan-Angebot darf erst erstellt bzw. weitergeführt "
+                    "werden, wenn im Projekt bereits ein bepreistes LV-Angebot "
+                    "zum Verschicken freigegeben wurde."
                 )
         return True
