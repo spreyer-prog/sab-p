@@ -1,4 +1,4 @@
-from odoo import api, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -26,6 +26,22 @@ class SabProjectBomProcurementRegressionFix(models.Model):
 
 class SabPurchaseRequirementProcurementRegressionFix(models.Model):
     _inherit = "sab.purchase.requirement"
+
+    # sab_procurement_package historically replaced the complete selection after
+    # sab_procurement_status had added these workflow values. Re-add them at the
+    # end of the model chain so computed purchase stages remain valid values.
+    stock_status = fields.Selection(
+        selection_add=[
+            ("proposal", "Bestellvorschlag"),
+            ("approval", "Zur Bestellfreigabe"),
+            ("approved", "Freigegeben – noch nicht versendet"),
+        ],
+        ondelete={
+            "proposal": "set null",
+            "approval": "set null",
+            "approved": "set null",
+        },
+    )
 
     @api.depends(
         "quantity",
