@@ -156,16 +156,18 @@
                         invisible="not has_overdue_delivery"
                         groups="sab_project.group_sab_purchasing"/>
             </xpath>
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_view_overdue_delivery_lines"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-exclamation-triangle"
-                        invisible="overdue_line_count == 0">
-                    <field name="overdue_line_count"
-                           string="Überfällige Positionen"
-                           widget="statinfo"/>
-                </button>
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_overdue_delivery_lines"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-exclamation-triangle"
+                            invisible="overdue_line_count == 0">
+                        <field name="overdue_line_count"
+                               string="Überfällige Positionen"
+                               widget="statinfo"/>
+                    </button>
+                </div>
             </xpath>
             <field name="next_delivery_date" position="after">
                 <field name="has_overdue_delivery" readonly="1" invisible="1"/>
