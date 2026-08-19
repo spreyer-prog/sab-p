@@ -1,20 +1,24 @@
 from odoo import fields, models
 
 
+PROCUREMENT_STATUS_ADDITIONS = [
+    ("proposal", "Bestellvorschlag"),
+    ("approval", "Zur Bestellfreigabe"),
+    ("approved", "Freigegeben – noch nicht versendet"),
+]
+PROCUREMENT_STATUS_ONDELETE = {
+    "proposal": "set null",
+    "approval": "set null",
+    "approved": "set null",
+}
+
+
 class SabPurchaseRequirementDetailedStatus(models.Model):
     _inherit = "sab.purchase.requirement"
 
     stock_status = fields.Selection(
-        selection_add=[
-            ("proposal", "Bestellvorschlag"),
-            ("approval", "Zur Bestellfreigabe"),
-            ("approved", "Freigegeben – noch nicht versendet"),
-        ],
-        ondelete={
-            "proposal": "set null",
-            "approval": "set null",
-            "approved": "set null",
-        },
+        selection_add=PROCUREMENT_STATUS_ADDITIONS,
+        ondelete=PROCUREMENT_STATUS_ONDELETE,
     )
 
     def _compute_procurement_quantities(self):
@@ -36,3 +40,12 @@ class SabPurchaseRequirementDetailedStatus(models.Model):
                 requirement.stock_status = "approved"
             elif order.state in ("sent", "partial", "done"):
                 requirement.stock_status = "ordered"
+
+
+class SabProjectBomLineDetailedProcurementStatus(models.Model):
+    _inherit = "sab.project.bom.line"
+
+    procurement_status = fields.Selection(
+        selection_add=PROCUREMENT_STATUS_ADDITIONS,
+        ondelete=PROCUREMENT_STATUS_ONDELETE,
+    )
