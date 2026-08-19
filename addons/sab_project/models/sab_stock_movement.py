@@ -23,7 +23,7 @@ class SabStockMovement(models.Model):
         index=True,
     )
     product_name = fields.Char(
-        string="Produkt",
+        string="Produktbezeichnung",
         compute="_compute_product_name",
     )
     movement_type = fields.Selection(
