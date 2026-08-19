@@ -89,11 +89,11 @@
 
                 <t t-elif="state.activeTab == 'project'">
                     <div class="small text-muted mb-2">
-                        Komplette Bauteile werden mit allen Kalkulationspositionen übernommen. Über den Datenbank-Button wird daraus ein dauerhaftes Kalkulationsbauteil – ohne LV-Nummer.
+                        Komplette Bauteile werden mit allen Kalkulationspositionen übernommen. Dasselbe Bauteil wird projektweit nur einmal angezeigt; darunter stehen alle Angebote, in denen es verwendet wird.
                     </div>
 
                     <div t-if="filteredCurrentComponents.length" class="mb-3">
-                        <div class="o_sab_reuse_group_title">Aktuelles Angebot</div>
+                        <div class="o_sab_reuse_group_title">Im aktuellen Angebot vorhanden</div>
                         <div class="o_sab_reuse_list">
                             <article t-foreach="filteredCurrentComponents"
                                      t-as="item"
@@ -109,7 +109,7 @@
                     </div>
 
                     <div t-if="filteredPreviousComponents.length">
-                        <div class="o_sab_reuse_group_title">Frühere Projektangebote</div>
+                        <div class="o_sab_reuse_group_title">Weitere Projektbauteile</div>
                         <div class="o_sab_reuse_list">
                             <article t-foreach="filteredPreviousComponents"
                                      t-as="item"
@@ -126,7 +126,7 @@
 
                     <div t-if="!filteredCurrentComponents.length and !filteredPreviousComponents.length"
                          class="alert alert-light py-2 mb-0">
-                        Keine passenden Bauteile im Projekt vorhanden.
+                        Keine passenden freigegebenen Bauteile im Projekt vorhanden.
                     </div>
                 </t>
 
@@ -174,7 +174,7 @@
                  t-on-drop="onPanelDrop">
                 <i class="fa fa-level-down me-2"/>
                 <t t-if="canEdit">Hier ablegen oder direkt in die Kalkulation ziehen</t>
-                <t t-else="">Übernahme nur im Angebotsentwurf möglich</t>
+                <t t-else="">Übernahme nur im nicht freigegebenen Angebotsentwurf möglich</t>
             </div>
         </aside>
     </t>
@@ -186,11 +186,12 @@
                     <span class="fw-semibold text-truncate" t-att-title="item.name" t-esc="item.name"/>
                     <span t-if="item.is_current" class="badge text-bg-info">aktuell</span>
                 </div>
-                <div class="small text-muted">
-                    <t t-esc="item.offer"/> · <t t-esc="item.line_count"/> Position(en)
-                </div>
+                <div class="small text-muted"><t t-esc="item.line_count"/> Position(en)</div>
                 <div t-if="item.positions" class="small mt-1">
                     <span class="text-muted">LV:</span> <span t-esc="item.positions"/>
+                </div>
+                <div t-if="item.offers_text" class="small text-muted text-wrap mt-1">
+                    Angebote: <t t-esc="item.offers_text"/>
                 </div>
                 <div class="small text-muted">Summe: <t t-esc="formatAmount(item.total)"/></div>
                 <div t-if="item.saved_template_id" class="small text-success mt-1">
