@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_purchase_order_delivery"
+              inherit_id="sab_project.report_sab_purchase_order">
+        <xpath expr="//table[contains(@class, 'o_main_table')]/thead/tr/th[6]"
+               position="after">
+            <th class="text-start">Voraussichtlicher Liefertermin</th>
+        </xpath>
+        <xpath expr="//table[contains(@class, 'o_main_table')]/tbody/t/tr/td[6]"
+               position="after">
+            <td>
+                <span t-if="line.expected_delivery_date"
+                      t-out="line.expected_delivery_date"
+                      t-options="{'widget': 'date'}"/>
+            </td>
+        </xpath>
+        <xpath expr="//table[contains(@class, 'o_main_table')]/tfoot/tr/td[1]"
+               position="attributes">
+            <attribute name="colspan">8</attribute>
+        </xpath>
+    </template>
+</odoo>
