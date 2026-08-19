@@ -2,6 +2,8 @@ import base64
 import io
 import zipfile
 
+from lxml import etree
+
 from odoo.tests.common import TransactionCase
 
 
@@ -65,6 +67,7 @@ class TestSabDatanormImport(TransactionCase):
         self.assertAlmostEqual(product.mechanical_time_minutes, 4.0)
         self.assertAlmostEqual(product.wiring_time_minutes, 5.0)
         self.assertAlmostEqual(product.testing_time_minutes, 6.0)
+        self.assertEqual(product.odoo_product_id.sab_manufacturer_id, manufacturer)
         supplier_product = self.env["sab.supplier.product"].search([
             ("supplier_id", "=", self.supplier.id),
             ("supplier_article_number", "=", "1SFA170190R8000"),
@@ -77,6 +80,19 @@ class TestSabDatanormImport(TransactionCase):
         self.assertEqual(supplier_product.datanorm_type_name, "080CPN")
         self.assertEqual(supplier_product.ean, "7320500520642")
         self.assertIn("Z-Preis-/Zuschlagssätze erkannt: 1", wizard.result_text)
+
+    def test_product_list_shows_real_datanorm_manufacturer(self):
+        view = self.env.ref("sab_project.view_sab_odoo_product_tree")
+        arch = etree.fromstring(view.arch_db.encode("utf-8"))
+        manufacturer_fields = arch.xpath(
+            "/list/field[@name='sab_manufacturer_id'][@string='Hersteller']"
+        )
+        source_fields = arch.xpath(
+            "/list/field[@name='sab_manufacturer_supplier_id'][@string='Datenquelle / Lieferant']"
+        )
+        self.assertEqual(len(manufacturer_fields), 1)
+        self.assertEqual(len(source_fields), 1)
+        self.assertEqual(source_fields[0].get("optional"), "hide")
 
     def test_record_count_and_units(self):
         counts = self.env["sab.datanorm.import"]._record_counts([HEADER, ARTICLE, Z_RECORD, Z_RECORD, END])
