@@ -159,7 +159,7 @@
     <record id="sab_purchase_requirement_menu" model="ir.ui.menu">
         <field name="parent_id" ref="sab_stock_root_menu"/>
         <field name="sequence">10</field>
-        <field name="groups_id" eval="[(6,0,[ref('sab_project.group_sab_purchasing'),ref('project.group_project_manager')])]"/>
+        <field name="group_ids" eval="[(6,0,[ref('sab_project.group_sab_purchasing'),ref('project.group_project_manager')])]"/>
     </record>
 
     <menuitem id="sab_purchase_order_drafts_menu"
@@ -186,6 +186,6 @@
     <record id="sab_stock_movement_menu" model="ir.ui.menu">
         <field name="parent_id" ref="sab_stock_root_menu"/>
         <field name="sequence">50</field>
-        <field name="groups_id" eval="[(6,0,[ref('sab_project.group_sab_warehouse'),ref('sab_project.group_sab_purchasing'),ref('project.group_project_manager')])]"/>
+        <field name="group_ids" eval="[(6,0,[ref('sab_project.group_sab_warehouse'),ref('sab_project.group_sab_purchasing'),ref('project.group_project_manager')])]"/>
     </record>
 </odoo>
