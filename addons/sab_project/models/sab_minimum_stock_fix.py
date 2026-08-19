@@ -4,6 +4,20 @@ from odoo import api, fields, models
 class SabPurchaseRequirementMinimumStockProjectionFix(models.Model):
     _inherit = "sab.purchase.requirement"
 
+    quantity_to_order = fields.Float(
+        string="Jetzt zu bestellen",
+        digits=(16, 3),
+        default=0.0,
+        copy=False,
+        help=(
+            "Standardmäßig wird genau der tatsächliche Fehlbestand vorgeschlagen. "
+            "Lieferanten-Mindestbestellmengen und Verpackungseinheiten erhöhen die "
+            "Menge nicht automatisch, sondern werden lediglich als Hinweis angezeigt. "
+            "Nur bei ausdrücklicher Auswahl wird zusätzlich der Produkt-Mindestbestand "
+            "wieder aufgefüllt. Mit 0 bleibt die Position in dieser Bestellung außen vor."
+        ),
+    )
+
     @api.depends(
         "warehouse_available",
         "shortage_quantity",
