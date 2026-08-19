@@ -5,29 +5,65 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_confirm']" position="attributes">
+                <attribute name="string">Auftrag erhalten</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_quotation_send']" position="attributes">
+                <attribute name="invisible">state not in ('draft', 'sent') or sab_offer_release_state != 'released'</attribute>
+            </xpath>
             <xpath expr="//header" position="inside">
-                <button name="action_create_sab_revision" type="object" string="Neue Revision" class="btn-secondary" invisible="not sab_project_id"/>
-                <button name="action_generate_sab_bom" type="object" string="Stückliste erzeugen" class="btn-primary" invisible="not sab_project_id or state not in ('sale', 'done')"/>
+                <button name="action_sab_release_offer"
+                        type="object"
+                        string="Angebot zum Verschicken freigeben"
+                        class="btn-primary"
+                        invisible="not sab_project_id or sab_offer_release_state == 'released' or state not in ('draft', 'sent')"/>
+                <button name="action_create_sab_revision"
+                        type="object"
+                        string="Neue Revision"
+                        class="btn-secondary"
+                        invisible="not sab_project_id"/>
+                <button name="action_generate_sab_bom"
+                        type="object"
+                        string="Stückliste erzeugen"
+                        class="btn-primary"
+                        invisible="not sab_project_id or state not in ('sale', 'done')"/>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="sab_project_id" required="state in ('draft', 'sent')" readonly="state not in ('draft', 'sent')"/>
+                <field name="sab_project_id"
+                       required="state in ('draft', 'sent')"
+                       readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
                 <field name="sab_offer_reference" readonly="1" invisible="not sab_offer_reference"/>
+                <field name="sab_offer_release_state" readonly="1" widget="badge" invisible="not sab_project_id"/>
+                <field name="sab_offer_released_at" readonly="1" invisible="not sab_offer_released_at"/>
+                <field name="sab_offer_released_by_id" readonly="1" invisible="not sab_offer_released_by_id"/>
                 <field name="sab_revision_of_id" readonly="1" invisible="not sab_revision_of_id"/>
-                <field name="sab_revision_reason" invisible="not sab_revision_of_id"/>
-                <field name="sab_calculation_source" string="Kalkulationsgrundlage" invisible="not sab_project_id"/>
+                <field name="sab_revision_reason"
+                       invisible="not sab_revision_of_id"
+                       readonly="sab_offer_release_state == 'released'"/>
+                <field name="sab_calculation_source"
+                       string="Kalkulationsgrundlage"
+                       invisible="not sab_project_id"
+                       readonly="sab_offer_release_state == 'released'"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="SAB-P Kalkulation" name="sab_calculation">
                     <group string="Kalkulationspositionen" col="1">
-                        <field name="sab_calculation_line_ids" nolabel="1" readonly="state not in ('draft', 'sent')">
-                            <list editable="bottom" default_order="sequence" decoration-muted="line_type in ('info', 'section_end')" decoration-bf="line_type == 'section'">
+                        <field name="sab_calculation_line_ids"
+                               nolabel="1"
+                               readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'">
+                            <list editable="bottom"
+                                  default_order="sequence"
+                                  decoration-muted="line_type in ('info', 'section_end')"
+                                  decoration-bf="line_type == 'section'">
                                 <control>
                                     <create string="Kalkulationsartikel / Produkt hinzufügen" context="{'default_line_type': 'item'}"/>
                                     <create string="Bauteil erstellen" context="{'default_line_type': 'section', 'default_quantity': 1.0}"/>
                                     <create string="Bauteil beenden" context="{'default_line_type': 'section_end', 'default_quantity': 1.0}"/>
                                     <create string="Infofeld hinzufügen" context="{'default_line_type': 'info', 'default_quantity': 1.0}"/>
                                 </control>
-                                <field name="order_id" column_invisible="1"/><field name="line_type" column_invisible="1"/><field name="parent_section_id" column_invisible="1"/>
+                                <field name="order_id" column_invisible="1"/>
+                                <field name="line_type" column_invisible="1"/>
+                                <field name="parent_section_id" column_invisible="1"/>
                                 <field name="sequence" widget="handle" string="Pos."/>
                                 <field name="hierarchy_marker" string="" readonly="1" width="24px"/>
                                 <field name="lv_position" string="LV-Pos." optional="show" invisible="line_type != 'item'"/>
@@ -52,16 +88,77 @@
                         </field>
                     </group>
                     <group string="Angebotssumme" col="4">
-                        <field name="sab_offer_subtotal" string="Nettobetrag" readonly="1"/><field name="sab_object_discount_amount" string="Objektnachlass" readonly="1" invisible="not sab_object_discount_percent"/><field name="sab_offer_net_after_discount" string="Netto nach Objektnachlass" readonly="1" invisible="not sab_object_discount_percent"/><field name="sab_transport_cost" string="Transportkosten" readonly="state not in ('draft', 'sent')"/><field name="sab_offer_net_total" string="Netto-Angebotssumme" readonly="1"/><field name="sab_offer_vat_total" string="Umsatzsteuer" readonly="1"/><field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
+                        <field name="sab_offer_subtotal" string="Nettobetrag" readonly="1"/>
+                        <field name="sab_object_discount_amount" string="Objektnachlass" readonly="1" invisible="not sab_object_discount_percent"/>
+                        <field name="sab_offer_net_after_discount" string="Netto nach Objektnachlass" readonly="1" invisible="not sab_object_discount_percent"/>
+                        <field name="sab_transport_cost" string="Transportkosten" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_offer_net_total" string="Netto-Angebotssumme" readonly="1"/>
+                        <field name="sab_offer_vat_total" string="Umsatzsteuer" readonly="1"/>
+                        <field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
                     </group>
                 </page>
                 <page string="Kalkulationsfaktoren" name="sab_calculation_factors">
-                    <group string="Material und Zeit" col="4"><field name="sab_material_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_aux_material_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_hourly_rate" readonly="state not in ('draft', 'sent')"/><field name="sab_time_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_difficulty_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_planning_surcharge_factor" string="Planungszuschlag – Formelabgleich offen" readonly="state not in ('draft', 'sent')"/></group>
-                    <group string="Kaufmännische Faktoren" col="4"><field name="sab_packaging_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_skonto_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_margin_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_rebate_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_object_discount_percent" readonly="state not in ('draft', 'sent')"/><field name="sab_vat_rate" string="Umsatzsteuer (%)" readonly="state not in ('draft', 'sent')"/></group>
-                    <group string="Excel-Sonderfaktoren" col="4"><field name="sab_additional_order_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_hw_metal_factor" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_1" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_2" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_3" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_4" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_5" readonly="state not in ('draft', 'sent')"/><field name="sab_trade_factor_6" readonly="state not in ('draft', 'sent')"/><field name="sab_terminal_deduction" readonly="state not in ('draft', 'sent')"/><field name="sab_wage_unit" readonly="state not in ('draft', 'sent')"/><field name="sab_planning_hours" readonly="state not in ('draft', 'sent')"/><field name="sab_assembly_correction" readonly="state not in ('draft', 'sent')"/></group>
-                    <group string="Kontrollwerte" col="5"><field name="sab_material_cost" readonly="1"/><field name="sab_labor_cost" readonly="1"/><field name="sab_direct_cost" readonly="1"/><field name="sab_commercial_factor" readonly="1"/><field name="sab_recommended_net_price" readonly="1"/></group>
+                    <group string="Material und Zeit" col="4">
+                        <field name="sab_material_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_aux_material_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_hourly_rate" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_time_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_difficulty_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_planning_surcharge_factor" string="Planungszuschlag – Formelabgleich offen" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Kaufmännische Faktoren" col="4">
+                        <field name="sab_packaging_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_skonto_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_margin_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_rebate_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_object_discount_percent" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_vat_rate" string="Umsatzsteuer (%)" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Excel-Sonderfaktoren" col="4">
+                        <field name="sab_additional_order_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_hw_metal_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_trade_factor_1" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_trade_factor_2" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_trade_factor_3" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_trade_factor_4" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_trade_factor_5" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_trade_factor_6" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_terminal_deduction" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_wage_unit" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_planning_hours" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                        <field name="sab_assembly_correction" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Kontrollwerte" col="5">
+                        <field name="sab_material_cost" readonly="1"/>
+                        <field name="sab_labor_cost" readonly="1"/>
+                        <field name="sab_direct_cost" readonly="1"/>
+                        <field name="sab_commercial_factor" readonly="1"/>
+                        <field name="sab_recommended_net_price" readonly="1"/>
+                    </group>
                 </page>
-                <page string="Angebotsbedingungen" name="sab_offer_terms"><group string="Lieferung und Zahlung" col="4"><field name="sab_delivery_time_text"/><field name="sab_payment_text"/><field name="validity_date"/><field name="sab_transport_cost"/></group><group string="Leistungsbeschreibung" col="1"><field name="sab_service_description" nolabel="1"/></group><group string="Dokumentation" col="1"><field name="sab_documentation_text" nolabel="1"/></group><group string="Transport / Verpackung" col="1"><field name="sab_transport_text" nolabel="1"/></group><group string="Vorbehalte" col="1"><field name="sab_reservations_text" nolabel="1"/></group><group string="Zusätzliche Bedingungen" col="1"><field name="sab_additional_terms_text" nolabel="1"/></group></page>
+                <page string="Angebotsbedingungen" name="sab_offer_terms">
+                    <group string="Lieferung und Zahlung" col="4">
+                        <field name="sab_delivery_time_text" readonly="sab_offer_release_state == 'released'"/>
+                        <field name="sab_payment_text" readonly="sab_offer_release_state == 'released'"/>
+                        <field name="validity_date" readonly="sab_offer_release_state == 'released'"/>
+                        <field name="sab_transport_cost" readonly="sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Leistungsbeschreibung" col="1">
+                        <field name="sab_service_description" nolabel="1" readonly="sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Dokumentation" col="1">
+                        <field name="sab_documentation_text" nolabel="1" readonly="sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Transport / Verpackung" col="1">
+                        <field name="sab_transport_text" nolabel="1" readonly="sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Vorbehalte" col="1">
+                        <field name="sab_reservations_text" nolabel="1" readonly="sab_offer_release_state == 'released'"/>
+                    </group>
+                    <group string="Zusätzliche Bedingungen" col="1">
+                        <field name="sab_additional_terms_text" nolabel="1" readonly="sab_offer_release_state == 'released'"/>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>
