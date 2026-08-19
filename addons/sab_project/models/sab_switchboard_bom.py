@@ -8,7 +8,11 @@ class SabProjectBomSwitchboard(models.Model):
     _inherit = "sab.project.bom"
 
     bom_scope = fields.Selection(
-        [("total", "Gesamtstückliste"), ("cabinet", "Verteiler / Schaltschrank")],
+        [
+            ("total", "Gesamtstückliste"),
+            ("cabinet", "Verteiler / Schaltschrank"),
+            ("procurement", "Beschaffungspaket"),
+        ],
         string="Stücklistenart",
         required=True,
         default="total",
@@ -33,8 +37,11 @@ class SabProjectBomSwitchboard(models.Model):
         for bom in self:
             if bom.bom_scope == "cabinet" and not bom.cabinet_line_id:
                 raise ValidationError("Eine Verteilerstückliste benötigt einen zugeordneten Schaltschrank.")
-            if bom.bom_scope == "total" and bom.cabinet_line_id:
-                raise ValidationError("Die Gesamtstückliste darf keinem einzelnen Schaltschrank zugeordnet sein.")
+            if bom.bom_scope in ("total", "procurement") and bom.cabinet_line_id:
+                raise ValidationError(
+                    "Eine Gesamtstückliste oder ein Beschaffungspaket darf keinem "
+                    "einzelnen Schaltschrank zugeordnet sein."
+                )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -43,17 +50,47 @@ class SabProjectBomSwitchboard(models.Model):
             vals = dict(incoming)
             scope = vals.get("bom_scope", "total")
             cabinet_id = vals.get("cabinet_line_id")
-            vals["scope_key"] = f"cabinet:{cabinet_id}" if scope == "cabinet" and cabinet_id else "total"
+            if scope == "cabinet" and cabinet_id:
+                vals["scope_key"] = f"cabinet:{cabinet_id}"
+            elif scope == "procurement":
+                reference = vals.get("procurement_reference") or self.env[
+                    "ir.sequence"
+                ].next_by_code("sab.procurement.request")
+                if not reference:
+                    raise ValidationError(
+                        "Für das Beschaffungspaket konnte keine Materialanforderungsnummer erzeugt werden."
+                    )
+                vals["procurement_reference"] = reference
+                vals["scope_key"] = f"procurement:{reference}"
+            else:
+                vals["scope_key"] = "total"
             prepared.append(vals)
         return super().create(prepared)
 
     def write(self, vals):
         values = dict(vals)
-        if "bom_scope" in values or "cabinet_line_id" in values:
+        if (
+            "bom_scope" in values
+            or "cabinet_line_id" in values
+            or "procurement_reference" in values
+        ):
             for bom in self:
                 scope = values.get("bom_scope", bom.bom_scope)
                 cabinet = values.get("cabinet_line_id", bom.cabinet_line_id.id)
-                values["scope_key"] = f"cabinet:{cabinet}" if scope == "cabinet" and cabinet else "total"
+                if scope == "cabinet" and cabinet:
+                    values["scope_key"] = f"cabinet:{cabinet}"
+                elif scope == "procurement":
+                    reference = values.get(
+                        "procurement_reference",
+                        getattr(bom, "procurement_reference", False),
+                    )
+                    if not reference:
+                        raise ValidationError(
+                            "Ein Beschaffungspaket benötigt eine Materialanforderungsnummer."
+                        )
+                    values["scope_key"] = f"procurement:{reference}"
+                else:
+                    values["scope_key"] = "total"
         return super().write(values)
 
 
