@@ -44,6 +44,7 @@ from . import sab_procurement_roles
 from . import sab_procurement_status
 from . import sab_procurement_transition_security
 from . import sab_procurement_workspace
+from . import sab_procurement_workspace_validation
 from . import project_procurement_detail
 from . import sab_project_document
 from . import sab_time_entry
