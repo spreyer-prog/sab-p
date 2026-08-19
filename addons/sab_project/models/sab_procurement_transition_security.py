@@ -14,10 +14,14 @@ class SabProjectBomProcurementWriteSecurity(models.Model):
 
     def action_generate_purchase_requirements(self):
         for bom in self:
-            if getattr(bom, "bom_scope", "total") != "total":
+            if getattr(bom, "bom_scope", "total") not in (
+                "total",
+                "procurement",
+            ):
                 raise ValidationError(
-                    "Einkaufsbedarf darf ausschließlich aus der Gesamtstückliste "
-                    "erzeugt werden. Verteilerstücklisten dienen nur der technischen Zuordnung."
+                    "Einkaufsbedarf darf nur aus einer Gesamtstückliste oder einem "
+                    "bewusst zusammengestellten Beschaffungspaket erzeugt werden. "
+                    "Verteilerstücklisten dienen der technischen Zuordnung."
                 )
         if not self.env.context.get("sab_procurement_release"):
             self._sab_check_project_manager()
@@ -43,9 +47,13 @@ class SabProjectBomProcurementWriteSecurity(models.Model):
                     raise ValidationError(
                         "Die Stückliste muss vor der Bestellfreigabe technisch freigegeben sein."
                     )
-                if getattr(bom, "bom_scope", "total") != "total":
+                if getattr(bom, "bom_scope", "total") not in (
+                    "total",
+                    "procurement",
+                ):
                     raise ValidationError(
-                        "Nur die Gesamtstückliste darf zur Beschaffung freigegeben werden."
+                        "Nur eine Gesamtstückliste oder ein Beschaffungspaket darf "
+                        "zur Beschaffung freigegeben werden."
                     )
         return super().write(vals)
 
