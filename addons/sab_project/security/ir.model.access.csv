@@ -42,6 +42,17 @@ access_sab_purchase_order_purchasing,sab.purchase.order purchasing,model_sab_pur
 access_sab_purchase_order_line_purchasing,sab.purchase.order.line purchasing,model_sab_purchase_order_line,sab_project.group_sab_purchasing,1,1,1,1
 access_sab_purchase_order_warehouse,sab.purchase.order warehouse,model_sab_purchase_order,sab_project.group_sab_warehouse,1,1,0,0
 access_sab_purchase_order_line_warehouse,sab.purchase.order.line warehouse,model_sab_purchase_order_line,sab_project.group_sab_warehouse,1,1,0,0
+access_sab_purchase_order_approver,sab.purchase.order approver,model_sab_purchase_order,sab_project.group_sab_purchase_approver,1,1,0,0
+access_sab_purchase_order_line_approver,sab.purchase.order.line approver,model_sab_purchase_order_line,sab_project.group_sab_purchase_approver,1,0,0,0
+access_sab_project_bom_approver,sab.project.bom approver,model_sab_project_bom,sab_project.group_sab_purchase_approver,1,1,0,0
+access_sab_purchase_requirement_approver,sab.purchase.requirement approver,model_sab_purchase_requirement,sab_project.group_sab_purchase_approver,1,1,1,0
+access_sab_stock_movement_approver,sab.stock.movement approver,model_sab_stock_movement,sab_project.group_sab_purchase_approver,1,0,1,0
+access_sab_purchase_requirement_manager,sab.purchase.requirement manager,model_sab_purchase_requirement,project.group_project_manager,1,0,0,0
+access_sab_stock_movement_manager,sab.stock.movement manager,model_sab_stock_movement,project.group_project_manager,1,0,0,0
+access_sab_purchase_requirement_purchasing,sab.purchase.requirement purchasing,model_sab_purchase_requirement,sab_project.group_sab_purchasing,1,1,1,1
+access_sab_stock_movement_purchasing,sab.stock.movement purchasing,model_sab_stock_movement,sab_project.group_sab_purchasing,1,0,1,0
+access_sab_purchase_requirement_warehouse,sab.purchase.requirement warehouse,model_sab_purchase_requirement,sab_project.group_sab_warehouse,1,1,0,0
+access_sab_stock_movement_warehouse,sab.stock.movement warehouse,model_sab_stock_movement,sab_project.group_sab_warehouse,1,0,1,0
 access_sab_project_document_user,sab.project.document user,model_sab_project_document,base.group_user,1,1,1,1
 access_sab_time_entry_employee,sab.time.entry employee,model_sab_time_entry,sab_project.group_sab_employee,1,1,1,0
 access_sab_time_entry_manager,sab.time.entry manager,model_sab_time_entry,project.group_project_manager,1,1,1,1
