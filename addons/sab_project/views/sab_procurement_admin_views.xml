@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_project_bom_form_procurement_admin_release" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.procurement.admin.release</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_purchase_release"/>
+        <field name="priority">270</field>
+        <field name="arch" type="xml">
+            <button name="action_release" position="attributes">
+                <attribute name="groups">project.group_project_manager,base.group_system</attribute>
+            </button>
+        </field>
+    </record>
+</odoo>
