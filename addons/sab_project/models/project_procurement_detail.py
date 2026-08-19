@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 
 
 class ProjectProjectProcurementDetail(models.Model):
@@ -8,6 +8,10 @@ class ProjectProjectProcurementDetail(models.Model):
         related="company_id.currency_id",
         string="Währung",
         readonly=True,
+    )
+    sab_material_requirement_count = fields.Integer(
+        string="Materialpositionen",
+        compute="_compute_procurement_overview",
     )
     sab_material_required_value = fields.Monetary(
         string="Materialbedarf (EK)",
@@ -126,6 +130,7 @@ class ProjectProjectProcurementDetail(models.Model):
                     else 0.0
                 )
 
+            project.sab_material_requirement_count = len(requirements)
             project.sab_material_required_value = required_value
             project.sab_material_available_value = available_value
             project.sab_material_procured_value = procured_value
@@ -169,3 +174,22 @@ class ProjectProjectProcurementDetail(models.Model):
             else:
                 state = "not_started"
             project.sab_procurement_state = state
+
+    def action_view_sab_material_requirements(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Gesamtmaterial – %s") % self.display_name,
+            "res_model": "sab.purchase.requirement",
+            "view_mode": "list,form",
+            "domain": [
+                ("project_id", "=", self.id),
+                ("bom_id.bom_scope", "=", "total"),
+                ("state", "!=", "cancel"),
+            ],
+            "context": {
+                "search_default_open": 0,
+                "search_default_group_project": 0,
+            },
+            "target": "current",
+        }
