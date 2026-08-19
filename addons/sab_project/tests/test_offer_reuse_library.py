@@ -8,9 +8,14 @@ class TestSabOfferReuseLibrary(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.partner = cls.env["res.partner"].create({"name": "Kunde Wiederverwendung"})
+        cls.partner = cls.env["res.partner"].create(
+            {"name": "Kunde Wiederverwendung"}
+        )
         cls.project = cls.env["project.project"].create(
-            {"name": "Projekt Wiederverwendung", "partner_id": cls.partner.id}
+            {
+                "name": "Projekt Wiederverwendung",
+                "partner_id": cls.partner.id,
+            }
         )
         cls.product = cls.env["sab.product"].create(
             {
@@ -44,9 +49,6 @@ class TestSabOfferReuseLibrary(TransactionCase):
                 "sab_calculation_source": "lv",
             }
         )
-        # The same calculation item is also offered once as a genuine direct LV
-        # position. That project mapping must remain available for direct reuse,
-        # while a child inside a Bauteil still inherits the Bauteil position.
         cls.direct_item = cls.env["sab.offer.calculation.line"].create(
             {
                 "order_id": cls.first_order.id,
@@ -83,6 +85,8 @@ class TestSabOfferReuseLibrary(TransactionCase):
             }
         )
         cls.first_order.sab_calculation_line_ids._normalize_section_membership()
+        cls.first_order.action_sab_release_offer()
+
         cls.second_order = cls.env["sale.order"].create(
             {
                 "partner_id": cls.partner.id,
@@ -95,13 +99,22 @@ class TestSabOfferReuseLibrary(TransactionCase):
         payload = self.second_order.sab_offer_reuse_payload()
         self.assertTrue(payload["editable"])
         self.assertEqual(payload["project"], self.project.display_name)
-        self.assertIn("01.01.03", [item["position"] for item in payload["lv_positions"]])
+        self.assertIn(
+            "01.01.03",
+            [item["position"] for item in payload["lv_positions"]],
+        )
         source_components = [
-            item for item in payload["project_components"] if item["id"] == self.source_section.id
+            item
+            for item in payload["project_components"]
+            if item["id"] == self.source_section.id
         ]
         self.assertEqual(len(source_components), 1)
         self.assertEqual(source_components[0]["positions"], "01.01")
         self.assertEqual(source_components[0]["line_count"], 1)
+        self.assertIn(
+            self.first_order.sab_offer_reference,
+            source_components[0]["offers"],
+        )
 
     def test_single_lv_position_can_be_added_from_panel(self):
         mapping = self.env["sab.project.lv.mapping"].search(
@@ -123,7 +136,8 @@ class TestSabOfferReuseLibrary(TransactionCase):
 
     def test_complete_project_component_is_copied_with_component_position(self):
         result = self.second_order.sab_offer_add_reuse_entry(
-            "project_component", self.source_section.id
+            "project_component",
+            self.source_section.id,
         )
         self.assertIn("vollständig übernommen", result["message"])
         copied_section = self.second_order.sab_calculation_line_ids.filtered(
@@ -135,21 +149,38 @@ class TestSabOfferReuseLibrary(TransactionCase):
         self.assertEqual(len(copied_section), 1)
         self.assertEqual(copied_section.description, "Bauteil Einspeisung")
         self.assertEqual(copied_section.lv_position, "01.01")
+        self.assertEqual(copied_section.component_origin_id, self.source_section)
         self.assertEqual(len(copied_item), 1)
         self.assertEqual(copied_item.parent_section_id, copied_section)
         self.assertEqual(copied_item.lv_position, "01.01")
         self.assertFalse(copied_item.is_ntg)
         self.assertAlmostEqual(copied_item.quantity, 2.0)
 
+        payload = self.second_order.sab_offer_reuse_payload()
+        matching = [
+            item
+            for item in payload["project_components"]
+            if item["positions"] == "01.01"
+            and item["name"] == "Bauteil Einspeisung"
+        ]
+        self.assertEqual(len(matching), 1)
+        self.assertIn(self.first_order.sab_offer_reference, matching[0]["offers"])
+        self.assertIn(self.second_order.sab_offer_reference, matching[0]["offers"])
+
     def test_component_can_be_saved_to_database_without_lv_and_reused(self):
-        result = self.second_order.sab_offer_save_component_template(self.source_section.id)
+        result = self.second_order.sab_offer_save_component_template(
+            self.source_section.id
+        )
         template = self.env["sab.calculation.component.template"].browse(
             result["template_id"]
         )
         self.assertEqual(template.name, "Bauteil Einspeisung")
         self.assertEqual(template.source_section_line_id, self.source_section)
         self.assertEqual(len(template.line_ids), 1)
-        self.assertEqual(template.line_ids.calculation_item_id, self.calculation_item)
+        self.assertEqual(
+            template.line_ids.calculation_item_id,
+            self.calculation_item,
+        )
         self.assertAlmostEqual(template.line_ids.quantity, 2.0)
         self.assertNotIn("lv_position", template._fields)
         self.assertNotIn("lv_position", template.line_ids._fields)
@@ -166,20 +197,35 @@ class TestSabOfferReuseLibrary(TransactionCase):
             1,
         )
 
-        self.second_order.sab_offer_add_reuse_entry("library_component", template.id)
+        self.second_order.sab_offer_add_reuse_entry(
+            "library_component",
+            template.id,
+        )
         inserted_section = self.second_order.sab_calculation_line_ids.filtered(
             lambda line: line.line_type == "section"
         )
         inserted_item = self.second_order.sab_calculation_line_ids.filtered(
             lambda line: line.line_type == "item"
         )
-        self.assertFalse(inserted_section.lv_position)
-        self.assertFalse(inserted_item.lv_position)
-        self.assertFalse(inserted_item.is_ntg)
+        self.assertTrue(inserted_section.lv_position.startswith("NTG "))
+        self.assertTrue(inserted_section.is_ntg)
+        self.assertEqual(inserted_item.lv_position, inserted_section.lv_position)
+        self.assertTrue(inserted_item.is_ntg)
         self.assertEqual(inserted_item.parent_section_id, inserted_section)
+        self.assertFalse(
+            self.env["sab.project.lv.mapping"].search(
+                [
+                    ("project_id", "=", self.project.id),
+                    ("calculation_item_id", "=", self.calculation_item.id),
+                    ("position_code", "=", inserted_section.lv_position),
+                ]
+            )
+        )
 
     def test_form_contains_right_side_reuse_widget(self):
         view = self.env.ref("sab_project.sab_sale_order_form_reuse_panel")
         arch = etree.fromstring(view.arch_db.encode("utf-8"))
-        widgets = arch.xpath("//xpath[@expr='//chatter']/widget[@name='sab_offer_reuse_panel']")
+        widgets = arch.xpath(
+            "//xpath[@expr='//chatter']/widget[@name='sab_offer_reuse_panel']"
+        )
         self.assertEqual(len(widgets), 1)
