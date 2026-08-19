@@ -60,6 +60,8 @@
                 <field name="sab_product_type" string="Produkttyp"/>
                 <field name="sab_manufacturer_article_number" string="Herstellerartikelnummer"/>
                 <field name="name"/>
+                <field name="sab_purchase_signal" string="Einkaufsampel" optional="show"/>
+                <field name="sab_purchase_max_quantity" string="Höchstmenge" optional="hide"/>
                 <field name="sab_price_mode" string="Preisermittlung"/>
                 <field name="sab_calculated_purchase_price" string="Kalkulatorischer EK"/>
                 <field name="sab_datanorm_number" string="DATANORM-Nummer" optional="hide"/>
@@ -88,6 +90,11 @@
                         <field name="sab_product_type" string="Produkttyp"/>
                         <field name="active"/>
                         <field name="name" colspan="4"/>
+                    </group>
+
+                    <group string="Einkaufsfreigabe" col="4">
+                        <field name="sab_purchase_signal" string="Einkaufsampel" widget="radio"/>
+                        <field name="sab_purchase_max_quantity" string="Höchstmenge je Bestellposition" invisible="sab_purchase_signal != 'yellow'" required="sab_purchase_signal == 'yellow'"/>
                     </group>
 
                     <group string="Preisermittlung" col="4">
@@ -181,6 +188,10 @@
                         <field name="sab_manufacturer_article_number"/>
                         <field name="sab_product_type"/>
                         <field name="sab_datanorm_number"/>
+                    </group>
+                    <group string="Einkaufsfreigabe" col="4">
+                        <field name="sab_purchase_signal" widget="radio"/>
+                        <field name="sab_purchase_max_quantity" invisible="sab_purchase_signal != 'yellow'" required="sab_purchase_signal == 'yellow'"/>
                     </group>
                     <group string="Preisermittlung" col="4">
                         <field name="sab_price_mode"/>
