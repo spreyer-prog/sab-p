@@ -59,7 +59,7 @@
         <field name="inherit_id" ref="sab_project.view_product_template_form_sab_p"/>
         <field name="priority">330</field>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='sab_p_calculation']/group[@string='Preisermittlung']"
+            <xpath expr="//page[@name='sab_p_calculation']/group[field[@name='sab_price_mode']]"
                    position="after">
                 <group string="Lager" col="4">
                     <field name="sab_minimum_stock_quantity"/>
