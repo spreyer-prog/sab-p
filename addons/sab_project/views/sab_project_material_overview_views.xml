@@ -7,6 +7,16 @@
         <field name="priority">240</field>
         <field name="arch" type="xml">
             <field name="sab_material_procured_percent" position="after">
+                <field name="sab_procurement_currency_id" column_invisible="1"/>
+                <field name="sab_material_required_value"
+                       string="Materialbedarf (EK)"
+                       optional="hide"/>
+                <field name="sab_material_available_value"
+                       string="Physisch vorhanden (EK)"
+                       optional="hide"/>
+                <field name="sab_material_procured_value"
+                       string="Beschaffung gesichert (EK)"
+                       optional="hide"/>
                 <field name="sab_material_requirement_count"
                        string="Materialpositionen"
                        optional="hide"/>
