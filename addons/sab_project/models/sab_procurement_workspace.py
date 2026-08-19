@@ -76,6 +76,7 @@ class SabProjectBomProcurementWorkspace(models.Model):
         if not (
             self.env.is_superuser()
             or self.env.user.has_group("project.group_project_manager")
+            or self.env.user.has_group("base.group_system")
         ):
             raise AccessError(
                 "Die technische Stücklistenfreigabe ist der Projektleitung vorbehalten."
