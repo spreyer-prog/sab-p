@@ -61,14 +61,22 @@ class SabProjectBom(models.Model):
             Requirement.create({"bom_line_id": line.id})
         return {"type": "ir.actions.act_window", "name": _("SAB-P Einkaufsbedarf"), "res_model": "sab.purchase.requirement", "view_mode": "list,form", "domain": [("bom_id", "=", self.id)], "target": "current"}
 
+    def _sab_released_bom_allowed_fields(self):
+        """Fields that may still change after technical BOM release.
+
+        Technical material data remains immutable. Later workflow extensions may
+        add operational metadata by extending this method.
+        """
+        return {
+            "state",
+            "purchase_release_state",
+            "purchase_released_at",
+            "purchase_released_by_id",
+        }
+
     def write(self, vals):
         if any(record.state == "released" for record in self):
-            procurement_metadata = {
-                "purchase_release_state",
-                "purchase_released_at",
-                "purchase_released_by_id",
-            }
-            allowed = {"state"} | procurement_metadata
+            allowed = self._sab_released_bom_allowed_fields()
             if set(vals) - allowed:
                 raise ValidationError("Eine freigegebene Stückliste ist technisch gesperrt.")
             if "state" in vals and vals.get("state") != "released":
@@ -104,11 +112,23 @@ class SabProjectBomLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        allow_procurement_extra = (
+            self.env.context.get("sab_procurement_extra_line")
+            and (
+                self.env.is_superuser()
+                or self.env.user.has_group("sab_project.group_sab_purchasing")
+                or self.env.user.has_group("project.group_project_manager")
+            )
+        )
         for vals in vals_list:
             bom_id = vals.get("bom_id")
             if bom_id:
                 bom = self.env["sab.project.bom"].browse(bom_id)
-                if bom.state == "released":
+                allowed_released_extra = (
+                    allow_procurement_extra
+                    and getattr(bom, "bom_scope", "total") == "procurement"
+                )
+                if bom.state == "released" and not allowed_released_extra:
                     raise ValidationError("Zu einer freigegebenen Stückliste dürfen keine Positionen ergänzt werden.")
         return super().create(vals_list)
 
