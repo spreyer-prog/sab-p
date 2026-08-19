@@ -154,12 +154,12 @@
               name="Lager"
               parent="sab_project_root_menu"
               sequence="40"
-              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager"/>
 
     <record id="sab_purchase_requirement_menu" model="ir.ui.menu">
         <field name="parent_id" ref="sab_stock_root_menu"/>
         <field name="sequence">10</field>
-        <field name="group_ids" eval="[(6,0,[ref('sab_project.group_sab_purchasing'),ref('project.group_project_manager')])]"/>
+        <field name="group_ids" eval="[(6,0,[ref('sab_project.group_sab_purchasing'),ref('sab_project.group_sab_purchase_approver'),ref('project.group_project_manager')])]"/>
     </record>
 
     <menuitem id="sab_purchase_order_drafts_menu"
@@ -167,21 +167,21 @@
               parent="sab_stock_root_menu"
               action="action_sab_purchase_order_drafts"
               sequence="20"
-              groups="sab_project.group_sab_purchasing,project.group_project_manager"/>
+              groups="sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager"/>
 
     <menuitem id="sab_purchase_order_open_menu"
               name="Bestellt – noch nicht geliefert"
               parent="sab_stock_root_menu"
               action="action_sab_purchase_order_open"
               sequence="30"
-              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager"/>
 
     <menuitem id="sab_purchase_order_all_menu"
               name="Alle Bestellungen"
               parent="sab_stock_root_menu"
               action="action_sab_purchase_order_all"
               sequence="40"
-              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager"/>
 
     <record id="sab_stock_movement_menu" model="ir.ui.menu">
         <field name="parent_id" ref="sab_stock_root_menu"/>
