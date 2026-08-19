@@ -59,3 +59,4 @@ from . import sab_minimum_stock_fix
 from . import sab_delivery_overdue
 from . import sab_delivery_overdue_fix
 from . import sab_procurement_regression_fixes
+from . import sab_procurement_action_domain_fix
