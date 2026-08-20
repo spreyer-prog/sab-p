@@ -35,7 +35,7 @@
             "sab_project/static/src/xml/offer_reuse_panel.xml"
         ]
     },
-    "installable": true,
-    "application": true,
-    "auto_install": false
+    "installable": True,
+    "application": True,
+    "auto_install": False
 }
