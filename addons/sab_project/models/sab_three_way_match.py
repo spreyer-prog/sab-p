@@ -61,7 +61,6 @@ class AccountMoveSabThreeWayMatch(models.Model):
         return self.invoice_line_ids.filtered(
             lambda line: line.purchase_line_id
             and line.purchase_line_id.order_id.sab_is_suite_order
-            and not line.display_type
         )
 
     def _sab_invoice_quantity_in_purchase_uom(self, invoice_line, purchase_line):
