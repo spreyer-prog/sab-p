@@ -110,7 +110,9 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
         )
         package_action = wizard.action_create_procurement_package()
         package = self.env["sab.project.bom"].browse(package_action["res_id"])
+        package.action_release_for_purchase()
         requirement = package.purchase_requirement_ids
+        self.assertEqual(len(requirement), 1)
         requirement._sab_prepare_order_quantities(force=True)
         return package, requirement
 
