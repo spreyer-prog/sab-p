@@ -89,3 +89,4 @@ from . import sab_offer_section_parent_fix
 from . import sab_odoo_commissioning_picking_type
 from . import sab_offer_section_membership_final
 from . import sab_odoo_receipt_reservation_fix
+from . import sab_procurement_order_quantity_release_fix
