@@ -24,6 +24,18 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
             {"user_ids": [Command.link(cls.env.user.id)]}
         )
 
+        if not cls.company_data["default_journal_purchase"]:
+            cls.company_data["default_journal_purchase"] = cls.env[
+                "account.journal"
+            ].sudo().create(
+                {
+                    "name": "SAB-P Test Eingangsrechnungen",
+                    "code": "SBPI",
+                    "type": "purchase",
+                    "company_id": cls.env.company.id,
+                }
+            )
+
         cls.customer = cls.env["res.partner"].create(
             {"name": "Kunde Standardbeschaffung"}
         )
