@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.59.0",
+    "version": "19.0.5.60.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -14,7 +14,7 @@
         "views/sab_calculation_item_views.xml", "views/sab_calculation_component_template_views.xml", "views/res_config_settings_views.xml", "views/project_project_views.xml",
         "views/project_customer_portal_views.xml", "views/sab_project_overview_views.xml", "views/sab_classification_views.xml",
         "views/sab_sale_order_template_views.xml", "views/sale_order_views.xml", "views/sab_offer_release_views.xml", "views/sab_offer_lv_views.xml", "views/sab_offer_switchboard_views.xml", "views/sab_offer_reuse_panel_views.xml", "views/sab_sale_portal_views.xml", "report/sab_sale_order_report.xml",
-        "views/sab_manufacturer_views.xml", "views/sab_product_views.xml",
+        "views/sab_manufacturer_views.xml", "views/sab_product_views.xml", "views/sab_cabinet_product_views.xml",
         "wizard/sab_supplier_import_views.xml", "wizard/sab_supplier_price_import_views.xml", "views/sab_supplier_views.xml",
         "views/sab_supplier_product_views.xml", "views/sab_calculation_change_log_views.xml", "views/sab_project_bom_views.xml", "views/sab_switchboard_bom_views.xml",
         "views/sab_production_order_views.xml", "views/sab_production_document_views.xml", "views/sab_purchase_requirement_views.xml", "views/sab_stock_movement_views.xml", "views/sab_procurement_views.xml",
