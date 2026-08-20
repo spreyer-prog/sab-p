@@ -62,3 +62,4 @@ from . import sab_procurement_regression_fixes
 from . import sab_procurement_action_domain_fix
 from . import sab_odoo_purchase_bridge
 from . import sab_odoo_purchase_bridge_runtime
+from . import sab_odoo_purchase_package_fix
