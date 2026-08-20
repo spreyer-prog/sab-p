@@ -72,3 +72,4 @@ from . import sab_odoo_commissioning_context_fix
 from . import sab_odoo_storable_product
 from . import sab_odoo_uom_bridge
 from . import sab_odoo_uom_validation
+from . import sab_odoo_opening_stock_migration
