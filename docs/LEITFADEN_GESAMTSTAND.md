@@ -8,6 +8,21 @@ Dieser Leitfaden ist die verbindliche fachliche Reihenfolge für die weitere Ent
 
 Die Entwicklung erfolgt in kleinen, kontrollierten Schritten. Jeder fachlich abgeschlossene Schritt wird separat committed und anschließend durch automatisierte Tests bzw. Odoo.sh-Builds abgesichert.
 
+### Priorität
+
+Verbindliche Priorität ist **zuerst die vollständige fachliche Umsetzung aller vom Nutzer übergebenen technischen Anforderungen und Prozessschritte**. Ein grüner Build ist wichtig, darf aber nicht dazu führen, dass fachlich noch offene Anforderungen zurückgestellt, vereinfacht oder entfernt werden.
+
+Reihenfolge:
+
+1. neue Anforderung oder Datei analysieren und dauerhaft dokumentieren,
+2. fachlich richtige Stelle im Gesamtprozess bestimmen,
+3. Funktion vollständig umsetzen,
+4. Abhängigkeiten zu bereits umgesetzten Funktionen berücksichtigen,
+5. danach technische Fehler, Migrationen, Tests und Odoo.sh-Build systematisch bereinigen,
+6. am Ende muss sowohl der Leitfaden vollständig umgesetzt als auch der Build grün sein.
+
+Ein Buildfehler wird sofort behoben, wenn er die weitere Entwicklung technisch blockiert. Andernfalls bleibt die fachliche Gesamtumsetzung vorrangig.
+
 Die Reihenfolge dieses Leitfadens darf nicht durch neue Einzelwünsche verloren gehen. Neue Anforderungen werden an der fachlich richtigen Stelle ergänzt, ohne bereits festgelegte Prozessschritte zu verdrängen.
 
 Für jede neu bereitgestellte Datei oder Maske gilt verbindlich:
@@ -150,12 +165,13 @@ Dieser Abschnitt wird durch `docs/FERTIGUNGSDRUCK_TYPENSCHILD_SAMMELSTAND.md` ko
 
 71. Fertigungsdruck wird unter **SAB-P Suite → Technik → Fertigungsunterlagen/Fertigungsdruck** geführt.
 72. Ein physischer Schrank erhält einen eigenen Typenschilddatensatz und einen eigenen Typenschildausdruck.
-73. Typenschilddaten werden möglichst aus Projekt, Auftrag, Verteilung, physischer Schrankinstanz und dem verwendeten Schrankprodukt vorbelegt.
-74. Schrankprodukt erhält Stammdaten für Typenschild/Schrankdaten.
-75. Fehlende oder widersprüchliche Pflichtdaten müssen vor Druck angezeigt werden.
-76. Fehlt eine automatische Zuordnung, muss ein Auswahl-/Bearbeitungsfenster die manuelle Auswahl eines Schrankprodukts und die Ergänzung technischer Daten erlauben.
-77. Manuelle projektspezifische Änderungen dürfen nicht ungefragt den Produktstamm verändern.
-78. Drucke werden als Snapshot/Revision gespeichert, damit spätere Stammdatenänderungen alte Ausdrucke nicht verändern.
+73. **Die Schrankmenge ist gleichzeitig die Druckmenge aller als „pro physischem Schrank“ definierten Dokumente. Beispiel: Schrankmenge 3 = drei physische Schrankinstanzen = drei Typenschilder und drei Ausgaben jedes schrankbezogenen Pflichtdokuments.**
+74. Typenschilddaten werden möglichst aus Projekt, Auftrag, Verteilung, physischer Schrankinstanz und dem verwendeten Schrankprodukt vorbelegt.
+75. Schrankprodukt erhält Stammdaten für Typenschild/Schrankdaten.
+76. Fehlende oder widersprüchliche Pflichtdaten müssen vor Druck angezeigt werden.
+77. Fehlt eine automatische Zuordnung, muss ein Auswahl-/Bearbeitungsfenster die manuelle Auswahl eines Schrankprodukts und die Ergänzung technischer Daten erlauben.
+78. Manuelle projektspezifische Änderungen dürfen nicht ungefragt den Produktstamm verändern.
+79. Drucke werden als Snapshot/Revision gespeichert, damit spätere Stammdatenänderungen alte Ausdrucke nicht verändern.
 
 Vorgemerkte Typenschildfelder:
 
@@ -183,16 +199,16 @@ Vorgemerkte Typenschildfelder:
 
 Dieser Abschnitt wird durch `docs/PROTOKOLLERSTELLUNG_SAMMELSTAND.md` konkretisiert.
 
-79. Unter Technik gibt es einen eigenen Reiter **Protokolle**.
-80. Protokolle werden projektbezogen gestartet, aber verteiler-/schrankbezogen erzeugt.
-81. Projekt- und Kundendaten werden automatisch vorausgefüllt.
-82. Die Verteiler werden aus dem Auftrag/Projekt eingelesen und einzeln auswählbar dargestellt.
-83. Dokumente werden je Verteiler bzw. je physischem Schrank gemäß Dokumentdefinition erzeugt.
-84. Dokumenttyp bestimmt die Pflichtfelder und das Drucklayout.
-85. Konformitätserklärung wird für jeden Verteiler separat erzeugt.
-86. Prüfprotokolle werden als echte strukturierte Prüfdaten gespeichert; nicht nur als statische PDF-Datei.
-87. Die jeweils verwendeten Daten werden als Dokument-Snapshot gespeichert.
-88. Wiederholungsdruck verwendet den historischen Stand; fachlich geänderte Neuerzeugung erzeugt eine neue Revision.
+80. Unter Technik gibt es einen eigenen Reiter **Protokolle**.
+81. Protokolle werden projektbezogen gestartet, aber verteiler-/schrankbezogen erzeugt.
+82. Projekt- und Kundendaten werden automatisch vorausgefüllt.
+83. Die Verteiler werden aus dem Auftrag/Projekt eingelesen und einzeln auswählbar dargestellt.
+84. Dokumente werden je Verteiler bzw. je physischem Schrank gemäß Dokumentdefinition erzeugt.
+85. Dokumenttyp bestimmt die Pflichtfelder und das Drucklayout.
+86. Konformitätserklärung wird für jeden Verteiler separat erzeugt; sofern die Dokumentdefinition auf physischem Schrank basiert, gilt zusätzlich die Schrankmenge als Dokumentmenge.
+87. Prüfprotokolle werden als echte strukturierte Prüfdaten gespeichert; nicht nur als statische PDF-Datei.
+88. Die jeweils verwendeten Daten werden als Dokument-Snapshot gespeichert.
+89. Wiederholungsdruck verwendet den historischen Stand; fachlich geänderte Neuerzeugung erzeugt eine neue Revision.
 
 Aktuell vorgemerkte Dokumentarten:
 
