@@ -52,8 +52,9 @@ class SabOfferCalculationRuntime(models.Model):
                 generic = Product.create({"name": "SAB-P Kalkulationsposition", "default_code": "SAB-CALC", "type": "service", "sale_ok": True, "purchase_ok": False})
             vat_rate = order.sab_vat_rate if order.sab_vat_rate is not False else 19.0
             tax = Tax.search([("type_tax_use", "=", "sale"), ("amount_type", "=", "percent"), ("amount", "=", vat_rate), ("company_id", "=", order.company_id.id), ("active", "=", True)], limit=1)
-            if not tax and vat_rate:
-                tax = Tax.create({"name": f"{vat_rate:g}% Umsatzsteuer SAB-P", "type_tax_use": "sale", "amount_type": "percent", "amount": vat_rate, "company_id": order.company_id.id})
+            # Steuern werden bewusst nicht ad hoc erzeugt: Odoo 19 verlangt u.a.
+            # eine gültige Steuergruppe. Fehlt der konfigurierte Satz, bleibt die
+            # Angebotszeile steuerfrei und die Konfiguration muss korrigiert werden.
             for line in order.sab_calculation_line_ids.sorted(key=lambda x: (x.sequence, x.id)):
                 vals = False
                 if line.line_type == "cabinet": vals = {"display_type": "line_section", "name": line.description or "Schaltschrank", "sequence": line.sequence}
