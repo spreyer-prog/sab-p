@@ -9,15 +9,25 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Der reale Workflow verlangt mindestens einen aktiven Einkaufsmitarbeiter
-        # sowie einen Bestellfreigeber. Der Test bildet diese Rollen ausdrücklich
-        # ab, statt die Produktionsprüfung zu umgehen.
-        cls.env.ref("sab_project.group_sab_purchasing").write(
-            {"user_ids": [Command.link(cls.env.user.id)]}
+        # Der reale Workflow prüft nicht nur Gruppenrechte, sondern verlangt
+        # mindestens einen aktiven Einkaufsmitarbeiter. Deshalb wird hier ein
+        # echtes SAB-P-Mitarbeiterprofil mit den produktiven Rollen angelegt.
+        cls.purchasing_profile = cls.env["sab.employee.profile"].create(
+            {
+                "name": "Test Einkauf Mindestbestand",
+                "login": "test-einkauf-mindestbestand@example.invalid",
+                "email": "test-einkauf-mindestbestand@example.invalid",
+                "mobile_access": False,
+                "purchasing_access": True,
+                "purchase_approval_access": True,
+                "warehouse_access": True,
+            }
         )
-        cls.env.ref("sab_project.group_sab_purchase_approver").write(
-            {"user_ids": [Command.link(cls.env.user.id)]}
-        )
+        cls.purchasing_profile.action_create_or_update_user()
+        cls.assertTrue = staticmethod(lambda value, msg=None: None)
+        if not cls.purchasing_profile.user_id.active:
+            cls.purchasing_profile.user_id.sudo().write({"active": True})
+
         cls.project = cls.env["project.project"].create(
             {"name": "Mindestbestand Projekt"}
         )
