@@ -1,6 +1,6 @@
 # SAB-P Suite – Protokolle erstellen
 
-> Sammelstand. Weitere Masken, Dokumente und Feldzuordnungen folgen noch und werden anschließend ergänzt.
+> Sammelstand. Neue Masken und Dokumente werden fortlaufend analysiert und hier dauerhaft ergänzt.
 
 ## 1. Einordnung in die SAB-P Suite
 
@@ -39,7 +39,71 @@ Aktuell sichtbare Aktionen:
 - **Seriennr. generieren**
 - **Altes Protokoll laden**
 
-## 3. Vorläufige fachliche Regeln
+## 3. Analysierte Altdatei: A26.0303 - Konformitätserklärung.xls
+
+Die hochgeladene Originaldatei liegt im alten binären Excel-Format `.xls` vor und ist als verbindliche fachliche Referenz für die Neuerstellung in der SAB-P Suite aufgenommen.
+
+### 3.1 Erkannte Arbeitsblätter
+
+Im Altbestand sind mindestens folgende Arbeitsblätter bzw. Dokumentbereiche enthalten:
+
+- Übersicht
+- Prüfprotokoll
+- Herstellererklärung
+- DGUV V3
+- Konformitätserklärung EMV
+- Konformitätserklärung NSR
+
+Diese Struktur zeigt, dass die Datei nicht nur eine einzelne Konformitätserklärung enthält, sondern als zentrale Datenquelle mehrere voneinander abhängige Erklärungen und Prüfunterlagen erzeugt.
+
+### 3.2 Erkannte zentrale Eingabe-/Referenzfelder
+
+In der Arbeitsmappe sind als zentrale Bezeichnungen bzw. Referenzfelder erkennbar:
+
+- Auftragsnummer
+- DBO
+- Kunde
+- Monteur
+- Name
+- Ort
+- Projekt
+- Projekt2
+- Prüfer
+- PSC
+- Seiten
+- Teil
+- Typ
+
+Diese Felder werden in der neuen SAB-P-Lösung nicht als lose Excel-Zellverweise nachgebaut, sondern als strukturierte Datenfelder geführt. Alle abhängigen Dokumente greifen anschließend auf dieselben zentralen Werte zu.
+
+### 3.3 Verbindliche Übertragungsregel
+
+Die alte Excel-Logik mit Zellverweisen dient als fachliche Vorlage. In Odoo/SAB-P wird dieselbe Abhängigkeit sauber modelliert:
+
+**Projekt/Auftrag/Verteiler/Schrank → zentrale Dokumentdaten → Konformitätserklärung / Prüfprotokoll / Herstellererklärung / DGUV-V3 / EMV / NSR**
+
+Wird ein zentraler Wert geändert, werden noch nicht finalisierte Dokumente aus diesem Datensatz aktualisiert. Bereits finalisierte bzw. gedruckte Dokumente bleiben als Snapshot unverändert und werden nur über eine neue Revision geändert.
+
+### 3.4 Ausgabeebene und Mengenregel
+
+Die Konformitäts- und Prüfunterlagen werden je nach Dokumentart auf der fachlich richtigen Ebene erzeugt:
+
+- Konformitätserklärung: mindestens je Verteiler; bei schrankbezogener Ausführung entsprechend je physischem Schrank.
+- Prüfprotokoll: je physischem Schrank.
+- Typenschild: je physischem Schrank.
+- Hersteller-/DGUV-/EMV-/NSR-Unterlagen: entsprechend der später aus dem Originalblatt bestätigten Ausgabeebene.
+
+Für alle als **pro physischem Schrank** definierten Dokumente gilt zwingend:
+
+**Schrankmenge = Dokument-/Druckmenge.**
+
+Beispiel: Schrankposition Menge 3 = drei Schrankinstanzen = drei Typenschilder und drei schrankbezogene Prüfprotokolle.
+
+### 3.5 Noch technisch zu extrahierende Alt-Excel-Verweise
+
+Die alte `.xls`-Datei enthält binäre Excel-Zell- und Formelreferenzen. Die Arbeitsblattstruktur und zentralen Referenznamen sind bereits identifiziert. Vor dem endgültigen Nachbau jedes einzelnen Layouts werden die konkreten Abhängigkeiten je Blatt noch gegen die Originaldatei geprüft und anschließend als explizite SAB-P-Datenquelle dokumentiert. Die Originaldatei muss dafür nicht erneut hochgeladen werden; sie ist im Gespräch vorhanden und fachlich in diesem Sammelstand referenziert.
+
+## 4. Vorläufige fachliche Regeln
 
 - Die Maske wird aus dem ausgewählten Projekt, Auftrag, Verteiler und physischen Schrank automatisch vorbelegt.
 - Bei mehreren Verteilungen oder Schränken muss der Benutzer den konkreten Datensatz auswählen können.
@@ -52,9 +116,9 @@ Aktuell sichtbare Aktionen:
 - Das Laden eines alten Protokolls darf ein historisches Protokoll nicht überschreiben. Änderungen müssen als neue Revision bzw. neuer Prüfvorgang gespeichert werden.
 - Erzeugte Protokolle werden dauerhaft mit Projekt, Auftrag, Verteilung, Schrankinstanz, Seriennummer, Ersteller, Erstellungsdatum und Vorlagenversion verknüpft.
 
-## 4. Noch offen bis zu den weiteren Unterlagen
+## 5. Noch offen bis zu den weiteren Unterlagen
 
-Nach Eingang der restlichen Masken und Dokumente werden insbesondere festgelegt:
+Nach Analyse der weiteren Masken und Dokumente werden insbesondere festgelegt:
 
 - genaue Bedeutung und Datenquelle jedes Feldes,
 - Auswahl- und Filterlogik für Projekt, Verteiler und Schrank,
