@@ -9,6 +9,15 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # Der reale Workflow verlangt mindestens einen aktiven Einkaufsmitarbeiter
+        # sowie einen Bestellfreigeber. Der Test bildet diese Rollen ausdrücklich
+        # ab, statt die Produktionsprüfung zu umgehen.
+        cls.env.ref("sab_project.group_sab_purchasing").write(
+            {"user_ids": [Command.link(cls.env.user.id)]}
+        )
+        cls.env.ref("sab_project.group_sab_purchase_approver").write(
+            {"user_ids": [Command.link(cls.env.user.id)]}
+        )
         cls.project = cls.env["project.project"].create(
             {"name": "Mindestbestand Projekt"}
         )
