@@ -32,8 +32,7 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
         cls.product = cls.env["sab.product"].create(
             {
                 "name": "Mindestbestand Produkt",
-                "manufacturer_part_number": "MIN-001",
-                "unit": "pcs",
+                "manufacturer_article_number": "MIN-001",
                 "minimum_stock_quantity": 5.0,
             }
         )
