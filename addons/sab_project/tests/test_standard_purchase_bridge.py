@@ -2,6 +2,7 @@ from odoo import fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import ValidationError
 from odoo.fields import Command
+from odoo.tests import Form
 
 
 class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
@@ -146,6 +147,16 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         self.assertEqual(len(purchase_order), 1)
         return cabinet_bom, total_bom, package, requirement, purchase_order
 
+    def _confirm_standard_purchase_order(self):
+        cabinet, total, package, requirement, purchase_order = (
+            self._create_standard_purchase_order()
+        )
+        purchase_order.button_confirm()
+        if purchase_order.state == "to approve":
+            purchase_order.button_approve()
+        self.assertEqual(purchase_order.state, "purchase")
+        return cabinet, total, package, requirement, purchase_order
+
     def test_total_bom_release_is_enough_for_procurement_handover(self):
         cabinet_bom, total_bom, package, requirement = (
             self._create_released_package(cabinet_released=False)
@@ -186,14 +197,73 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         with self.assertRaises(ValidationError):
             requirement.action_create_standard_purchase_orders()
 
+    def test_standard_purchase_partial_receipt_creates_backorder(self):
+        _cabinet, _total, _package, requirement, purchase_order = (
+            self._confirm_standard_purchase_order()
+        )
+        first_receipt = purchase_order.picking_ids.filtered(
+            lambda picking: picking.picking_type_id.code == "incoming"
+            and picking.state != "cancel"
+        )
+        self.assertEqual(len(first_receipt), 1)
+        first_receipt.write(
+            {
+                "sab_supplier_delivery_note_number": "LS-TEIL-0001",
+                "sab_supplier_delivery_note_date": fields.Date.today(),
+            }
+        )
+        first_receipt.move_ids.quantity = 2.0
+        action = first_receipt.button_validate()
+        self.assertIsInstance(action, dict)
+        self.assertEqual(action.get("res_model"), "stock.backorder.confirmation")
+
+        Form(
+            self.env["stock.backorder.confirmation"].with_context(
+                action["context"]
+            )
+        ).save().process()
+
+        first_receipt.invalidate_recordset()
+        purchase_order.order_line.invalidate_recordset()
+        requirement.invalidate_recordset()
+        self.assertEqual(first_receipt.state, "done")
+        self.assertEqual(purchase_order.order_line.qty_received, 2.0)
+        self.assertEqual(requirement.state, "ordered")
+        self.assertEqual(requirement.stock_status, "partial_received")
+
+        backorder = first_receipt.backorder_ids.filtered(
+            lambda picking: picking.state != "cancel"
+        )
+        self.assertEqual(len(backorder), 1)
+        self.assertTrue(backorder.sab_is_suite_receipt)
+        self.assertFalse(backorder.sab_supplier_delivery_note_number)
+        self.assertEqual(
+            backorder.move_ids.sab_purchase_requirement_id,
+            requirement,
+        )
+        self.assertEqual(backorder.move_ids.product_uom_qty, 4.0)
+
+        backorder.write(
+            {
+                "sab_supplier_delivery_note_number": "LS-TEIL-0002",
+                "sab_supplier_delivery_note_date": fields.Date.today(),
+            }
+        )
+        backorder.move_ids.quantity = 4.0
+        backorder.button_validate()
+
+        purchase_order.order_line.invalidate_recordset()
+        requirement.invalidate_recordset()
+        self.assertEqual(purchase_order.order_line.qty_received, 6.0)
+        self.assertEqual(requirement.odoo_quantity_received, 6.0)
+        self.assertEqual(requirement.state, "received")
+        self.assertEqual(requirement.stock_status, "received")
+        self.assertEqual(requirement.shortage_quantity, 0.0)
+
     def test_standard_purchase_receipt_and_vendor_bill_flow(self):
         _cabinet, _total, _package, requirement, purchase_order = (
-            self._create_standard_purchase_order()
+            self._confirm_standard_purchase_order()
         )
-        purchase_order.button_confirm()
-        if purchase_order.state == "to approve":
-            purchase_order.button_approve()
-        self.assertEqual(purchase_order.state, "purchase")
         self.assertEqual(requirement.state, "ordered")
 
         receipt = purchase_order.picking_ids.filtered(
