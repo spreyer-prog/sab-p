@@ -18,7 +18,7 @@ class SabProductionDocument(models.Model):
     _name = "sab.production.document"
     _description = "SAB-P Fertigungsdokument"
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _order = "project_id, cabinet_bom_id, document_type, id"
+    _order = "project_id, cabinet_bom_id, cabinet_instance_no, document_type, id"
 
     name = fields.Char(string="Dokument", compute="_compute_name", store=True)
     production_order_id = fields.Many2one(
@@ -53,6 +53,25 @@ class SabProductionDocument(models.Model):
         string="Schaltschrankposition",
         store=True,
         readonly=True,
+    )
+    cabinet_instance_no = fields.Integer(
+        string="Schrank-Nr.",
+        required=True,
+        default=1,
+        readonly=True,
+        index=True,
+        help="Laufende Nummer des physischen Schranks innerhalb derselben Schrankposition.",
+    )
+    cabinet_instance_count = fields.Integer(
+        string="Schrankanzahl",
+        required=True,
+        default=1,
+        readonly=True,
+    )
+    cabinet_instance_label = fields.Char(
+        string="Physischer Schrank",
+        compute="_compute_cabinet_instance_label",
+        store=True,
     )
     document_type = fields.Selection(
         PRODUCTION_DOCUMENT_TYPES,
@@ -100,11 +119,30 @@ class SabProductionDocument(models.Model):
     note = fields.Text(string="Bemerkung")
 
     _document_per_cabinet = models.Constraint(
-        "UNIQUE(production_order_id, cabinet_bom_id, document_type)",
-        "Diese Dokumentart existiert für den Verteiler bereits.",
+        "UNIQUE(production_order_id, cabinet_bom_id, cabinet_instance_no, document_type)",
+        "Diese Dokumentart existiert für diesen physischen Schrank bereits.",
     )
 
-    @api.depends("document_type", "project_reference", "cabinet_name")
+    @api.depends("cabinet_name", "cabinet_instance_no", "cabinet_instance_count")
+    def _compute_cabinet_instance_label(self):
+        for record in self:
+            base = record.cabinet_name or record.cabinet_bom_id.name or _("Schrank")
+            if (record.cabinet_instance_count or 1) > 1:
+                record.cabinet_instance_label = "%s – %s/%s" % (
+                    base,
+                    record.cabinet_instance_no,
+                    record.cabinet_instance_count,
+                )
+            else:
+                record.cabinet_instance_label = base
+
+    @api.depends(
+        "document_type",
+        "project_reference",
+        "cabinet_name",
+        "cabinet_instance_no",
+        "cabinet_instance_count",
+    )
     def _compute_name(self):
         labels = dict(PRODUCTION_DOCUMENT_TYPES)
         for record in self:
@@ -112,7 +150,14 @@ class SabProductionDocument(models.Model):
             if record.project_reference:
                 parts.append(record.project_reference)
             if record.cabinet_name:
-                parts.append(record.cabinet_name)
+                cabinet_label = record.cabinet_name
+                if (record.cabinet_instance_count or 1) > 1:
+                    cabinet_label = "%s %s/%s" % (
+                        cabinet_label,
+                        record.cabinet_instance_no,
+                        record.cabinet_instance_count,
+                    )
+                parts.append(cabinet_label)
             record.name = " – ".join(parts)
 
     @api.depends(
@@ -158,6 +203,16 @@ class SabProductionDocument(models.Model):
                     _("Der ausgewählte Verteiler gehört nicht zum Fertigungsauftrag.")
                 )
 
+    @api.constrains("cabinet_instance_no", "cabinet_instance_count")
+    def _check_cabinet_instance(self):
+        for record in self:
+            if record.cabinet_instance_count < 1:
+                raise ValidationError(_("Die Schrankanzahl muss mindestens 1 sein."))
+            if not 1 <= record.cabinet_instance_no <= record.cabinet_instance_count:
+                raise ValidationError(
+                    _("Die laufende Schranknummer muss zwischen 1 und der Schrankanzahl liegen.")
+                )
+
     def action_mark_completed(self):
         self.write({"state": "completed"})
         return True
@@ -186,6 +241,22 @@ class SabProductionOrderDocuments(models.Model):
         for record in self:
             record.document_count = len(record.document_ids)
 
+    def _sab_physical_cabinet_count(self, cabinet_bom):
+        quantity = (
+            cabinet_bom.cabinet_line_id.quantity
+            if cabinet_bom.cabinet_line_id
+            else 1.0
+        ) or 1.0
+        rounded = round(quantity)
+        if quantity <= 0 or abs(quantity - rounded) > 1e-9:
+            raise ValidationError(
+                _(
+                    "Die Schrankmenge von '%s' muss für Fertigungsdokumente eine positive ganze Zahl sein."
+                )
+                % (cabinet_bom.name,)
+            )
+        return int(rounded)
+
     def action_prepare_production_documents(self):
         Document = self.env["sab.production.document"]
         for production in self:
@@ -201,21 +272,34 @@ class SabProductionOrderDocuments(models.Model):
                     _("Für den Auftrag sind keine Verteilerstücklisten vorhanden.")
                 )
             existing = {
-                (document.cabinet_bom_id.id, document.document_type)
+                (
+                    document.cabinet_bom_id.id,
+                    document.cabinet_instance_no,
+                    document.document_type,
+                )
                 for document in production.document_ids
             }
             for cabinet_bom in cabinet_boms:
-                for document_type, _label in PRODUCTION_DOCUMENT_TYPES:
-                    key = (cabinet_bom.id, document_type)
-                    if key in existing:
-                        continue
-                    Document.create(
-                        {
-                            "production_order_id": production.id,
-                            "cabinet_bom_id": cabinet_bom.id,
-                            "document_type": document_type,
-                        }
-                    )
+                cabinet_count = production._sab_physical_cabinet_count(cabinet_bom)
+                for cabinet_instance_no in range(1, cabinet_count + 1):
+                    for document_type, _label in PRODUCTION_DOCUMENT_TYPES:
+                        key = (
+                            cabinet_bom.id,
+                            cabinet_instance_no,
+                            document_type,
+                        )
+                        if key in existing:
+                            continue
+                        Document.create(
+                            {
+                                "production_order_id": production.id,
+                                "cabinet_bom_id": cabinet_bom.id,
+                                "cabinet_instance_no": cabinet_instance_no,
+                                "cabinet_instance_count": cabinet_count,
+                                "document_type": document_type,
+                            }
+                        )
+                        existing.add(key)
         return self.action_view_production_documents()
 
     def action_view_production_documents(self):
