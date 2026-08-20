@@ -44,7 +44,11 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
                 ].id,
             }
         )
-        cls.project = cls.env["project.project"].create(
+        # AccountTestInvoicingCommon runs with an accounting test user whose
+        # project ACL is intentionally narrower in Odoo 19. Project creation is
+        # fixture setup only; the procurement actions below still use the test
+        # user's SAB-P purchasing/approval/warehouse roles.
+        cls.project = cls.env["project.project"].sudo().create(
             {
                 "name": "Projekt Standardbeschaffung",
                 "partner_id": cls.customer.id,
