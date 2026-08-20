@@ -10,6 +10,7 @@ from . import test_offer_structure_spacing
 from . import test_schematic_switchboard
 from . import test_calculation_audit_and_bom
 from . import test_production_workflow
+from . import test_production_document_cabinet_quantity
 from . import test_employee_production_start
 from . import test_purchase_requirement
 from . import test_procurement_roles_and_delivery
