@@ -72,16 +72,22 @@ class SabOfferCalculationRuntime(models.Model):
             "section_end",
             "info",
         ):
+            line_type = vals.get("line_type")
             vals.update(
                 {
                     "calculation_item_id": False,
                     "odoo_product_id": False,
                     "parent_section_id": False,
                     "parent_cabinet_id": False,
-                    "quantity": 1.0,
                     "component_snapshot_ids": [(5, 0, 0)],
                 }
             )
+            # Ein Bauteil darf mehrfach verwendet werden. Seine Menge bleibt
+            # daher editierbar. Nur reine Struktur-/Infozeilen werden auf 1 gesetzt.
+            if line_type != "section":
+                vals["quantity"] = 1.0
+            else:
+                vals.setdefault("quantity", 1.0)
         return vals
 
     def _sync_customer_order_lines(self):
@@ -130,7 +136,7 @@ class SabOfferCalculationRuntime(models.Model):
                     vals = {
                         "product_id": generic.id,
                         "name": line.description or "Bauteil",
-                        "product_uom_qty": 1.0,
+                        "product_uom_qty": line.quantity or 0.0,
                         "price_unit": line.section_total,
                         "sequence": line.sequence,
                     }
