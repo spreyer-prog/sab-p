@@ -80,6 +80,7 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
             }
         )
         expense_account = cls.company_data["default_account_expense"]
+        cls.env.company.sudo().write({"expense_account_id": expense_account.id})
         product_template = cls.product.odoo_product_id.product_tmpl_id.with_company(
             cls.env.company
         ).sudo()
@@ -92,6 +93,13 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         product_template.categ_id.with_company(cls.env.company).sudo().write(
             {"property_account_expense_categ_id": expense_account.id}
         )
+        product_template.invalidate_recordset(
+            ["property_account_expense_id", "categ_id"]
+        )
+        if not product_template._get_product_accounts()["expense"]:
+            raise AssertionError(
+                "Der Testaufbau konnte kein Aufwandskonto für das Einkaufsprodukt auflösen."
+            )
         cls.supplier_product = cls.env["sab.supplier.product"].create(
             {
                 "supplier_id": cls.supplier.id,
