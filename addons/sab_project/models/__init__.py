@@ -33,6 +33,7 @@ from . import sab_project_bom
 from . import sab_employee
 from . import sab_employee_confidential
 from . import sab_production_order
+from . import sab_production_document
 from . import sab_production_employee_runtime
 from . import sab_purchase_requirement
 from . import sab_switchboard_bom
