@@ -78,3 +78,4 @@ from . import sab_odoo_purchase_approval
 from . import sab_odoo_receipt_security_fix
 from . import sab_odoo_purchase_approver_edit_security
 from . import sab_odoo_purchase_action_security
+from . import sab_odoo_uom_19_compat
