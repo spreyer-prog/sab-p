@@ -85,7 +85,7 @@
               parent="sab_stock_root_menu"
               action="action_sab_standard_commissionings"
               sequence="40"
-              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"/>
 
     <record id="view_sab_project_bom_form_standard_commissioning" model="ir.ui.view">
         <field name="name">sab.project.bom.form.standard.commissioning</field>
@@ -93,19 +93,26 @@
         <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_procurement_package"/>
         <field name="priority">520</field>
         <field name="arch" type="xml">
+            <button name="action_complete_picking" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing</attribute>
+            </button>
             <xpath expr="//form/header" position="inside">
                 <button name="action_view_odoo_commissioning_pickings"
                         type="object"
                         string="Odoo-Kommissionierungen"
                         invisible="bom_scope != 'procurement' or odoo_commissioning_picking_count == 0"
-                        groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+                        groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"/>
             </xpath>
             <field name="picking_state" position="after">
-                <field name="odoo_commissioning_picking_count" readonly="1" invisible="bom_scope != 'procurement'"/>
+                <field name="odoo_commissioning_picking_count"
+                       readonly="1"
+                       invisible="bom_scope != 'procurement'"
+                       groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"/>
             </field>
             <xpath expr="//sheet/notebook" position="inside">
                 <page name="sab_odoo_commissionings"
                       string="Odoo-Kommissionierungen"
+                      groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"
                       invisible="bom_scope != 'procurement' or odoo_commissioning_picking_count == 0">
                     <field name="odoo_commissioning_picking_ids" nolabel="1" readonly="1">
                         <list create="0" delete="0">
