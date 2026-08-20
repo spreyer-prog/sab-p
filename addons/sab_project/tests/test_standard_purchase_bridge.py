@@ -80,6 +80,16 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
             }
         )
         expense_account = cls.company_data["default_account_expense"]
+        if not expense_account:
+            expense_account = cls.env["account.account"].sudo().create(
+                {
+                    "name": "SAB-P Test Materialaufwand",
+                    "code": "SBP6000",
+                    "account_type": "expense",
+                    "company_ids": [Command.set([cls.env.company.id])],
+                }
+            )
+            cls.company_data["default_account_expense"] = expense_account
         cls.env.company.sudo().write({"expense_account_id": expense_account.id})
         product_template = cls.product.odoo_product_id.product_tmpl_id.with_company(
             cls.env.company
