@@ -15,11 +15,18 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
         cls.customer = cls.env["res.partner"].create(
             {"name": "Mindestbestand Kunde"}
         )
-        cls.supplier = cls.env["res.partner"].create(
+        cls.supplier_partner = cls.env["res.partner"].create(
             {
                 "name": "Mindestbestand Lieferant",
                 "supplier_rank": 1,
                 "email": "supplier@example.invalid",
+            }
+        )
+        cls.supplier = cls.env["sab.supplier"].create(
+            {
+                "name": "Mindestbestand Lieferant",
+                "supplier_number": "MIN-LIEF-001",
+                "partner_id": cls.supplier_partner.id,
             }
         )
         cls.sale_order = cls.env["sale.order"].create(
@@ -42,6 +49,7 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
                 "supplier_id": cls.supplier.id,
                 "supplier_article_number": "MIN-SUP-001",
                 "list_price": 10.0,
+                "purchase_price": 10.0,
                 "discount_percent": 0.0,
                 "minimum_order_quantity": 10.0,
                 "packaging_quantity": 5.0,
