@@ -71,7 +71,7 @@
                                 <field name="is_ntg" string="NTG" optional="show" invisible="line_type != 'item'"/>
                                 <field name="calculation_item_id" string="Kalkulationsartikel" invisible="line_type != 'item'" optional="show"/>
                                 <field name="odoo_product_id" string="Produkt" invisible="line_type != 'item'" optional="show"/>
-                                <field name="quantity" string="Menge" invisible="line_type != 'item'"/>
+                                <field name="quantity" string="Menge" invisible="line_type not in ('item', 'section')"/>
                                 <field name="description" string="Angebotstext / Bauteil" optional="show" invisible="line_type == 'section_end'"/>
                                 <field name="unit_recommended_net_price" string="VK je Einheit" readonly="1" invisible="line_type != 'item'"/>
                                 <field name="recommended_net_price" string="VK gesamt" readonly="1" invisible="line_type != 'item'"/>
