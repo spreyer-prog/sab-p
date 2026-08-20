@@ -260,3 +260,38 @@ SAB-P ist die individuelle Oberfläche und Prozesssteuerung. Für stabile Kernpr
 SAB-P hält zusätzlich die projekt-, verteiler- und schrankbezogene Zuordnung und zeigt die Odoo-Dokumente innerhalb der SAB-P Suite an.
 
 Es darf dauerhaft keine zweite, widersprüchliche Wahrheit für Bestellung, Bestand oder Rechnung entstehen.
+
+## 9. Bestätigter technischer Entwicklungsstand
+
+### Odoo.sh-Basisstand 20.08.2026
+
+Der zuletzt bestätigte Odoo.sh-Basisstand vor Erweiterung der Lieferantenrückgabe umfasst **138 Tests mit 0 Failures und 0 Errors**. Damit sind insbesondere folgende integrierte Standard-Odoo-Abläufe als gemeinsame Basis bestätigt:
+
+- Erzeugung echter Odoo-Bestellungen aus SAB-P-Materialbedarfen,
+- getrennte Bestellfreigabe und Rollenprüfung,
+- Lieferanten-Auftragsbestätigung mit Abweichungsprüfung,
+- vollständiger und teilweiser Wareneingang,
+- Odoo-Backorder bei Teillieferungen,
+- Erhalt der SAB-P-Projekt-/Bedarfs-/Schrankzuordnung im Backorder,
+- Odoo-Kommissionierung und Lagerreservierung,
+- Erzeugung und Buchung echter Lieferantenrechnungen,
+- Drei-Wege-Abgleich Bestellung ↔ Wareneingang ↔ Eingangsrechnung einschließlich expliziter Abweichungsfreigabe.
+
+Dieser grüne Stand ist die Referenzbasis für nachfolgende Erweiterungen. Neue Funktionen dürfen erst nach eigenem Odoo.sh-Build als build-bestätigt bezeichnet werden.
+
+### Lieferantenrückgabe – aktueller nächster Schritt
+
+Die Lieferantenrückgabe nach bereits gebuchtem Wareneingang ist implementiert und besitzt einen eigenen Regressionstest, ist aber noch **nicht Odoo.sh-buildbestätigt**.
+
+Verbindlicher Sollablauf:
+
+1. vollständiger Wareneingang wird gebucht,
+2. Rückgabe wird über den echten Odoo-Return-Wizard `stock.return.picking` erzeugt,
+3. die Rückgabebewegung behält Materialbedarf, Projekt, Beschaffungspaket und Schrankzuordnung,
+4. die Rücksendung reduziert die effektive Odoo-Eingangsmenge,
+5. SAB-P gibt die entsprechende Projektreservierung frei,
+6. der Bedarf wechselt bei verbleibender Unterdeckung wieder auf `ordered` / `partial_received`,
+7. der reale Fehlbestand wird wieder als Bestellbedarf sichtbar,
+8. die Rücksendung wird als eigener nachvollziehbarer Lagerabgang protokolliert.
+
+Referenztest: 6 Stück erhalten → 2 Stück an Lieferant zurück → 4 Stück effektiv erhalten → 2 Stück Fehlbestand.
