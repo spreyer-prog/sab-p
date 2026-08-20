@@ -70,3 +70,4 @@ from . import sab_odoo_stock_bridge_fix
 from . import sab_odoo_stock_field_fix
 from . import sab_odoo_commissioning_context_fix
 from . import sab_odoo_storable_product
+from . import sab_odoo_uom_bridge
