@@ -63,7 +63,7 @@
                     <field name="sab_picking_user_id" readonly="1"/>
                 </group>
             </xpath>
-            <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='product_id']" position="after">
+            <xpath expr="//field[@name='move_ids']/list/field[@name='product_id']" position="after">
                 <field name="sab_project_id" string="Projekt" readonly="1" optional="show"/>
                 <field name="sab_source_cabinet_bom_id" string="Verteiler" readonly="1" optional="show"/>
             </xpath>
