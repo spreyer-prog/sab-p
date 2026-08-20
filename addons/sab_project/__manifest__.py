@@ -1,11 +1,11 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.54.0",
+    "version": "19.0.5.55.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
-    "depends": ["auth_signup", "mail", "portal", "project", "sale_management", "purchase", "stock"],
+    "depends": ["auth_signup", "mail", "portal", "project", "sale_management", "purchase_stock"],
     "data": [
         "security/sab_security.xml", "security/ir.model.access.csv", "security/sab_record_rules.xml",
         "data/sab_classification_data.xml", "data/sab_calculation_sequence.xml", "data/sab_stock_sequence.xml", "data/sab_procurement_request_sequence.xml", "data/sab_work_area_data.xml",
@@ -18,7 +18,7 @@
         "wizard/sab_supplier_import_views.xml", "wizard/sab_supplier_price_import_views.xml", "views/sab_supplier_views.xml",
         "views/sab_supplier_product_views.xml", "views/sab_calculation_change_log_views.xml", "views/sab_project_bom_views.xml", "views/sab_switchboard_bom_views.xml",
         "views/sab_production_order_views.xml", "views/sab_purchase_requirement_views.xml", "views/sab_stock_movement_views.xml", "views/sab_procurement_views.xml",
-        "views/sab_procurement_detail_views.xml", "views/sab_project_material_overview_views.xml", "views/sab_procurement_visibility_views.xml", "views/sab_procurement_dashboard_views.xml", "views/sab_procurement_package_views.xml", "views/sab_procurement_package_fix_views.xml", "views/sab_minimum_stock_views.xml", "views/sab_delivery_overdue_views.xml",
+        "views/sab_procurement_detail_views.xml", "views/sab_project_material_overview_views.xml", "views/sab_procurement_visibility_views.xml", "views/sab_procurement_dashboard_views.xml", "views/sab_procurement_package_views.xml", "views/sab_procurement_package_fix_views.xml", "views/sab_minimum_stock_views.xml", "views/sab_delivery_overdue_views.xml", "views/sab_odoo_purchase_bridge_views.xml",
         "report/sab_purchase_order_report.xml", "report/sab_purchase_order_delivery_report.xml", "report/sab_purchase_order_procurement_package_report.xml", "report/sab_procurement_picking_report.xml",
         "views/sab_project_document_views.xml", "views/sab_time_entry_views.xml", "views/sab_project_controlling_views.xml",
         "views/sab_employee_mobile_views.xml", "views/sab_employee_feedback_views.xml", "views/sab_customer_status_views.xml",
