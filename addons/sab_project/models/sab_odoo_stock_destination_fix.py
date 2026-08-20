@@ -86,6 +86,7 @@ class SabProjectBomOdoo19ProductionLocation(models.Model):
 
         created_pickings = self.env["stock.picking"]
         for warehouse, warehouse_quantities in grouped.items():
+            warehouse._sab_ensure_commissioning_picking_type()
             picking_type = self.env["stock.picking.type"].search(
                 [
                     ("code", "=", "internal"),
@@ -128,10 +129,6 @@ class SabProjectBomOdoo19ProductionLocation(models.Model):
                 )
                 move = self.env["stock.move"].create(
                     {
-                        "name": (
-                            requirement.source_cabinet_bom_id.name
-                            or requirement.name
-                        ),
                         "product_id": product.id,
                         "product_uom_qty": move_quantity,
                         "product_uom": product.uom_id.id,
