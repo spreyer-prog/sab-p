@@ -15,6 +15,18 @@
         </field>
     </record>
 
+    <record id="view_sab_standard_purchase_order_search_late_receipt" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.search.late.receipt</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_standard_purchase_order_search"/>
+        <field name="priority">520</field>
+        <field name="arch" type="xml">
+            <filter name="sab_to_invoice" position="after">
+                <filter name="late_receipt" string="Überfällige Lieferung" domain="[('state','=','purchase'),('receipt_status','!=','full'),('is_late','=',True)]"/>
+            </filter>
+        </field>
+    </record>
+
     <record id="action_sab_standard_overdue_purchase_orders" model="ir.actions.act_window">
         <field name="name">Überfällige Lieferungen</field>
         <field name="res_model">purchase.order</field>
