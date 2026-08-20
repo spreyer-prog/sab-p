@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_standard_purchase_order_list_late_receipt" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.list.late.receipt</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_standard_purchase_order_list"/>
+        <field name="priority">520</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">is_late and state == 'purchase' and receipt_status != 'full'</attribute>
+            </xpath>
+            <field name="date_planned" position="after">
+                <field name="is_late" string="Lieferung überfällig" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="action_sab_standard_overdue_purchase_orders" model="ir.actions.act_window">
+        <field name="name">Überfällige Lieferungen</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="sab_project.view_sab_standard_purchase_order_list"/>
+        <field name="search_view_id" ref="sab_project.view_sab_standard_purchase_order_search"/>
+        <field name="domain">[('sab_is_suite_order','=',True),('state','=','purchase'),('receipt_status','!=','full'),('is_late','=',True)]</field>
+        <field name="context">{'create': False, 'search_default_late_receipt': 1}</field>
+    </record>
+
+    <record id="sab_overdue_delivery_menu" model="ir.ui.menu">
+        <field name="name">Überfällige Lieferungen</field>
+        <field name="action" ref="action_sab_standard_overdue_purchase_orders"/>
+        <field name="sequence">45</field>
+    </record>
+</odoo>
