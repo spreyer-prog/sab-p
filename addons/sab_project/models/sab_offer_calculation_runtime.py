@@ -24,6 +24,28 @@ class SabOfferCalculationRuntime(models.Model):
         return True
 
     def _prepare_source_values(self, vals):
+        # During write() Odoo only passes the changed fields. Preserve the
+        # existing semantic line type so assigning a cabinet product cannot
+        # accidentally turn a cabinet header into a normal calculation item.
+        current_line_type = (
+            self.line_type
+            if len(self) == 1 and self.id
+            else False
+        )
+        target_line_type = vals.get("line_type") or current_line_type
+
+        if target_line_type == "cabinet":
+            vals["line_type"] = "cabinet"
+            vals["calculation_item_id"] = False
+            vals["parent_section_id"] = False
+            vals["parent_cabinet_id"] = False
+            # Cabinet products are master-data references for physical cabinet
+            # and nameplate data. They intentionally do not import commercial
+            # calculation values into the structural header.
+            if "quantity" not in vals and not current_line_type:
+                vals["quantity"] = 1.0
+            return vals
+
         if vals.get("calculation_item_id"):
             item = self.env["sab.calculation.item"].browse(vals["calculation_item_id"]).exists()
             vals.update({"line_type": "item", "odoo_product_id": False})
@@ -35,11 +57,19 @@ class SabOfferCalculationRuntime(models.Model):
             vals.update({"line_type": "item", "calculation_item_id": False})
             if product:
                 for key, value in self._product_values(product).items(): vals.setdefault(key, value)
-        elif vals.get("line_type") in ("cabinet", "cabinet_end", "section", "section_end", "info"):
-            line_type = vals.get("line_type")
-            vals.update({"calculation_item_id": False, "odoo_product_id": False, "parent_section_id": False, "parent_cabinet_id": False, "component_snapshot_ids": [(5, 0, 0)]})
-            if line_type != "section": vals["quantity"] = 1.0
-            else: vals.setdefault("quantity", 1.0)
+        elif target_line_type in ("cabinet_end", "section", "section_end", "info"):
+            vals.update({
+                "line_type": target_line_type,
+                "calculation_item_id": False,
+                "odoo_product_id": False,
+                "parent_section_id": False,
+                "parent_cabinet_id": False,
+                "component_snapshot_ids": [(5, 0, 0)],
+            })
+            if target_line_type == "section":
+                vals.setdefault("quantity", 1.0)
+            elif target_line_type in ("cabinet_end", "section_end", "info"):
+                vals["quantity"] = 1.0
         return vals
 
     def _sync_customer_order_lines(self):
@@ -88,6 +118,13 @@ class SabOfferCalculationRuntime(models.Model):
             for record in self:
                 if record.order_id.state not in ("draft","sent"): raise ValidationError("Kalkulationspositionen eines bestätigten Auftrags sind gesperrt.")
                 if record.order_id.sab_offer_release_state == "released": raise ValidationError("Das Angebot ist zum Verschicken freigegeben und festgeschrieben. Bitte für Änderungen eine neue Revision anlegen.")
+        # Multi-record writes can contain different semantic line types. Prepare
+        # each record separately whenever source-defining fields are touched.
+        source_fields = {"line_type", "odoo_product_id", "calculation_item_id", "quantity"}
+        if len(self) > 1 and set(vals) & source_fields:
+            for record in self:
+                record.write(dict(vals))
+            return True
         result=super().write(self._prepare_source_values(dict(vals)))
         if not self.env.context.get("skip_section_normalize") and set(vals) & {"sequence","line_type","order_id"}: self._normalize_section_membership()
         if not self.env.context.get("skip_sale_line_sync"): self._sync_customer_order_lines()
@@ -104,7 +141,7 @@ class SabOfferCalculationRuntime(models.Model):
         orders=self.mapped("order_id")
         for record in self:
             if record.order_id.state not in ("draft","sent"): raise ValidationError("Kalkulationspositionen eines bestätigten Auftrags sind gesperrt.")
-            if record.order_id.sab_offer_release_state == "released": raise ValidationError("Das Angebot ist zum Verschicken freigegeben und festgeschrieben. Bitte für Änderungen eine neue Revision anlegen.")
+            if record.order_id.sab_offer_release_state == "released": raise ValidationError("Ein zum Verschicken freigegebenes Angebot darf nicht neu berechnet werden.")
         result=super().unlink(); remaining=orders.mapped("sab_calculation_line_ids")
         if remaining: remaining._normalize_section_membership(); remaining._sync_customer_order_lines()
         else: self.env["sale.order.line"].sudo().search([("order_id","in",orders.ids),("sab_generated_from_calculation","=",True)]).unlink()
