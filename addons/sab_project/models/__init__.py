@@ -10,6 +10,7 @@ from . import sab_calculation_item
 from . import sab_manufacturer
 from . import product_template_extension
 from . import product_product_extension
+from . import sab_cabinet_product_data
 from . import sab_product
 from . import sab_product_component
 from . import sab_calculation_item_line
