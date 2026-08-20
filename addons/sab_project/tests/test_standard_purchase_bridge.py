@@ -157,6 +157,23 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         self.assertEqual(purchase_order.state, "purchase")
         return cabinet, total, package, requirement, purchase_order
 
+    def _receive_full_purchase_order(self, purchase_order, delivery_note):
+        receipt = purchase_order.picking_ids.filtered(
+            lambda picking: picking.picking_type_id.code == "incoming"
+            and picking.state != "cancel"
+        )
+        self.assertEqual(len(receipt), 1)
+        receipt.write(
+            {
+                "sab_supplier_delivery_note_number": delivery_note,
+                "sab_supplier_delivery_note_date": fields.Date.today(),
+            }
+        )
+        receipt.move_ids.quantity = purchase_order.order_line.product_qty
+        receipt.button_validate()
+        self.assertEqual(receipt.state, "done")
+        return receipt
+
     def test_total_bom_release_is_enough_for_procurement_handover(self):
         cabinet_bom, total_bom, package, requirement = (
             self._create_released_package(cabinet_released=False)
@@ -260,17 +277,54 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         self.assertEqual(requirement.stock_status, "received")
         self.assertEqual(requirement.shortage_quantity, 0.0)
 
+    def test_three_way_mismatch_requires_current_explicit_approval(self):
+        _cabinet, _total, _package, _requirement, purchase_order = (
+            self._confirm_standard_purchase_order()
+        )
+        self._receive_full_purchase_order(purchase_order, "LS-3WAY-0001")
+        purchase_order.invalidate_recordset()
+        purchase_order.action_create_invoice()
+        bill = purchase_order.invoice_ids
+        self.assertEqual(len(bill), 1)
+        invoice_line = bill.invoice_line_ids.filtered("purchase_line_id")
+        self.assertEqual(len(invoice_line), 1)
+
+        invoice_line.write({"quantity": 7.0, "price_unit": 30.0})
+        bill.invalidate_recordset()
+        self.assertEqual(bill.sab_three_way_match_state, "mismatch")
+        self.assertTrue(bill.sab_three_way_quantity_mismatch)
+        self.assertTrue(bill.sab_three_way_price_mismatch)
+        with self.assertRaises(ValidationError):
+            bill.action_post()
+
+        bill.action_sab_approve_three_way_deviation()
+        approved_fingerprint = bill.sab_three_way_approved_fingerprint
+        self.assertTrue(bill.sab_three_way_override_approved)
+        self.assertTrue(approved_fingerprint)
+
+        invoice_line.price_unit = 31.0
+        bill.invalidate_recordset()
+        with self.assertRaises(ValidationError):
+            bill.action_post()
+
+        bill.action_sab_approve_three_way_deviation()
+        self.assertNotEqual(
+            bill.sab_three_way_approved_fingerprint,
+            approved_fingerprint,
+        )
+        bill.action_post()
+        self.assertEqual(bill.state, "posted")
+
     def test_standard_purchase_receipt_and_vendor_bill_flow(self):
         _cabinet, _total, _package, requirement, purchase_order = (
             self._confirm_standard_purchase_order()
         )
         self.assertEqual(requirement.state, "ordered")
 
-        receipt = purchase_order.picking_ids.filtered(
-            lambda picking: picking.picking_type_id.code == "incoming"
-            and picking.state != "cancel"
+        receipt = self._receive_full_purchase_order(
+            purchase_order,
+            "LS-STD-0001",
         )
-        self.assertEqual(len(receipt), 1)
         self.assertTrue(receipt.sab_is_suite_receipt)
         self.assertIn(self.project, receipt.sab_project_ids)
         self.assertIn(
@@ -281,16 +335,6 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
             receipt.move_ids.sab_purchase_requirement_id,
             requirement,
         )
-
-        receipt.write(
-            {
-                "sab_supplier_delivery_note_number": "LS-STD-0001",
-                "sab_supplier_delivery_note_date": fields.Date.today(),
-            }
-        )
-        receipt.move_ids.quantity = purchase_order.order_line.product_qty
-        receipt.button_validate()
-        self.assertEqual(receipt.state, "done")
 
         purchase_order.order_line.invalidate_recordset()
         requirement.invalidate_recordset()
@@ -306,6 +350,7 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         bill = purchase_order.invoice_ids
         self.assertEqual(len(bill), 1)
         bill.ref = "RE-STD-0001"
+        self.assertEqual(bill.sab_three_way_match_state, "matched")
         bill.action_post()
 
         self.assertEqual(bill.state, "posted")
