@@ -432,7 +432,7 @@ class ProjectProjectSabStandardPurchase(models.Model):
         compute="_compute_sab_standard_purchase_orders",
     )
     sab_standard_purchase_order_count = fields.Integer(
-        string="Odoo-Bestellungen",
+        string="Anzahl Odoo-Bestellungen",
         compute="_compute_sab_standard_purchase_orders",
     )
 
