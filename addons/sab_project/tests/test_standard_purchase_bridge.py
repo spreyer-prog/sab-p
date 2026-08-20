@@ -36,6 +36,32 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
                 }
             )
 
+        payable_account = cls.company_data["default_account_payable"]
+        if not payable_account:
+            payable_account = cls.env["account.account"].sudo().create(
+                {
+                    "name": "SAB-P Test Verbindlichkeiten",
+                    "code": "SBP1600",
+                    "account_type": "liability_payable",
+                    "reconcile": True,
+                    "company_ids": [Command.set([cls.env.company.id])],
+                }
+            )
+            cls.company_data["default_account_payable"] = payable_account
+
+        receivable_account = cls.company_data["default_account_receivable"]
+        if not receivable_account:
+            receivable_account = cls.env["account.account"].sudo().create(
+                {
+                    "name": "SAB-P Test Forderungen",
+                    "code": "SBP1400",
+                    "account_type": "asset_receivable",
+                    "reconcile": True,
+                    "company_ids": [Command.set([cls.env.company.id])],
+                }
+            )
+            cls.company_data["default_account_receivable"] = receivable_account
+
         cls.customer = cls.env["res.partner"].create(
             {"name": "Kunde Standardbeschaffung"}
         )
@@ -48,12 +74,8 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         cls.supplier.partner_id.write(
             {
                 "email": "standardbeschaffung@example.invalid",
-                "property_account_payable_id": cls.company_data[
-                    "default_account_payable"
-                ].id,
-                "property_account_receivable_id": cls.company_data[
-                    "default_account_receivable"
-                ].id,
+                "property_account_payable_id": payable_account.id,
+                "property_account_receivable_id": receivable_account.id,
             }
         )
         # AccountTestInvoicingCommon runs with an accounting test user whose
