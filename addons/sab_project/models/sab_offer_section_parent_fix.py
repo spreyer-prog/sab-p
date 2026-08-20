@@ -9,10 +9,16 @@ class SabOfferSectionParentPreservation(models.Model):
         result = super()._prepare_source_values(vals)
 
         if len(self) == 1 and self.id and self.line_type == "section":
-            # Bei normalen Änderungen an einer bestehenden Bauteil-/Section-Zeile
-            # darf die durch die Struktur bestimmte Schrankzuordnung nicht
-            # gelöscht werden. Nur ein echter Strukturwechsel darf sie neu setzen.
-            if "line_type" not in incoming and "order_id" not in incoming:
+            # Die Struktur-Normalisierung muss parent_cabinet_id ausdrücklich
+            # setzen dürfen. Bei normalen Änderungen einer bestehenden Section
+            # darf die Zuordnung dagegen nicht durch die allgemeine Struktur-
+            # Bereinigung gelöscht werden.
+            if self.env.context.get("skip_section_normalize"):
+                if "parent_cabinet_id" in incoming:
+                    result["parent_cabinet_id"] = incoming["parent_cabinet_id"]
+                if "parent_section_id" in incoming:
+                    result["parent_section_id"] = incoming["parent_section_id"]
+            elif "line_type" not in incoming and "order_id" not in incoming:
                 result.pop("parent_cabinet_id", None)
                 result.pop("parent_section_id", None)
 
