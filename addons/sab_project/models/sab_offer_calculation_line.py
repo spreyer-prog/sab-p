@@ -55,13 +55,18 @@ class SabOfferCalculationLine(models.Model):
             elif record.line_type == "item" and record.parent_section_id:
                 record.hierarchy_marker = "↳↳" if record.parent_cabinet_id else "↳"
             else:
-                # A direct position inside a Schaltschrank is not a Bauteil child
-                # and therefore must not receive a misleading indentation arrow.
                 record.hierarchy_marker = ""
 
-    @api.depends("child_line_ids.recommended_net_price", "child_line_ids.line_type")
+    @api.depends("child_line_ids.recommended_net_price", "child_line_ids.line_type", "quantity")
     def _compute_section_total(self):
-        for r in self: r.section_total = sum(r.child_line_ids.filtered(lambda x: x.line_type == "item").mapped("recommended_net_price")) if r.line_type == "section" else 0.0
+        for r in self:
+            if r.line_type == "section":
+                unit_total = sum(
+                    r.child_line_ids.filtered(lambda x: x.line_type == "item").mapped("recommended_net_price")
+                )
+                r.section_total = unit_total * (r.quantity or 0.0)
+            else:
+                r.section_total = 0.0
 
     @api.depends("cabinet_child_line_ids.recommended_net_price", "cabinet_child_line_ids.line_type")
     def _compute_cabinet_total(self):
