@@ -76,3 +76,4 @@ from . import sab_odoo_opening_stock_migration
 from . import sab_odoo_commissioning_security_fix
 from . import sab_odoo_purchase_approval
 from . import sab_odoo_receipt_security_fix
+from . import sab_odoo_purchase_approver_edit_security
