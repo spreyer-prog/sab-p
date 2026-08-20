@@ -29,3 +29,4 @@ from . import test_end_to_end
 from . import test_portal_visibility
 from . import test_offer_release_and_procurement_workspace
 from . import test_minimum_stock_and_delivery_overdue
+from . import test_standard_purchase_bridge
