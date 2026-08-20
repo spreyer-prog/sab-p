@@ -67,3 +67,4 @@ from . import sab_odoo_purchase_project_status
 from . import sab_odoo_purchase_cancellation_fix
 from . import sab_odoo_stock_bridge
 from . import sab_odoo_stock_bridge_fix
+from . import sab_odoo_stock_field_fix
