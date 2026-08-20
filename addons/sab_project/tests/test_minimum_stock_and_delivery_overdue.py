@@ -9,38 +9,23 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        purchasing_group = cls.env.ref("sab_project.group_sab_purchasing")
-        approver_group = cls.env.ref("sab_project.group_sab_purchase_approver")
-        warehouse_group = cls.env.ref("sab_project.group_sab_warehouse")
-        cls.purchasing_user = cls.env["res.users"].with_context(
-            no_reset_password=True
-        ).create(
-            {
-                "name": "Test Einkauf Mindestbestand",
-                "login": "test-einkauf-mindestbestand@example.invalid",
-                "email": "test-einkauf-mindestbestand@example.invalid",
-                "active": True,
-                "group_ids": [
-                    Command.link(cls.env.ref("base.group_user").id),
-                    Command.link(purchasing_group.id),
-                    Command.link(approver_group.id),
-                    Command.link(warehouse_group.id),
-                ],
-            }
-        )
+        # Der reale Workflow prüft nicht nur Gruppenrechte, sondern verlangt
+        # mindestens einen aktiven Einkaufsmitarbeiter. Deshalb wird hier ein
+        # echtes SAB-P-Mitarbeiterprofil mit den produktiven Rollen angelegt.
         cls.purchasing_profile = cls.env["sab.employee.profile"].create(
             {
                 "name": "Test Einkauf Mindestbestand",
                 "login": "test-einkauf-mindestbestand@example.invalid",
                 "email": "test-einkauf-mindestbestand@example.invalid",
-                "active": True,
-                "user_id": cls.purchasing_user.id,
                 "mobile_access": False,
                 "purchasing_access": True,
                 "purchase_approval_access": True,
                 "warehouse_access": True,
             }
         )
+        cls.purchasing_profile.action_create_or_update_user()
+        if not cls.purchasing_profile.user_id.active:
+            cls.purchasing_profile.user_id.sudo().write({"active": True})
 
         cls.project = cls.env["project.project"].create(
             {"name": "Mindestbestand Projekt"}
@@ -219,6 +204,8 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
 
     def test_overdue_delivery_is_listed_and_supplier_can_be_reminded(self):
         _package, _requirement, purchase_order = self._create_purchase_order(False)
+        purchase_order.action_submit_for_approval()
+        purchase_order.action_approve()
         purchase_order.write({"state": "sent"})
         purchase_order.line_ids.write(
             {"expected_delivery_date": fields.Date.today() - timedelta(days=2)}
@@ -234,7 +221,7 @@ class TestSabMinimumStockAndDeliveryOverdue(TransactionCase):
             purchase_order.action_send_delivery_reminder()
 
     def test_overdue_delivery_view_contains_order_and_position_details(self):
-        view = self.env.ref("sab_project.view_sab_delivery_overdue_list")
+        view = self.env.ref("sab_project.view_sab_overdue_delivery_line_list")
         arch = view.arch_db
-        self.assertIn("purchase_order_id", arch)
+        self.assertIn("order_id", arch)
         self.assertIn("expected_delivery_date", arch)
