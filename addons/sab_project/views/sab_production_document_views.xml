@@ -10,6 +10,7 @@
                 <field name="customer_name"/>
                 <field name="cabinet_name" string="Verteiler"/>
                 <field name="cabinet_instance_label" string="Physischer Schrank"/>
+                <field name="cabinet_product_id" string="Schrankprodukt" optional="show"/>
                 <field name="document_type"/>
                 <field name="state" widget="badge"/>
                 <field name="delivery_date" optional="show"/>
@@ -28,6 +29,7 @@
                 <field name="customer_name"/>
                 <field name="cabinet_name"/>
                 <field name="cabinet_instance_label"/>
+                <field name="cabinet_product_id"/>
                 <field name="document_type"/>
                 <field name="state"/>
                 <group>
@@ -58,6 +60,7 @@
                         <field name="cabinet_instance_label" readonly="1"/>
                         <field name="cabinet_instance_no" readonly="1"/>
                         <field name="cabinet_instance_count" readonly="1"/>
+                        <field name="cabinet_product_id" readonly="1"/>
                         <field name="project_reference" readonly="1"/>
                         <field name="project_name" readonly="1"/>
                         <field name="customer_name" readonly="1"/>
@@ -70,6 +73,7 @@
                         <field name="document_type" readonly="1"/>
                     </group>
                     <group string="Typenschild / technische Daten" col="4" invisible="document_type not in ('nameplate','production_test','final_inspection','conformity')">
+                        <field name="cabinet_width_mm"/>
                         <field name="type_designation"/>
                         <field name="cabinet_type"/>
                         <field name="construction_year"/>
@@ -142,6 +146,7 @@
                             <list create="0" delete="0">
                                 <field name="cabinet_name" string="Verteiler"/>
                                 <field name="cabinet_instance_label" string="Physischer Schrank"/>
+                                <field name="cabinet_product_id" string="Schrankprodukt" optional="show"/>
                                 <field name="document_type"/>
                                 <field name="state" widget="badge"/>
                                 <field name="inspection_date" optional="show"/>
