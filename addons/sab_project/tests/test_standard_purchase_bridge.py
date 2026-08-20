@@ -20,6 +20,9 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         cls.env.ref("sab_project.group_sab_warehouse").write(
             {"user_ids": [Command.link(cls.env.user.id)]}
         )
+        cls.env.ref("project.group_project_manager").write(
+            {"user_ids": [Command.link(cls.env.user.id)]}
+        )
 
         cls.customer = cls.env["res.partner"].create(
             {"name": "Kunde Standardbeschaffung"}
