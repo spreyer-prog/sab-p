@@ -17,6 +17,34 @@ class TestSabStandardCommissioningBridge(TransactionCase):
                 {"user_ids": [Command.link(cls.env.user.id)]}
             )
 
+        # Der produktive Workflow verlangt mindestens einen tatsächlich aktiven
+        # Einkaufsmitarbeiter. Deshalb bildet der Test auch das SAB-P-
+        # Mitarbeiterprofil ab und verlässt sich nicht nur auf Superuser-Rechte.
+        cls.procurement_user = cls.env["res.users"].sudo().with_context(
+            no_reset_password=True
+        ).create(
+            {
+                "name": "Test Einkauf Kommissionierung",
+                "login": "test-einkauf-kommissionierung@example.invalid",
+                "email": "test-einkauf-kommissionierung@example.invalid",
+                "active": True,
+                "group_ids": [Command.link(cls.env.ref("base.group_user").id)],
+            }
+        )
+        cls.procurement_profile = cls.env["sab.employee.profile"].create(
+            {
+                "name": "Test Einkauf Kommissionierung",
+                "login": "test-einkauf-kommissionierung@example.invalid",
+                "email": "test-einkauf-kommissionierung@example.invalid",
+                "user_id": cls.procurement_user.id,
+                "mobile_access": False,
+                "purchasing_access": True,
+                "purchase_approval_access": True,
+                "warehouse_access": True,
+            }
+        )
+        cls.procurement_profile.action_apply_permissions()
+
         cls.customer = cls.env["res.partner"].create(
             {"name": "Kunde Odoo-Kommissionierung"}
         )
