@@ -19,22 +19,12 @@ class TestSabStandardProcurementRoleSeparation(TransactionCase):
         profile.action_create_or_update_user()
         user = profile.user_id
 
-        self.assertIn(
-            self.env.ref("sab_project.group_sab_purchase_approver"),
-            user.group_ids,
+        self.assertTrue(
+            user.has_group("sab_project.group_sab_purchase_approver")
         )
-        self.assertIn(
-            self.env.ref("purchase.group_purchase_manager"),
-            user.group_ids,
-        )
-        self.assertNotIn(
-            self.env.ref("sab_project.group_sab_purchasing"),
-            user.group_ids,
-        )
-        self.assertNotIn(
-            self.env.ref("sab_project.group_sab_warehouse"),
-            user.group_ids,
-        )
+        self.assertTrue(user.has_group("purchase.group_purchase_manager"))
+        self.assertFalse(user.has_group("sab_project.group_sab_purchasing"))
+        self.assertFalse(user.has_group("sab_project.group_sab_warehouse"))
 
     def test_project_manager_without_stock_role_cannot_post_commissioning(self):
         manager = self.env["res.users"].create(
