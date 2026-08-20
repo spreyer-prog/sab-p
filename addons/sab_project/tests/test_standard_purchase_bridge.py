@@ -405,6 +405,7 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         purchase_order.action_create_invoice()
         bill = purchase_order.invoice_ids
         self.assertEqual(len(bill), 1)
+        bill.invoice_date = fields.Date.today()
         invoice_line = bill.invoice_line_ids.filtered("purchase_line_id")
         self.assertEqual(len(invoice_line), 1)
 
@@ -468,7 +469,12 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         purchase_order.action_create_invoice()
         bill = purchase_order.invoice_ids
         self.assertEqual(len(bill), 1)
-        bill.ref = "RE-STD-0001"
+        bill.write(
+            {
+                "ref": "RE-STD-0001",
+                "invoice_date": fields.Date.today(),
+            }
+        )
         self.assertEqual(bill.sab_three_way_match_state, "matched")
         bill.action_post()
 
