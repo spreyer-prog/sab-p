@@ -7,6 +7,15 @@ class SabSupplierProductOdooOpeningStockMigration(models.Model):
 
     def init(self):
         super().init()
+
+        # On a completely fresh module installation Odoo calls model init()
+        # while SAB-P's own tables are still being created. In that situation
+        # there is no legacy stock to migrate and sab_stock_movement does not
+        # exist yet. Never let an optional migration block the whole registry.
+        self.env.cr.execute("SELECT to_regclass('public.sab_stock_movement')")
+        if not self.env.cr.fetchone()[0]:
+            return
+
         company = self.env.company
         parameter_key = (
             f"sab_project.odoo_opening_stock_migrated_v1_company_{company.id}"
@@ -65,12 +74,7 @@ class SabSupplierProductOdooOpeningStockMigration(models.Model):
                 if StockMove.search_count([("product_id", "=", product.id)]):
                     skipped.append(product.id)
                     continue
-                template.write(
-                    {
-                        "uom_id": target_uom.id,
-                        "uom_po_id": target_uom.id,
-                    }
-                )
+                template.write({"uom_id": target_uom.id})
             if not template.is_storable:
                 template.is_storable = True
 
