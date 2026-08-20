@@ -76,5 +76,5 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="sab_production_order_menu" name="Fertigungsaufträge" parent="sab_calculation_root_menu" action="action_sab_production_order" sequence="100"/>
+    <menuitem id="sab_production_order_menu" name="Fertigungsaufträge" parent="sab_technical_root_menu" action="action_sab_production_order" sequence="10" groups="project.group_project_manager"/>
 </odoo>
