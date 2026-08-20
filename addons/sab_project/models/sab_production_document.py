@@ -54,6 +54,15 @@ class SabProductionDocument(models.Model):
         store=True,
         readonly=True,
     )
+    cabinet_product_id = fields.Many2one(
+        "product.product",
+        string="Schrankprodukt (Snapshot)",
+        readonly=True,
+        copy=False,
+        ondelete="restrict",
+        index=True,
+        help="Produkt, aus dessen Schrank-/Typenschild-Stammdaten dieses Dokument vorbereitet wurde.",
+    )
     cabinet_instance_no = fields.Integer(
         string="Schrank-Nr.",
         required=True,
@@ -98,6 +107,7 @@ class SabProductionDocument(models.Model):
     delivery_date = fields.Date(string="Liefertermin", compute="_compute_prefill", store=True)
     cabinet_name = fields.Char(string="Verteilung", compute="_compute_prefill", store=True)
 
+    cabinet_width_mm = fields.Float(string="Schrankbreite (mm)", digits=(16, 1))
     type_designation = fields.Char(string="Typenbezeichnung")
     cabinet_type = fields.Char(string="Schranktyp")
     construction_year = fields.Integer(string="Baujahr", default=lambda self: fields.Date.today().year)
@@ -257,6 +267,35 @@ class SabProductionOrderDocuments(models.Model):
             )
         return int(rounded)
 
+    def _sab_cabinet_product_snapshot_values(self, cabinet_bom):
+        cabinet_line = cabinet_bom.cabinet_line_id
+        product = cabinet_line.odoo_product_id if cabinet_line else False
+        if not product:
+            return {}
+        template = product.product_tmpl_id
+        if not template.sab_is_cabinet_product:
+            raise ValidationError(
+                _(
+                    "Das an '%s' ausgewählte Produkt '%s' ist nicht als Schrank / Gehäuse gekennzeichnet."
+                )
+                % (cabinet_bom.name, product.display_name)
+            )
+        return {
+            "cabinet_product_id": product.id,
+            "cabinet_width_mm": template.sab_cabinet_width_mm or 0.0,
+            "type_designation": template.sab_nameplate_type_designation or False,
+            "cabinet_type": template.sab_nameplate_cabinet_type or False,
+            "standard_family": template.sab_nameplate_standard_family or "61439",
+            "standard_part": template.sab_nameplate_standard_part or "3",
+            "rated_voltage": template.sab_nameplate_rated_voltage or 0.0,
+            "rated_current": template.sab_nameplate_rated_current or 0.0,
+            "frequency": template.sab_nameplate_frequency or 0.0,
+            "busbar_current": template.sab_nameplate_busbar_current or 0.0,
+            "protection_class": template.sab_nameplate_protection_class or False,
+            "ip_rating": template.sab_nameplate_ip_rating or False,
+            "note": template.sab_nameplate_notes or False,
+        }
+
     def action_prepare_production_documents(self):
         Document = self.env["sab.production.document"]
         for production in self:
@@ -281,6 +320,7 @@ class SabProductionOrderDocuments(models.Model):
             }
             for cabinet_bom in cabinet_boms:
                 cabinet_count = production._sab_physical_cabinet_count(cabinet_bom)
+                snapshot_values = production._sab_cabinet_product_snapshot_values(cabinet_bom)
                 for cabinet_instance_no in range(1, cabinet_count + 1):
                     for document_type, _label in PRODUCTION_DOCUMENT_TYPES:
                         key = (
@@ -297,6 +337,7 @@ class SabProductionOrderDocuments(models.Model):
                                 "cabinet_instance_no": cabinet_instance_no,
                                 "cabinet_instance_count": cabinet_count,
                                 "document_type": document_type,
+                                **snapshot_values,
                             }
                         )
                         existing.add(key)
