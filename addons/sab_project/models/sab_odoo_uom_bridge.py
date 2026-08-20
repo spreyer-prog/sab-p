@@ -27,22 +27,14 @@ class SabSupplierProductOdooUomBridge(models.Model):
                 continue
             target_uom = supplier_product._sab_odoo_uom()
             template = product.product_tmpl_id.sudo()
-            if (
-                template.uom_id == target_uom
-                and template.uom_po_id == target_uom
-            ):
+            if template.uom_id == target_uom:
                 continue
             if StockMove.search_count([("product_id", "=", product.id)]):
                 # Odoo schützt bereits verwendete Mengeneinheiten. Die
                 # Bestellerzeugung prüft später, ob die vorhandene Einheit zur
                 # SAB-P-Position passt, statt historische Bewegungen umzubauen.
                 continue
-            template.write(
-                {
-                    "uom_id": target_uom.id,
-                    "uom_po_id": target_uom.id,
-                }
-            )
+            template.write({"uom_id": target_uom.id})
         return True
 
     def _sab_sync_supplierinfo(self):
@@ -72,12 +64,7 @@ class SabSupplierProductOdooUomBridge(models.Model):
                                 WHEN 'm' THEN %s
                                 WHEN 'kg' THEN %s
                                 ELSE %s
-                            END,
-                   uom_po_id = CASE selected_unit.unit
-                                   WHEN 'm' THEN %s
-                                   WHEN 'kg' THEN %s
-                                   ELSE %s
-                               END
+                            END
               FROM selected_unit
               JOIN product_product product
                 ON product.id = selected_unit.odoo_product_id
@@ -89,9 +76,6 @@ class SabSupplierProductOdooUomBridge(models.Model):
                )
             """,
             (
-                meter_uom,
-                kilogram_uom,
-                unit_uom,
                 meter_uom,
                 kilogram_uom,
                 unit_uom,
