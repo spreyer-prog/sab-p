@@ -79,13 +79,18 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
                 "manufacturer_article_number": "STD-100",
             }
         )
-        cls.product.odoo_product_id.product_tmpl_id.write(
+        expense_account = cls.company_data["default_account_expense"]
+        product_template = cls.product.odoo_product_id.product_tmpl_id.with_company(
+            cls.env.company
+        ).sudo()
+        product_template.write(
             {
                 "purchase_method": "receive",
-                "property_account_expense_id": cls.company_data[
-                    "default_account_expense"
-                ].id,
+                "property_account_expense_id": expense_account.id,
             }
+        )
+        product_template.categ_id.with_company(cls.env.company).sudo().write(
+            {"property_account_expense_categ_id": expense_account.id}
         )
         cls.supplier_product = cls.env["sab.supplier.product"].create(
             {
