@@ -85,15 +85,16 @@
                 <field name="projected_free_stock"
                        string="Voraussichtlich frei"
                        readonly="1"
-                       optional="hide"/>
+                       optional="show"/>
                 <field name="minimum_stock_replenishment_quantity"
                        string="Zusatz bis Mindestbestand"
                        readonly="1"
-                       optional="show"/>
+                       optional="show"
+                       decoration-warning="minimum_stock_below"/>
                 <field name="minimum_stock_below"
-                       string="Mindestbestand unterschritten"
+                       string="⚠ Mindestbestand unterschritten"
                        readonly="1"
-                       optional="hide"/>
+                       optional="show"/>
             </field>
             <field name="quantity_to_order" position="before">
                 <field name="include_minimum_stock_replenishment"
@@ -146,6 +147,11 @@
                        optional="show"/>
                 <field name="minimum_stock_replenishment_quantity"
                        string="Zusatz bis Mindestbestand"
+                       readonly="1"
+                       optional="show"
+                       decoration-warning="minimum_stock_below"/>
+                <field name="minimum_stock_below"
+                       string="⚠ Mindestbestand unterschritten"
                        readonly="1"
                        optional="show"/>
             </xpath>
