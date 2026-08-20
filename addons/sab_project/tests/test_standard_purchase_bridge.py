@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import ValidationError
@@ -213,6 +215,59 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
 
         with self.assertRaises(ValidationError):
             requirement.action_create_standard_purchase_orders()
+
+    def test_supplier_confirmation_deviation_requires_approval(self):
+        _cabinet, _total, _package, _requirement, purchase_order = (
+            self._confirm_standard_purchase_order()
+        )
+        line = purchase_order.order_line
+        original_date = fields.Date.to_date(line.date_planned)
+        confirmed_date = original_date + timedelta(days=5)
+
+        self.assertEqual(line.sab_ordered_quantity_snapshot, 6.0)
+        self.assertEqual(line.sab_ordered_price_snapshot, 25.0)
+        self.assertEqual(line.sab_ordered_delivery_date_snapshot, original_date)
+
+        purchase_order.write(
+            {
+                "sab_supplier_confirmation_number": "AB-4711",
+                "sab_supplier_confirmation_date": fields.Date.today(),
+            }
+        )
+        line.write(
+            {
+                "sab_supplier_confirmed_quantity": 8.0,
+                "sab_supplier_confirmed_price": 27.0,
+                "sab_supplier_confirmed_delivery_date": confirmed_date,
+            }
+        )
+        purchase_order.action_sab_record_supplier_confirmation()
+        purchase_order.invalidate_recordset()
+        line.invalidate_recordset()
+
+        self.assertEqual(purchase_order.sab_supplier_confirmation_state, "deviation")
+        self.assertTrue(purchase_order.sab_supplier_confirmation_has_deviation)
+        self.assertTrue(line.sab_supplier_quantity_deviation)
+        self.assertTrue(line.sab_supplier_price_deviation)
+        self.assertTrue(line.sab_supplier_delivery_deviation)
+        self.assertEqual(line.product_qty, 6.0)
+        self.assertEqual(line.price_unit, 25.0)
+        self.assertEqual(fields.Date.to_date(line.date_planned), original_date)
+
+        purchase_order.action_sab_accept_supplier_confirmation()
+        purchase_order.invalidate_recordset()
+        line.invalidate_recordset()
+        self.assertEqual(purchase_order.sab_supplier_confirmation_state, "accepted")
+        self.assertEqual(line.product_qty, 8.0)
+        self.assertEqual(line.price_unit, 27.0)
+        self.assertEqual(fields.Date.to_date(line.date_planned), confirmed_date)
+
+        receipt = purchase_order.picking_ids.filtered(
+            lambda picking: picking.picking_type_id.code == "incoming"
+            and picking.state != "cancel"
+        )
+        self.assertEqual(len(receipt), 1)
+        self.assertEqual(receipt.move_ids.product_uom_qty, 8.0)
 
     def test_standard_purchase_partial_receipt_creates_backorder(self):
         _cabinet, _total, _package, requirement, purchase_order = (
