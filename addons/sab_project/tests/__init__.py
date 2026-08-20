@@ -32,3 +32,4 @@ from . import test_minimum_stock_and_delivery_overdue
 from . import test_standard_purchase_bridge
 from . import test_standard_commissioning_bridge
 from . import test_standard_procurement_role_separation
+from . import test_standard_purchase_approval
