@@ -9,6 +9,9 @@
     <!-- Operativer Mitarbeiterbereich: nicht mehr Teil der Kalkulationsdatenbank. -->
     <menuitem id="sab_employee_root_menu" name="Mitarbeiter" parent="sab_project_root_menu" sequence="30" groups="sab_project.group_sab_employee,project.group_project_manager"/>
 
+    <!-- Technischer Projekt- und Fertigungsbereich. -->
+    <menuitem id="sab_technical_root_menu" name="Technik" parent="sab_project_root_menu" sequence="40" groups="project.group_project_manager"/>
+
     <!-- Zentraler Administrationsbereich. -->
     <menuitem id="sab_project_configuration_menu" name="Einstellungen" parent="sab_project_root_menu" sequence="90" groups="project.group_project_manager,sab_project.group_sab_confidential_hr"/>
 
