@@ -82,3 +82,4 @@ from . import sab_odoo_purchase_approver_edit_security
 from . import sab_odoo_purchase_action_security
 from . import sab_odoo_uom_19_compat
 from . import sab_three_way_match
+from . import sab_supplier_confirmation
