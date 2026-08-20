@@ -1,11 +1,11 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.53.9",
+    "version": "19.0.5.54.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
-    "depends": ["auth_signup", "mail", "portal", "project", "sale_management"],
+    "depends": ["auth_signup", "mail", "portal", "project", "sale_management", "purchase", "stock"],
     "data": [
         "security/sab_security.xml", "security/ir.model.access.csv", "security/sab_record_rules.xml",
         "data/sab_classification_data.xml", "data/sab_calculation_sequence.xml", "data/sab_stock_sequence.xml", "data/sab_procurement_request_sequence.xml", "data/sab_work_area_data.xml",
