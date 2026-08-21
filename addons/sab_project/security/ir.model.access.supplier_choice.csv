@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_sab_supplier_choice_wizard_purchasing,sab.supplier.choice.wizard purchasing,model_sab_supplier_choice_wizard,sab_project.group_sab_purchasing,1,1,1,1
-access_sab_supplier_choice_wizard_line_purchasing,sab.supplier.choice.wizard.line purchasing,model_sab_supplier_choice_wizard_line,sab_project.group_sab_purchasing,1,1,1,1
