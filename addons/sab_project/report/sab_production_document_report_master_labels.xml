@@ -17,7 +17,7 @@
                                 <b>Schaltanlagenbau Preyer</b><br/>
                                 Albert-Einstein-Str. 7a<br/>
                                 <b>42929 Wermelskirchen</b><br/>
-                                <span style="font-size:7pt;">Tel. 02196 90901 0&nbsp;&nbsp;-&nbsp;&nbsp;FAX 02196 90901 99</span>
+                                <span style="font-size:7pt;">Tel. 02196 90901 0&#160;&#160;-&#160;&#160;FAX 02196 90901 99</span>
                             </td>
                         </tr>
                     </table>
@@ -102,7 +102,7 @@
                                         <div t-if="not doc.project_id.company_id.logo" style="font-size:29pt; font-weight:700;">SAB-P</div>
                                     </div>
                                     <div style="font-size:8.3pt; line-height:1.22; text-align:center; margin-top:2mm;">
-                                        <b>SAB-P GmbH</b><br/><b>Schaltanlagenbau Preyer</b><br/>Albert-Einstein-Str. 7a<br/><b>42929 Wermelskirchen</b><br/>Tel. 02196 90901-0&nbsp;&nbsp;-&nbsp;&nbsp;FAX -99
+                                        <b>SAB-P GmbH</b><br/><b>Schaltanlagenbau Preyer</b><br/>Albert-Einstein-Str. 7a<br/><b>42929 Wermelskirchen</b><br/>Tel. 02196 90901-0&#160;&#160;-&#160;&#160;FAX -99
                                     </div>
                                     <div style="border-top:0.35mm solid #000; margin:5mm 0 4mm 0;"></div>
                                     <div style="font-size:10pt; font-weight:700; line-height:1.2; text-align:center;">Wartung und Prüfung von ortsfesten Anlagen nach DGUV Vorschrift 3<br/>und DIN VDE 0100</div>
