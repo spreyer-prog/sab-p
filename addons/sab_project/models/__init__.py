@@ -58,6 +58,7 @@ from . import sab_customer_status
 from . import sab_procurement_package
 from . import sab_procurement_package_selection_fix
 from . import sab_procurement_package_fix
+from . import sab_bom_procurement_handover
 from . import sab_minimum_stock
 from . import sab_minimum_stock_fix
 from . import sab_delivery_overdue
