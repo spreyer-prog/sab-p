@@ -27,12 +27,14 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
         cls.project = cls.env["project.project"].create(
             {"name": "E2E Bedienweg Projekt", "partner_id": cls.customer.id}
         )
+        # Kalkulations- und Schrankpositionen müssen wie im echten Bedienweg
+        # vor der Auftragsbestätigung angelegt werden. Die bestätigte
+        # Auftrags-Sperre darf im Test nicht umgangen werden.
         cls.order = cls.env["sale.order"].create(
             {
                 "partner_id": cls.customer.id,
                 "sab_project_id": cls.project.id,
                 "sab_calculation_source": "schematic",
-                "state": "sale",
             }
         )
 
@@ -94,6 +96,9 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
         )
         cls.cabinet_bom.action_release()
         cls.total_bom.action_release()
+        # Erst jetzt ist der Auftrag bestätigt; ab hier prüft der Test den
+        # operativen Übergabe-/Einkaufsweg eines echten Auftrags.
+        cls.order.write({"state": "sale"})
 
     def test_01_all_operator_buttons_are_declared_on_the_real_views(self):
         handover_view = self.env.ref(
