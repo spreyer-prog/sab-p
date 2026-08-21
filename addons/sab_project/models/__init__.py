@@ -93,3 +93,4 @@ from . import sab_odoo_receipt_reservation_fix
 from . import sab_procurement_order_quantity_release_fix
 from . import sab_odoo_backorder_assignment_fix
 from . import sab_odoo_supplier_return_assignment_fix
+from . import sab_procurement_standard_order_redirect
