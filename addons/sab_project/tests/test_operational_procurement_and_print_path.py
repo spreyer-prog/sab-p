@@ -14,8 +14,23 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+
+        # A real active purchasing user is required because the procurement
+        # release deliberately checks that purchasing is staffed, not only that
+        # the current superuser technically has access.
+        cls.purchasing_user = cls.env["res.users"].create(
+            {
+                "name": "E2E Bedienweg Einkauf",
+                "login": "e2e-bedienweg-einkauf@example.invalid",
+            }
+        )
         cls.env.ref("sab_project.group_sab_purchasing").write(
-            {"user_ids": [Command.link(cls.env.user.id)]}
+            {
+                "user_ids": [
+                    Command.link(cls.env.user.id),
+                    Command.link(cls.purchasing_user.id),
+                ]
+            }
         )
         cls.env.ref("sab_project.group_sab_purchase_approver").write(
             {"user_ids": [Command.link(cls.env.user.id)]}
@@ -137,8 +152,10 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
         )
         self.assertIn("base.group_system", selection_button[0].get("groups", ""))
 
+        # The list node itself is the XML root, so the row button is a direct
+        # child of that root rather than a descendant of another <list> node.
         row_button = requirement_arch.xpath(
-            ".//list/button[@name='action_create_standard_purchase_orders_from_selection']"
+            "./button[@name='action_create_standard_purchase_orders_from_selection']"
         )
         self.assertTrue(row_button)
         self.assertEqual(row_button[0].get("string"), "Bestellen")
@@ -184,11 +201,11 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
         )
         self.assertEqual(len(purchase_orders), 1)
         self.assertEqual(purchase_orders.state, "draft")
-        self.assertEqual(len(purchase_orders.order_line.filtered(lambda line: not line.display_type)), 1)
-        self.assertEqual(
-            purchase_orders.order_line.filtered(lambda line: not line.display_type).sab_purchase_requirement_id,
-            requirement,
+        product_lines = purchase_orders.order_line.filtered(
+            lambda line: not line.display_type
         )
+        self.assertEqual(len(product_lines), 1)
+        self.assertEqual(product_lines.sab_purchase_requirement_id, requirement)
 
     def test_03_production_document_selection_and_direct_print_are_reachable(self):
         production_action = self.cabinet_bom.action_create_production_order()
@@ -202,10 +219,15 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
         self.assertEqual(print_action["res_model"], "sab.production.print.wizard")
         self.assertEqual(print_action["target"], "new")
 
+        print_context = dict(print_action.get("context", {}))
+        print_context.update(
+            {
+                "active_id": production.id,
+                "default_production_order_id": production.id,
+            }
+        )
         Wizard = self.env["sab.production.print.wizard"].with_context(
-            **print_action.get("context", {}),
-            active_id=production.id,
-            default_production_order_id=production.id,
+            print_context
         )
         values = Wizard.default_get(["production_order_id", "line_ids"])
         wizard = Wizard.create(values)
