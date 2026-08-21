@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_project_bom_form_explicit_procurement_handover" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.explicit.procurement.handover</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_procurement_package"/>
+        <field name="priority">360</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_open_procurement_package_from_bom"
+                        type="object"
+                        string="Stückliste an Einkauf übergeben"
+                        class="btn-primary"
+                        invisible="state != 'released' or bom_scope != 'total'"
+                        groups="project.group_project_manager,base.group_system"/>
+            </xpath>
+            <button name="action_release_for_purchase" position="attributes">
+                <attribute name="string">An Einkauf freigeben</attribute>
+                <attribute name="invisible">state != 'released' or bom_scope != 'procurement' or purchase_release_state == 'released'</attribute>
+                <attribute name="groups">sab_project.group_sab_purchase_approver,base.group_system</attribute>
+            </button>
+        </field>
+    </record>
+</odoo>
