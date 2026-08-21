@@ -13,9 +13,10 @@
                 <header>
                     <button name="action_create_purchase_orders"
                             type="object"
-                            string="Bestellung aus Auswahl erzeugen"
+                            string="Bestellvorschlag aus Auswahl erzeugen"
                             class="btn-primary"
-                            groups="sab_project.group_sab_purchasing,project.group_project_manager"/>
+                            display="always"
+                            groups="sab_project.group_sab_purchasing"/>
                 </header>
                 <field name="project_id"/>
                 <field name="sequence" string="Pos." optional="show"/>
