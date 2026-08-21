@@ -109,7 +109,7 @@ class SabProductionPrintWizard(models.TransientModel):
                 selected |= document
         if not selected:
             raise ValidationError(_("Bitte mindestens ein Blatt zum Drucken auswählen."))
-        return self.env.ref("sab_project.action_report_sab_production_documents").report_action(selected)
+        return selected._sab_production_report_action()
 
 
 class SabProductionPrintWizardLine(models.TransientModel):
