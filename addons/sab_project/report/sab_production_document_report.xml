@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_sab_production_documents" model="ir.actions.report">
+        <field name="name">Fertigungsblätter</field>
+        <field name="model">sab.production.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_production_document</field>
+        <field name="report_file">sab_project.report_sab_production_document</field>
+        <field name="binding_model_id" ref="model_sab_production_document"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_sab_production_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2><span t-out="doc.name"/></h2>
+                        <table class="table table-sm table-bordered">
+                            <tbody>
+                                <tr><td><strong>Auftrag</strong></td><td><span t-out="doc.project_reference or ''"/></td><td><strong>Projekt</strong></td><td><span t-out="doc.project_name or ''"/></td></tr>
+                                <tr><td><strong>Kunde</strong></td><td><span t-out="doc.customer_name or ''"/></td><td><strong>Verteiler</strong></td><td><span t-out="doc.cabinet_name or ''"/></td></tr>
+                                <tr><td><strong>Physischer Schrank</strong></td><td><span t-out="doc.cabinet_instance_label or ''"/></td><td><strong>Bearbeiter</strong></td><td><span t-out="doc.responsible_name or ''"/></td></tr>
+                            </tbody>
+                        </table>
+                        <h4 t-if="doc.document_type in ('nameplate','production_test','final_inspection','conformity')">Technische Daten</h4>
+                        <table t-if="doc.document_type in ('nameplate','production_test','final_inspection','conformity')" class="table table-sm table-bordered">
+                            <tbody>
+                                <tr><td>Schranktyp</td><td><span t-out="doc.cabinet_type or ''"/></td><td>Typ</td><td><span t-out="doc.type_designation or ''"/></td></tr>
+                                <tr><td>Spannung</td><td><span t-out="doc.rated_voltage"/> V</td><td>Strom</td><td><span t-out="doc.rated_current"/> A</td></tr>
+                                <tr><td>DIN EN</td><td><span t-out="doc.standard_family or ''"/> / <span t-out="doc.standard_part or ''"/></td><td>IP</td><td><span t-out="doc.ip_rating or ''"/></td></tr>
+                            </tbody>
+                        </table>
+                        <h4 t-if="doc.document_type in ('production_test','final_inspection','info_sheet')">Prüfdaten</h4>
+                        <table t-if="doc.document_type in ('production_test','final_inspection','info_sheet')" class="table table-sm table-bordered">
+                            <tbody>
+                                <tr><td>Prüfspannung</td><td><span t-out="doc.test_voltage"/> V</td><td>Riso</td><td><span t-out="doc.insulation_resistance"/> MΩ</td></tr>
+                                <tr><td>Rpe</td><td><span t-out="doc.protective_conductor_resistance"/> Ω</td><td>Prüfer</td><td><span t-out="doc.inspector_name or ''"/></td></tr>
+                            </tbody>
+                        </table>
+                        <p t-if="doc.note"><strong>Bemerkung:</strong> <span t-out="doc.note"/></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
