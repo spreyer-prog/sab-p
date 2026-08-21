@@ -38,6 +38,7 @@ from . import sab_production_document
 from . import sab_production_employee_runtime
 from . import sab_purchase_requirement
 from . import sab_switchboard_bom
+from . import sab_sale_order_bom_navigation
 from . import sab_stock_movement
 from . import sab_procurement
 from . import project_procurement
