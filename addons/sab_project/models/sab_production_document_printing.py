@@ -18,11 +18,37 @@ class SabProductionDocumentPrinting(models.Model):
         ondelete={key: "cascade" for key, _label in EXTRA_PRODUCTION_DOCUMENT_TYPES},
     )
 
+    def _sab_production_report_action(self):
+        """Return the native QWeb PDF report action for these exact documents.
+
+        Building the action from the ir.actions.report record keeps single-document
+        and multi-document printing deterministic and prevents a window action from
+        being returned by surrounding wizard/view context.
+        """
+        documents = self.exists()
+        if not documents:
+            return False
+        report = self.env.ref("sab_project.action_report_sab_production_documents")
+        action = report.read()[0]
+        action.update(
+            {
+                "type": "ir.actions.report",
+                "report_type": report.report_type,
+                "report_name": report.report_name,
+                "report_file": report.report_file,
+                "context": {
+                    **dict(self.env.context),
+                    "active_model": self._name,
+                    "active_id": documents[0].id,
+                    "active_ids": documents.ids,
+                },
+            }
+        )
+        return action
+
     def action_print_document(self):
         self.ensure_one()
-        return self.env.ref(
-            "sab_project.action_report_sab_production_documents"
-        ).report_action(self)
+        return self._sab_production_report_action()
 
 
 class SabProductionOrderPrinting(models.Model):
