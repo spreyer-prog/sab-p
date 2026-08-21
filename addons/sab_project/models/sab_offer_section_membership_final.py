@@ -39,9 +39,14 @@ class SabOfferSectionMembershipFinal(models.Model):
                 if (line.parent_section_id.id or False) != parent_section_id:
                     values["parent_section_id"] = parent_section_id
                 if values:
+                    # Die Hierarchie-Normalisierung ist eine rein technische
+                    # Zuordnung. Sie darf auch beim Stücklistenaufbau eines
+                    # bestätigten Auftrags laufen, ohne die festgeschriebenen
+                    # Kalkulationswerte wieder editierbar zu machen.
                     line.with_context(
                         skip_section_normalize=True,
                         skip_sale_line_sync=True,
+                        sab_offer_release_write=True,
                     ).write(values)
 
             lines._sab_sync_section_positions()
