@@ -39,6 +39,13 @@
                 <field name="unit_purchase_price" optional="hide"/>
                 <field name="purchase_total" optional="hide"/>
                 <field name="stock_status" string="Materialstatus" widget="badge"/>
+                <button name="action_create_standard_purchase_orders_from_selection"
+                        type="object"
+                        string="Bestellen"
+                        icon="fa-shopping-cart"
+                        class="btn-link"
+                        invisible="state != 'open'"
+                        groups="sab_project.group_sab_purchasing"/>
                 <field name="purchase_order_id" string="Bestellung" optional="show"/>
                 <field name="purchase_order_state" string="Bestellstatus" optional="hide"/>
                 <field name="state" optional="hide"/>
