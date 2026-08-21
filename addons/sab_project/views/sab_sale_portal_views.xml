@@ -53,7 +53,9 @@
                                     <td t-att-style="'padding-left: 1rem;' if line.parent_cabinet_id else ''">
                                         <span t-out="line.description"/>
                                     </td>
-                                    <td></td>
+                                    <td class="text-end text-nowrap">
+                                        <span t-out="line.quantity" t-options="{'widget':'float','precision':2}"/>
+                                    </td>
                                     <td></td>
                                     <td class="text-end text-nowrap">
                                         <span t-out="line.section_total"
