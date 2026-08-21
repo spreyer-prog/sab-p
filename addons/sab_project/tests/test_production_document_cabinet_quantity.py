@@ -4,6 +4,14 @@ from odoo.tests.common import TransactionCase
 from odoo.addons.sab_project.models.sab_production_document import (
     PRODUCTION_DOCUMENT_TYPES,
 )
+from odoo.addons.sab_project.models.sab_production_document_printing import (
+    EXTRA_PRODUCTION_DOCUMENT_TYPES,
+)
+
+
+ALL_PRODUCTION_DOCUMENT_TYPES = (
+    PRODUCTION_DOCUMENT_TYPES + EXTRA_PRODUCTION_DOCUMENT_TYPES
+)
 
 
 class TestSabProductionDocumentCabinetQuantity(TransactionCase):
@@ -100,7 +108,7 @@ class TestSabProductionDocumentCabinetQuantity(TransactionCase):
     def test_quantity_three_creates_three_complete_document_sets(self):
         self.production.action_prepare_production_documents()
         documents = self.production.document_ids
-        per_cabinet_types = len(PRODUCTION_DOCUMENT_TYPES)
+        per_cabinet_types = len(ALL_PRODUCTION_DOCUMENT_TYPES)
 
         self.assertEqual(len(documents), 3 * per_cabinet_types)
         self.assertEqual(set(documents.mapped("cabinet_instance_no")), {1, 2, 3})
@@ -113,7 +121,7 @@ class TestSabProductionDocumentCabinetQuantity(TransactionCase):
             self.assertEqual(len(instance_docs), per_cabinet_types)
             self.assertEqual(
                 set(instance_docs.mapped("document_type")),
-                set(dict(PRODUCTION_DOCUMENT_TYPES)),
+                set(dict(ALL_PRODUCTION_DOCUMENT_TYPES)),
             )
             self.assertIn(f"{instance_no}/3", instance_docs[0].cabinet_instance_label)
 
