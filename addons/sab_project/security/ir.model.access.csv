@@ -35,6 +35,8 @@ access_sab_production_step_employee,sab.production.step employee,model_sab_produ
 access_sab_production_step_manager,sab.production.step manager,model_sab_production_step,project.group_project_manager,1,1,1,1
 access_sab_purchase_requirement_user,sab.purchase.requirement user,model_sab_purchase_requirement,base.group_user,1,0,0,0
 access_sab_purchase_requirement_system,sab.purchase.requirement system,model_sab_purchase_requirement,base.group_system,1,1,1,1
+access_purchase_order_system_admin,purchase.order system admin,purchase.model_purchase_order,base.group_system,1,1,1,1
+access_purchase_order_line_system_admin,purchase.order.line system admin,purchase.model_purchase_order_line,base.group_system,1,1,1,1
 access_sab_stock_movement_user,sab.stock.movement user,model_sab_stock_movement,base.group_user,1,0,0,0
 access_sab_purchase_order_user_read,sab.purchase.order user read,model_sab_purchase_order,base.group_user,1,0,0,0
 access_sab_purchase_order_line_user_read,sab.purchase.order.line user read,model_sab_purchase_order_line,base.group_user,1,0,0,0
