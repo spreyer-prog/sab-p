@@ -76,6 +76,8 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("add_pack", xml)
         self.assertIn("Bestellung Fehlteile", xml)
         self.assertIn("Beipackzettel", xml)
+        self.assertIn("Arial Narrow", xml)
+        self.assertIn("letter-spacing", xml)
         self.assertIn("mm", xml)
 
     def test_folder_label_master_uses_project_number_and_fixed_mm_geometry(self):
@@ -85,4 +87,7 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("sab_project_reference", xml)
         self.assertIn("Liefertermin", xml)
         self.assertIn("dd.MM.yyyy", xml)
+        self.assertIn("Arial Narrow", xml)
+        self.assertIn("✌", xml)
+        self.assertGreaterEqual(xml.count("✌"), 3)
         self.assertIn("mm", xml)
