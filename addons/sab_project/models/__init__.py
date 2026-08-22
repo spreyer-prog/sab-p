@@ -56,6 +56,7 @@ from . import sab_project_controlling
 from . import sab_employee_feedback
 from . import sab_customer_status
 from . import sab_procurement_package
+from . import sab_procurement_release_without_employee_gate
 from . import sab_procurement_package_selection_fix
 from . import sab_procurement_package_fix
 from . import sab_bom_procurement_handover
