@@ -68,32 +68,28 @@ class SabProductionPrintProfile(models.Model):
 
     @api.model
     def _sab_apply_original_standard_profiles(self):
-        """Synchronise only company defaults with the uploaded legacy originals.
+        """Synchronise company defaults with the actual uploaded legacy PDFs.
 
-        Personal profiles are deliberately untouched. This method is called from
-        normal XML data on every module upgrade because the first generation of
-        standard profiles was created with noupdate=1 and therefore cannot be
-        corrected reliably by changing that original XML alone.
+        Every document owns its page geometry. Personal profiles stay untouched.
         """
         defaults = {
+            # komormi.pdf: six genuine A4 portrait pages.
             "conformity": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
-            # Uploaded originals Laufkarte.pdf and both pages of Blatt Endprüfung.pdf
-            # are genuine A4 portrait pages. They must never inherit the former
-            # shared A4-landscape workaround.
+            # Stand-alone uploaded originals Laufkarte.pdf and both pages of
+            # Blatt Endprüfung.pdf are A4 portrait.
             "run_card": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
             "production_test": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
             "final_inspection": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
-            "missing_parts": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
-            # Blatt Versand.pdf carries a 90 degree page rotation and therefore
-            # prints as A4 landscape.
+            # Bestelvorlage.pdf and Blatet Beipack.pdf are A4 pages with 90°
+            # rotation, i.e. effective A4 landscape artwork.
+            "missing_parts": dict(paper_kind="a4", orientation="landscape", width_mm=297.0, height_mm=210.0),
             "shipping_sheet": dict(paper_kind="a4", orientation="landscape", width_mm=297.0, height_mm=210.0),
-            "add_pack": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
-            # Original Typenschild.pdf and Infoschild.pdf are 1280 x 720 pt,
-            # equivalent to approx. 451.6 x 254.0 mm. Keep that canvas exactly;
-            # their inner artwork is positioned independently by its own template.
+            "add_pack": dict(paper_kind="a4", orientation="landscape", width_mm=297.0, height_mm=210.0),
+            # Typenschild.pdf / Infoschild.pdf are 1280 x 720 pt.
             "nameplate": dict(paper_kind="custom", orientation="portrait", width_mm=451.6, height_mm=254.0),
             "info_sheet": dict(paper_kind="custom", orientation="portrait", width_mm=451.6, height_mm=254.0),
-            "folder_label": dict(paper_kind="custom", orientation="portrait", width_mm=61.0, height_mm=192.0),
+            # Ordner.pdf is 108 x 538 pt = approx. 38.1 x 189.8 mm.
+            "folder_label": dict(paper_kind="custom", orientation="portrait", width_mm=38.1, height_mm=189.8),
         }
         for document_type, values in defaults.items():
             values = {
