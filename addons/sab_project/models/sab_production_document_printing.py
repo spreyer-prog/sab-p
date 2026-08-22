@@ -1,3 +1,5 @@
+import re
+
 from odoo import fields, models, _
 
 
@@ -23,6 +25,55 @@ class SabProductionDocumentPrinting(models.Model):
         ondelete={key: "cascade" for key, _label in EXTRA_PRODUCTION_DOCUMENT_TYPES},
     )
 
+    def _sab_safe_pdf_part(self, value):
+        value = (value or "").strip()
+        value = re.sub(r"[\\/:*?\"<>|]+", "-", value)
+        value = re.sub(r"\s+", " ", value).strip(" .-_\t\r\n")
+        return value
+
+    def _sab_pdf_filename(self):
+        documents = self.exists()
+        if not documents:
+            return "Fertigungsdokument"
+
+        first = documents[0]
+        project = self._sab_safe_pdf_part(
+            first.project_id.sab_project_reference
+            or first.project_reference
+            or first.project_id.name
+        )
+
+        if self.env.context.get("sab_multi_production_print") or len(documents) > 1:
+            cabinets = documents.mapped("cabinet_instance_label")
+            parts = [project]
+            if len(set(filter(None, cabinets))) == 1:
+                parts.append(self._sab_safe_pdf_part(cabinets[0]))
+            parts.append("Fertigungsordner")
+            return "_".join(filter(None, parts)) or "Fertigungsordner"
+
+        document_labels = {
+            "conformity": "Konformitätserklärung",
+            "production_test": "Prüfprotokoll Fertigung",
+            "final_inspection": "Prüfprotokoll Endkontrolle",
+            "run_card": "Laufkarte",
+            "missing_parts": "Bestellung Fehlteile",
+            "shipping_sheet": "Versandblatt",
+            "add_pack": "Beipackzettel",
+            "nameplate": "Typenschild",
+            "info_sheet": "Infoschild",
+            "folder_label": "Ordneretikett",
+        }
+        document_label = document_labels.get(
+            first.document_type,
+            first.name or "Fertigungsdokument",
+        )
+        parts = [
+            project,
+            self._sab_safe_pdf_part(first.cabinet_instance_label or first.cabinet_name),
+            self._sab_safe_pdf_part(document_label),
+        ]
+        return "_".join(filter(None, parts)) or "Fertigungsdokument"
+
     def _sab_production_report_action(self):
         """Return the native QWeb PDF report action for these exact documents.
 
@@ -34,19 +85,24 @@ class SabProductionDocumentPrinting(models.Model):
         if not documents:
             return False
         report = self.env.ref("sab_project.action_report_sab_production_documents")
+        multi_print = len(documents) > 1
+        report_context = {
+            **dict(self.env.context),
+            "active_model": self._name,
+            "active_id": documents[0].id,
+            "active_ids": documents.ids,
+            "sab_multi_production_print": multi_print,
+        }
+        filename = documents.with_context(report_context)._sab_pdf_filename()
         action = report.read()[0]
         action.update(
             {
                 "type": "ir.actions.report",
+                "name": filename,
                 "report_type": report.report_type,
                 "report_name": report.report_name,
                 "report_file": report.report_file,
-                "context": {
-                    **dict(self.env.context),
-                    "active_model": self._name,
-                    "active_id": documents[0].id,
-                    "active_ids": documents.ids,
-                },
+                "context": report_context,
             }
         )
         return action
