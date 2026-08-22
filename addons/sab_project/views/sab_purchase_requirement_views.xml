@@ -18,9 +18,9 @@
                             groups="sab_project.group_sab_purchasing"/>
                     <button name="action_create_standard_purchase_orders_from_selection"
                             type="object"
-                            string="Bestellvorschlag aus markierten Positionen"
+                            string="Bestellen"
+                            icon="fa-shopping-cart"
                             class="btn-primary"
-                            display="always"
                             groups="sab_project.group_sab_purchasing,base.group_system"/>
                 </header>
                 <button name="action_create_standard_purchase_orders_from_selection"
