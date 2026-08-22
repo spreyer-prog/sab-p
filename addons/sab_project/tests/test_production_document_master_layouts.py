@@ -39,6 +39,21 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("rotate(90deg)", xml)
         self.assertIn("page-break-inside: avoid", xml)
 
+    def test_master_v6_native_formats_do_not_double_rotate_special_reports(self):
+        arch = self._view_arch(
+            "sab_project.report_sab_production_document_master_v6_native_formats"
+        )
+        xml = etree.tostring(arch, encoding="unicode")
+        self.assertIn("sab-master-native-landscape", xml)
+        self.assertIn("sab-info-native-page", xml)
+        self.assertIn("sab-info-native-card", xml)
+        self.assertIn("sab_native_sheet_format", xml)
+        self.assertIn("transform: none", xml)
+        self.assertIn("width: 265mm", xml)
+        self.assertIn("height: 176mm", xml)
+        self.assertIn("width: 277mm", xml)
+        self.assertIn("height: 190mm", xml)
+
     def test_conformity_master_contains_complete_six_page_legacy_set(self):
         arch = self._view_arch(
             "sab_project.report_sab_production_document_conformity"
