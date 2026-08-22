@@ -66,6 +66,11 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("DIN VDE 0100-600", xml)
         self.assertIn("Überspannungschutz", xml)
         self.assertIn("rotate(-90deg)", xml)
+        self.assertIn("Arial Narrow", xml)
+        self.assertIn("doc.inspector_name", xml)
+        self.assertIn("doc.inspection_date", xml)
+        self.assertIn("doc.next_maintenance_date", xml)
+        self.assertGreaterEqual(xml.count("dd.MM.yyyy"), 2)
         self.assertIn("mm", xml)
 
     def test_master_v3_contains_missing_parts_shipping_and_add_pack(self):
