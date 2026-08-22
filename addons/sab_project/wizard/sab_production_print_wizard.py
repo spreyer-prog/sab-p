@@ -10,11 +10,8 @@ DOCUMENT_FIELD_MAP = {
     "missing_parts": "print_missing_parts",
     "shipping_sheet": "print_shipping_sheet",
     "add_pack": "print_add_pack",
-    "conversion_sheet": "print_conversion_sheet",
     "nameplate": "print_nameplate",
-    "inspection_label": "print_inspection_label",
     "info_sheet": "print_info_sheet",
-    "commissioning": "print_commissioning",
     "folder_label": "print_folder_label",
 }
 
@@ -138,9 +135,6 @@ class SabProductionPrintWizardLine(models.TransientModel):
     print_missing_parts = fields.Boolean(string="Bestellvorlage")
     print_shipping_sheet = fields.Boolean(string="Versand")
     print_add_pack = fields.Boolean(string="Beipack")
-    print_conversion_sheet = fields.Boolean(string="Umbau")
     print_nameplate = fields.Boolean(string="Typenschild")
-    print_inspection_label = fields.Boolean(string="Prüfetikett")
-    print_info_sheet = fields.Boolean(string="Infoschild")
-    print_commissioning = fields.Boolean(string="Kommissionierung")
+    print_info_sheet = fields.Boolean(string="Infoschild / Prüfetikett")
     print_folder_label = fields.Boolean(string="Ordneretikett")
