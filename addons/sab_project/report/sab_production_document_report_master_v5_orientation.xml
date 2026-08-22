@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_master_v5_orientation"
+              inherit_id="sab_project.report_sab_production_document_master_v2"
+              priority="1010">
+        <xpath expr="//style" position="inside">
+            .sab-master-landscape {
+                width: 277mm !important;
+                min-height: 190mm !important;
+                height: 190mm !important;
+                max-height: 190mm !important;
+                margin: 0 !important;
+                position: relative !important;
+                overflow: hidden !important;
+                transform-origin: top left !important;
+                transform: rotate(90deg) translateY(-190mm) !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .sab-master-landscape table,
+            .sab-master-landscape tr,
+            .sab-master-landscape td,
+            .sab-master-landscape th {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .sab-master-landscape + * {
+                page-break-before: always !important;
+            }
+        </xpath>
+
+        <xpath expr="//t[@t-if=&quot;doc.document_type == 'run_card'&quot;]/div[1]" position="attributes">
+            <attribute name="class">sab-master-page sab-master-landscape</attribute>
+            <attribute name="style">font-size:9pt; line-height:1.0;</attribute>
+        </xpath>
+
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'production_test'&quot;]/div[1]" position="attributes">
+            <attribute name="class">sab-master-page sab-master-landscape</attribute>
+            <attribute name="style">font-size:7.7pt; line-height:1.0;</attribute>
+        </xpath>
+
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'final_inspection'&quot;]/div[1]" position="attributes">
+            <attribute name="class">sab-master-page sab-master-landscape</attribute>
+            <attribute name="style">font-size:7.8pt; line-height:1.0;</attribute>
+        </xpath>
+    </template>
+</odoo>
