@@ -71,16 +71,26 @@ class SabProductionPrintWizard(models.TransientModel):
         return values
 
     def action_select_all(self):
-        for line in self.line_ids:
-            line.write({field_name: True for field_name in DOCUMENT_FIELD_MAP.values()})
+        self.ensure_one()
+        if not self.line_ids:
+            self.production_order_id.action_prepare_production_documents()
+            raise ValidationError(
+                _("Für diesen Fertigungsauftrag wurden keine druckbaren Schränke gefunden.")
+            )
+        self.line_ids.write(
+            {field_name: True for field_name in DOCUMENT_FIELD_MAP.values()}
+        )
         return self._reopen()
 
     def action_clear_all(self):
-        for line in self.line_ids:
-            line.write({field_name: False for field_name in DOCUMENT_FIELD_MAP.values()})
+        self.ensure_one()
+        self.line_ids.write(
+            {field_name: False for field_name in DOCUMENT_FIELD_MAP.values()}
+        )
         return self._reopen()
 
     def _reopen(self):
+        self.ensure_one()
         return {
             "type": "ir.actions.act_window",
             "name": _("Fertigungsdruck"),
@@ -88,9 +98,15 @@ class SabProductionPrintWizard(models.TransientModel):
             "res_id": self.id,
             "view_mode": "form",
             "target": "new",
+            "context": {
+                **dict(self.env.context),
+                "default_production_order_id": self.production_order_id.id,
+                "active_id": self.production_order_id.id,
+                "active_model": "sab.production.order",
+            },
         }
 
-    def action_print_selected(self):
+    def _selected_documents(self):
         self.ensure_one()
         selected = self.env["sab.production.document"]
         for line in self.line_ids:
@@ -104,6 +120,11 @@ class SabProductionPrintWizard(models.TransientModel):
                     and d.document_type == dtype
                 )[:1]
                 selected |= document
+        return selected
+
+    def action_print_selected(self):
+        self.ensure_one()
+        selected = self._selected_documents()
         if not selected:
             raise ValidationError(_("Bitte mindestens ein Blatt zum Drucken auswählen."))
         return selected._sab_production_report_action()
