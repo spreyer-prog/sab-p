@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_add_pack_original"
+              inherit_id="sab_project.report_sab_production_document"
+              priority="2170">
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'add_pack'&quot;]" position="replace">
+            <t t-elif="doc.document_type == 'add_pack'">
+                <!-- Blatet Beipack.pdf: A4 mit 90° Rotation = A4 Querformat. -->
+                <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; overflow:hidden; font-family:Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:29.9mm; top:25.2mm; width:236.9mm; height:159.1mm; border:0.35mm solid #000; box-sizing:border-box; text-align:center; overflow:hidden; padding:10mm 13mm;">
+                        <div style="font-size:15pt; font-weight:700; text-decoration:underline; line-height:1;">Beipackzettel</div>
+                        <div style="font-size:9.4pt; font-weight:700; margin-top:4.7mm;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="font-size:8.7pt; margin-top:1.2mm;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="font-size:8.7pt; margin-top:0.8mm;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="font-size:13pt; font-weight:700; margin-top:5.5mm;">Achtung! Bitte beachten.</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.5mm;">Die Dokumentation befindet sich in der Schaltplantasche<br/>oder separat gepackt hinter der Türe / den Abdeckungen.</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.0mm;">Anschlußschrauben für Trenner sind in den unbestückten<br/>Sicherungskammern beigelegt. (Ansonsten im Beipack)</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.0mm;">Weiteres Zubehör, wie z. B. Sicherungshalter,<br/>Befestigungswinkel usw. befinden sich hinter<br/>den Abdeckungen bzw. im Beipack.</div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
