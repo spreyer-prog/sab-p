@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_master_v3" inherit_id="sab_project.report_sab_production_document" priority="996">
+        <!-- Bestellung Fehlteile: feste Geometrie nach Originalvorlage -->
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'missing_parts'&quot;]" position="replace">
+            <t t-elif="doc.document_type == 'missing_parts'">
+                <div class="sab-master-page" style="font-family:Arial, Helvetica, sans-serif; color:#000;">
+                    <div style="height:33mm;"></div>
+                    <div style="height:13mm; border-top:0.7mm solid #000; border-bottom:0.7mm solid #000; display:flex; align-items:center; justify-content:flex-end; padding:0 2mm; font-size:20pt; font-weight:700;">Bestellung Fehlteile</div>
+                    <div style="height:8mm; background:#00f10a; border-bottom:0.7mm solid #000;"></div>
+                    <div style="height:13mm; border-bottom:0.7mm solid #000; display:flex; align-items:center; justify-content:center; font-size:17pt;">✉✉</div>
+                    <table style="border-collapse:collapse; width:100%; table-layout:fixed; margin-top:0;">
+                        <colgroup><col style="width:48mm;"/><col style="width:92mm;"/><col style="width:28mm;"/><col style="width:22mm;"/></colgroup>
+                        <tr style="height:12mm; font-size:18pt; font-weight:700;">
+                            <td style="border:0; padding:1mm 1mm 0 1mm;"><span t-out="doc.project_reference or ''"/></td>
+                            <td colspan="3" style="border:0; padding:1mm 1mm 0 1mm; text-align:center;"><span t-out="doc.project_name or ''"/></td>
+                        </tr>
+                        <tr style="height:7mm; background:#c8c8c8; font-size:7.5pt;">
+                            <td style="border:0.35mm solid #000; padding:1mm;">Verteiler</td>
+                            <td style="border:0.35mm solid #000; padding:1mm;">Artikelnummer / Artikeltext</td>
+                            <td style="border:0.35mm solid #000; padding:1mm;">Bemerkung</td>
+                            <td style="border:0.35mm solid #000; padding:1mm;">Erledigt/Datum</td>
+                        </tr>
+                        <t t-foreach="range(21)" t-as="i">
+                            <tr style="height:8mm; font-size:8pt;">
+                                <td style="border:0.35mm solid #000; padding:1mm;"><span t-if="i == 0" t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td>
+                                <td style="border:0.35mm solid #000; padding:1mm;"></td>
+                                <td style="border:0.35mm solid #000; padding:1mm;"></td>
+                                <td style="border:0.35mm solid #000; padding:1mm;"></td>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </t>
+        </xpath>
+
+        <!-- Versandblatt: groß gesetztes Versandkennblatt nach Original -->
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'shipping_sheet'&quot;]" position="replace">
+            <t t-elif="doc.document_type == 'shipping_sheet'">
+                <div class="sab-master-page" style="font-family:Arial, Helvetica, sans-serif; color:#000;">
+                    <div style="border:0.7mm solid #000; width:182mm; height:250mm; margin:10mm auto 0 auto; overflow:hidden; position:relative;">
+                        <div style="position:absolute; top:24mm; left:0; width:100%; text-align:center; font-size:43pt; font-weight:700; line-height:1;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="position:absolute; top:82mm; left:0; width:100%; text-align:center; font-size:37pt; font-weight:700; line-height:1;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="position:absolute; top:137mm; left:0; width:100%; text-align:center; font-size:39pt; font-weight:700; line-height:1;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="position:absolute; top:193mm; left:0; width:100%; text-align:center; font-size:37pt; font-weight:700; line-height:1;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+
+        <!-- Beipackzettel: Rahmen, Kopf und Hinweisblöcke wie Original -->
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'add_pack'&quot;]" position="replace">
+            <t t-elif="doc.document_type == 'add_pack'">
+                <div class="sab-master-page" style="font-family:Arial, Helvetica, sans-serif; color:#000;">
+                    <div style="border:0.7mm solid #000; width:180mm; min-height:238mm; margin:12mm auto 0 auto; padding:10mm 13mm; box-sizing:border-box; text-align:center;">
+                        <div style="font-size:31pt; font-weight:700; text-decoration:underline; line-height:1; margin-top:1mm;">Beipackzettel</div>
+                        <div style="font-size:19pt; font-weight:700; margin-top:14mm;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="font-size:16pt; margin-top:3mm;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="font-size:17pt; margin-top:2mm;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="font-size:26pt; font-weight:700; margin-top:16mm; line-height:1.05;">Achtung! Bitte beachten.</div>
+                        <div style="font-size:15.5pt; font-weight:700; line-height:1.32; margin-top:15mm;">
+                            Die Dokumentation befindet sich in der Schaltplantasche<br/>
+                            oder separat gepackt hinter der Türe / den Abdeckungen.
+                        </div>
+                        <div style="font-size:15.5pt; font-weight:700; line-height:1.32; margin-top:13mm;">
+                            Anschlußschrauben für Trenner sind in den unbestückten<br/>
+                            Sicherungskammern beigelegt. (Ansonsten im Beipack)
+                        </div>
+                        <div style="font-size:15.5pt; font-weight:700; line-height:1.32; margin-top:15mm;">
+                            Weiteres Zubehör, wie z. B. Sicherungshalter,<br/>
+                            Befestigungswinkel usw. befinden sich hinter<br/>
+                            den Abdeckungen bzw. im Beipack.
+                        </div>
+                        <div style="font-size:12pt; font-weight:700; margin-top:14mm;">Verteiler: <span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
