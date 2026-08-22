@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_shipping_original"
+              inherit_id="sab_project.report_sab_production_document"
+              priority="2130">
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'shipping_sheet'&quot;]" position="replace">
+            <t t-elif="doc.document_type == 'shipping_sheet'">
+                <!-- Blatt Versand.pdf: A4 mit 90° Seitendrehung = effektives A4 Querformat. -->
+                <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
+                    <div style="position:absolute; left:30.8mm; top:27.0mm; width:235.4mm; height:156.0mm; border:0.35mm solid #000; box-sizing:border-box; text-align:center; font-weight:700; overflow:hidden;">
+                        <div style="position:absolute; top:9mm; left:4mm; right:4mm; font-size:25pt; line-height:1.0;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="position:absolute; top:43mm; left:4mm; right:4mm; font-size:24pt; line-height:1.0;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="position:absolute; top:79mm; left:4mm; right:4mm; font-size:24pt; line-height:1.0;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="position:absolute; top:116mm; left:4mm; right:4mm; font-size:24pt; line-height:1.0;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
