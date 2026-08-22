@@ -9,6 +9,7 @@ class PurchaseOrderSabActionSecurity(models.Model):
         protected_orders = self.filtered("sab_is_suite_order")
         if protected_orders and not (
             self.env.is_superuser()
+            or self.env.user.has_group("base.group_system")
             or self.env.user.has_group("sab_project.group_sab_purchasing")
         ):
             raise AccessError(
