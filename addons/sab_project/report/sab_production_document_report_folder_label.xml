@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_sab_production_document_folder_label" inherit_id="sab_project.report_sab_production_document" priority="999">
-        <!--
-            Ordneretikett nach der bereitgestellten Originalvorlage.
-            Die Geometrie wird bewusst in mm festgelegt. Dynamisch sind nur
-            Projekt-/Kundendaten und Liefertermin.
-        -->
         <xpath expr="//t[@t-else]" position="before">
             <t t-elif="doc.document_type == 'folder_label'">
-                <div class="sab-master-page" style="position:relative; width:190mm; height:277mm; margin:0 auto; font-family:Arial, Helvetica, sans-serif; color:#000; overflow:hidden;">
-                    <!-- Logo -->
+                <div class="sab-master-page" style="position:relative; width:190mm; height:277mm; margin:0 auto; font-family:'Arial Narrow', Arial, Helvetica, sans-serif; color:#000; overflow:hidden;">
                     <div style="position:absolute; left:5mm; top:4mm; width:180mm; height:35mm; text-align:left;">
                         <img t-if="doc.project_id.company_id.logo"
                              t-att-src="image_data_uri(doc.project_id.company_id.logo)"
@@ -17,36 +11,35 @@
                         <div t-if="not doc.project_id.company_id.logo" style="font-size:28pt; font-weight:700;">SAB-P</div>
                     </div>
 
-                    <!-- Projektstammnummer -->
                     <div style="position:absolute; left:5mm; top:45mm; width:180mm; text-align:center; font-size:25pt; font-weight:700; line-height:1;">
                         <span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/>
                     </div>
                     <div style="position:absolute; left:0; top:66mm; width:190mm; border-top:0.55mm solid #000;"></div>
 
-                    <!-- Projekt -->
-                    <div style="position:absolute; left:5mm; top:76mm; width:180mm; font-size:20pt; line-height:1.05;">
+                    <div style="position:absolute; left:5mm; top:76mm; width:180mm; font-size:21pt; line-height:1.05;">
                         <span t-out="doc.project_name or ''"/>
                     </div>
 
-                    <!-- Kunde -->
-                    <div style="position:absolute; left:5mm; top:135mm; width:180mm; font-size:18pt; line-height:1.05;">
+                    <div style="position:absolute; left:5mm; top:135mm; width:180mm; font-size:20pt; line-height:1.05;">
                         <span t-out="doc.customer_name or ''"/>
                     </div>
 
                     <div style="position:absolute; left:0; top:182mm; width:190mm; border-top:0.55mm solid #000;"></div>
 
-                    <!-- Liefertermin -->
-                    <div style="position:absolute; left:5mm; top:192mm; width:180mm; font-size:18pt; line-height:1;">
-                        Liefertermin:
-                    </div>
-                    <div style="position:absolute; left:5mm; top:209mm; width:180mm; font-size:20pt; font-weight:700; line-height:1;">
+                    <div style="position:absolute; left:5mm; top:192mm; width:180mm; font-size:20pt; line-height:1;">Liefertermin:</div>
+                    <div style="position:absolute; left:5mm; top:209mm; width:180mm; font-size:22pt; font-weight:700; line-height:1;">
                         <span t-field="doc.delivery_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/>
                     </div>
 
                     <div style="position:absolute; left:0; top:242mm; width:190mm; border-top:0.55mm solid #000;"></div>
 
-                    <!-- Unterer Kennzeichnungsbereich der Vorlage -->
-                    <div style="position:absolute; left:5mm; top:250mm; width:180mm; text-align:center; font-size:15pt; line-height:1;">
+                    <!-- Drei Symbolzeilen wie in der Ordner-Originalvorlage. -->
+                    <div style="position:absolute; left:4mm; top:248mm; width:182mm; text-align:center; font-family:'DejaVu Sans', Arial, sans-serif; font-size:12.5pt; line-height:1.15; white-space:nowrap; letter-spacing:0.8mm;">
+                        <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
+                        <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
+                        <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
+                    </div>
+                    <div style="position:absolute; left:5mm; top:270mm; width:180mm; text-align:center; font-size:15pt; line-height:1;">
                         <span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/>
                     </div>
                 </div>
