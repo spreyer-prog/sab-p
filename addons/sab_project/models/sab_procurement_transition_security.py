@@ -35,6 +35,7 @@ class SabProjectBomProcurementWriteSecurity(models.Model):
         }
         if approval_fields.intersection(vals) and not (
             self.env.is_superuser()
+            or self.env.user.has_group("base.group_system")
             or self.env.user.has_group("sab_project.group_sab_purchase_approver")
         ):
             raise AccessError(
