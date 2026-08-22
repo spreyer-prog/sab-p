@@ -5,26 +5,26 @@
               priority="2180">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'folder_label'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'folder_label'">
-                <!-- Ordner.pdf: exakt 108 x 538 pt = ca. 38,1 x 189,8 mm. -->
-                <div style="position:relative; width:38.1mm; height:189.8mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
-                    <div style="position:absolute; left:1.8mm; top:5.2mm; width:34.5mm; height:18mm; text-align:center; overflow:hidden;">
-                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:31mm; max-height:16mm; object-fit:contain;"/>
+                <!-- Geprüfter SAB-P-Ausgabeträger: 61 x 192 mm Hochformat. -->
+                <div style="position:relative; width:61mm; height:192mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:2.9mm; top:5.2mm; width:55.2mm; height:18mm; text-align:center; overflow:hidden;">
+                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:49.6mm; max-height:16mm; object-fit:contain;"/>
                         <div t-if="not doc.project_id.company_id.logo" style="font-size:14pt; font-weight:700;">SAB-P</div>
                     </div>
-                    <div style="position:absolute; left:1.6mm; top:32.7mm; width:34.9mm; font-size:8.4pt; font-weight:700; text-align:left;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
-                    <div style="position:absolute; left:1.6mm; top:45.0mm; width:25.5mm; border-top:0.25mm solid #555;"></div>
-                    <div style="position:absolute; left:1.6mm; top:51.8mm; width:34.9mm; max-height:24mm; overflow:hidden; font-size:7.2pt; line-height:1.05;"><span t-out="doc.project_name or ''"/></div>
-                    <div style="position:absolute; left:1.6mm; top:82.0mm; width:34.9mm; max-height:24mm; overflow:hidden; font-size:7.0pt; line-height:1.05;"><span t-out="doc.customer_name or ''"/></div>
-                    <div style="position:absolute; left:1.6mm; top:109.0mm; width:25.5mm; border-top:0.25mm solid #555;"></div>
-                    <div style="position:absolute; left:1.6mm; top:116.0mm; width:34.9mm; font-size:6.4pt; font-weight:700;">Liefertermin:</div>
-                    <div style="position:absolute; left:1.6mm; top:128.0mm; width:34.9mm; font-size:7.8pt; font-weight:700;"><span t-if="doc.delivery_date" t-field="doc.delivery_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/></div>
-                    <div style="position:absolute; left:1.6mm; top:147.0mm; width:25.5mm; border-top:0.25mm solid #555;"></div>
-                    <div style="position:absolute; left:1.0mm; top:156.0mm; width:36.1mm; text-align:center; font-family:'DejaVu Sans',Arial,sans-serif; font-size:4.4pt; line-height:1.2; white-space:nowrap;">
+                    <div style="position:absolute; left:2.6mm; top:32.7mm; width:55.8mm; font-size:8.4pt; font-weight:700; text-align:left;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
+                    <div style="position:absolute; left:2.6mm; top:45.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>
+                    <div style="position:absolute; left:2.6mm; top:51.8mm; width:55.8mm; max-height:24mm; overflow:hidden; font-size:7.2pt; line-height:1.05;"><span t-out="doc.project_name or ''"/></div>
+                    <div style="position:absolute; left:2.6mm; top:82.0mm; width:55.8mm; max-height:24mm; overflow:hidden; font-size:7.0pt; line-height:1.05;"><span t-out="doc.customer_name or ''"/></div>
+                    <div style="position:absolute; left:2.6mm; top:109.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>
+                    <div style="position:absolute; left:2.6mm; top:116.0mm; width:55.8mm; font-size:6.4pt; font-weight:700;">Liefertermin:</div>
+                    <div style="position:absolute; left:2.6mm; top:128.0mm; width:55.8mm; font-size:7.8pt; font-weight:700;"><span t-if="doc.delivery_date" t-field="doc.delivery_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/></div>
+                    <div style="position:absolute; left:2.6mm; top:147.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>
+                    <div style="position:absolute; left:1.6mm; top:156.0mm; width:57.8mm; text-align:center; font-family:'DejaVu Sans',Arial,sans-serif; font-size:4.4pt; line-height:1.2; white-space:nowrap;">
                         <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
                         <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
                         <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
                     </div>
-                    <div style="position:absolute; left:1.0mm; bottom:2.2mm; width:36.1mm; text-align:center; font-size:5.5pt;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
+                    <div style="position:absolute; left:1.6mm; bottom:2.2mm; width:57.8mm; text-align:center; font-size:5.5pt;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
                 </div>
             </t>
         </xpath>

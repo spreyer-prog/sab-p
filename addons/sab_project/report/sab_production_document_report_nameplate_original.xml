@@ -5,9 +5,9 @@
               priority="2140">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'nameplate'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'nameplate'">
-                <!-- Typenschild.pdf: 1280 x 720 pt = 451,6 x 254,0 mm. Das eigentliche Schild liegt zentriert bei ca. x=170,8..280,9 mm. -->
-                <div style="position:relative; width:451.6mm; height:254mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
-                    <div style="position:absolute; left:170.8mm; top:2.5mm; width:110.2mm; height:180mm; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
+                <!-- Geprüfter SAB-P-Ausgabeträger: 176 x 265 mm Hochformat. -->
+                <div style="position:relative; width:176mm; height:265mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:2.5mm; top:3.5mm; width:110.2mm; height:180mm; transform:scale(1.55,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
                         <table style="border:0; width:100%; height:18.5mm; margin:0 0 0.9mm 0; table-layout:fixed;">
                             <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
                             <tr>

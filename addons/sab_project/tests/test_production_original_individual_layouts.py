@@ -42,9 +42,9 @@ class TestSabProductionOriginalIndividualLayouts(TransactionCase):
             "sab_project.report_sab_production_document_shipping_original": ("shipping_sheet", "width:297mm"),
             "sab_project.report_sab_production_document_missing_parts_original": ("missing_parts", "Bestellung Fehlteile"),
             "sab_project.report_sab_production_document_add_pack_original": ("add_pack", "Beipackzettel"),
-            "sab_project.report_sab_production_document_nameplate_original": ("nameplate", "width:451.6mm"),
-            "sab_project.report_sab_production_document_info_sheet_original": ("info_sheet", "width:451.6mm"),
-            "sab_project.report_sab_production_document_folder_label_original": ("folder_label", "width:38.1mm"),
+            "sab_project.report_sab_production_document_nameplate_original": ("nameplate", "width:176mm"),
+            "sab_project.report_sab_production_document_info_sheet_original": ("info_sheet", "width:265mm"),
+            "sab_project.report_sab_production_document_folder_label_original": ("folder_label", "width:61mm"),
             "sab_project.report_sab_production_document_conformity": ("conformity", "2014/35/EU"),
         }
         for xmlid, (document_type, marker) in expectations.items():
@@ -88,6 +88,6 @@ class TestSabProductionOriginalIndividualLayouts(TransactionCase):
             [("user_id", "=", False), ("document_type", "=", "folder_label")],
             limit=1,
         )
-        self.assertEqual((nameplate.width_mm, nameplate.height_mm), (451.6, 254.0))
-        self.assertEqual((info_sheet.width_mm, info_sheet.height_mm), (451.6, 254.0))
-        self.assertEqual((folder_label.width_mm, folder_label.height_mm), (38.1, 189.8))
+        self.assertEqual((nameplate.width_mm, nameplate.height_mm), (176.0, 265.0))
+        self.assertEqual((info_sheet.width_mm, info_sheet.height_mm), (265.0, 176.0))
+        self.assertEqual((folder_label.width_mm, folder_label.height_mm), (61.0, 192.0))

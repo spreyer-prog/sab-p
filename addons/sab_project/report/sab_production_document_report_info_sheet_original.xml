@@ -5,9 +5,9 @@
               priority="2150">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'info_sheet'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'info_sheet'">
-                <!-- Infoschild.pdf: 1280 x 720 pt = 451,6 x 254,0 mm. Das historische Kartenmotiv ist gedreht und liegt mittig auf dieser breiten Seite. -->
-                <div style="position:relative; width:451.6mm; height:254mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
-                    <div style="position:absolute; width:265mm; height:176mm; left:284.2mm; top:2.7mm; transform:rotate(90deg) scale(0.68); transform-origin:top left;">
+                <!-- Geprüfter SAB-P-Ausgabeträger: 265 x 176 mm Querformat. -->
+                <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; width:265mm; height:176mm; left:0; top:0; transform:none; transform-origin:top left;">
                         <table style="height:176mm; width:265mm; border-left:0.8mm double #000; border-right:0.8mm double #000; table-layout:fixed; border-collapse:collapse;">
                             <colgroup><col style="width:72mm;"/><col style="width:72mm;"/><col style="width:121mm;"/></colgroup>
                             <tr>
