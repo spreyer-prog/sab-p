@@ -146,10 +146,7 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
             ".//header/button[@name='action_create_standard_purchase_orders_from_selection']"
         )
         self.assertTrue(selection_button)
-        self.assertEqual(
-            selection_button[0].get("string"),
-            "Bestellvorschlag aus markierten Positionen",
-        )
+        self.assertEqual(selection_button[0].get("string"), "Bestellen")
         self.assertIn("base.group_system", selection_button[0].get("groups", ""))
 
         # The list node itself is the XML root, so the row button is a direct
