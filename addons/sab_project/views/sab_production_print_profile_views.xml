@@ -4,7 +4,9 @@
         <field name="name">sab.production.print.profile.list</field>
         <field name="model">sab.production.print.profile</field>
         <field name="arch" type="xml">
-            <list string="Druckprofile" default_order="user_id,document_type">
+            <list string="Fertigungsdruck – Vorlagen" default_order="user_id,sequence,document_type">
+                <field name="active"/>
+                <field name="sequence" widget="handle"/>
                 <field name="document_type"/>
                 <field name="user_id" string="Benutzer (leer = Standard)"/>
                 <field name="paper_kind"/>
@@ -12,6 +14,7 @@
                 <field name="width_mm"/>
                 <field name="height_mm"/>
                 <field name="scale_percent"/>
+                <field name="copies"/>
                 <field name="printer_name"/>
             </list>
         </field>
@@ -21,15 +24,22 @@
         <field name="name">sab.production.print.profile.form</field>
         <field name="model">sab.production.print.profile</field>
         <field name="arch" type="xml">
-            <form string="Druckprofil Fertigungsblatt">
+            <form string="Fertigungsdruck – Vorlage">
+                <header>
+                    <button name="action_test_preview" type="object" string="Vorschau / Testdruck" class="btn-primary"/>
+                    <button name="action_reset_to_sab_original" type="object" string="Auf SAB-P-Original zurücksetzen" class="btn-secondary" confirm="Papierformat, Ausrichtung, Ränder, Skalierung und Exemplare dieser Vorlage werden auf den geprüften SAB-P-Originalzustand zurückgesetzt. Fortfahren?"/>
+                </header>
                 <sheet>
                     <group col="4">
+                        <field name="active"/>
+                        <field name="sequence"/>
                         <field name="document_type"/>
                         <field name="user_id"/>
                         <field name="paper_kind"/>
                         <field name="orientation"/>
                         <field name="printer_name" placeholder="z. B. Etikettendrucker Fertigung"/>
                         <field name="scale_percent"/>
+                        <field name="copies"/>
                     </group>
                     <group string="Blattabmessungen und Ränder" col="4">
                         <field name="width_mm"/>
@@ -48,14 +58,14 @@
     </record>
 
     <record id="action_sab_production_print_profiles" model="ir.actions.act_window">
-        <field name="name">Druckprofile Fertigungsblätter</field>
+        <field name="name">Fertigungsdruck – Vorlagen</field>
         <field name="res_model">sab.production.print.profile</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'default_user_id': uid}</field>
     </record>
 
     <menuitem id="menu_sab_production_print_profiles"
-              name="Druckprofile Fertigungsblätter"
+              name="Fertigungsdruck – Vorlagen"
               parent="sab_calculation_root_menu"
               action="action_sab_production_print_profiles"
               sequence="190"

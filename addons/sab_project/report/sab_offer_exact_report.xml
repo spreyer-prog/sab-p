@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_offer_exact">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="template" t-value="o.env['sab.offer.print.template'].browse(o.env.context.get('sab_offer_print_template_id')).exists() or o.env['sab.offer.print.template'].effective_template(o.company_id)"/>
+                <t t-set="customer" t-value="o.partner_id.commercial_partner_id"/>
+                <style>
+                    @page { size: A4 portrait; }
+                    .sab-offer { font-family: Arial, Helvetica, sans-serif; font-size: 9.2pt; color: #111; }
+                    .sab-offer-header { position: fixed; top: -2mm; left: 0; right: 0; height: 34mm; }
+                    .sab-offer-header .company { width: 52%; float: left; line-height: 1.28; }
+                    .sab-offer-header .logo { width: 43%; float: right; text-align: right; }
+                    .sab-offer-header .logo img { max-width: 52mm; max-height: 24mm; }
+                    .sab-offer-footer { position: fixed; left: 0; right: 0; bottom: -5mm; height: 10mm; border-top: 0; font-size: 7.5pt; }
+                    .sab-offer-footer table { width: 100%; }
+                    .sab-offer-body { padding-top: 38mm; padding-bottom: 12mm; }
+                    .sab-offer-address { width: 55%; vertical-align: top; line-height: 1.35; }
+                    .sab-offer-meta { width: 43%; vertical-align: top; text-align: right; line-height: 1.35; }
+                    .sab-offer-meta h2 { margin: 0 0 2mm; font-size: 13pt; letter-spacing: 1.2px; }
+                    .sab-offer-intro { margin-top: 7mm; margin-bottom: 6mm; }
+                    .sab-offer-items { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                    .sab-offer-items thead { display: table-header-group; }
+                    .sab-offer-items th { border-bottom: 1.2px solid #000; padding: 1.5mm 1mm; font-size: 8pt; }
+                    .sab-offer-items td { padding: 1.1mm 1mm; vertical-align: top; }
+                    .sab-offer-items .section td { border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; padding-top: 2mm; padding-bottom: 2mm; }
+                    .sab-offer-items .cabinet td { border: 1px solid #000; font-weight: bold; text-align: center; padding: 2mm; }
+                    .sab-offer-total { width: 48%; margin-left: auto; margin-top: 5mm; border-collapse: collapse; }
+                    .sab-offer-total td { padding: 1mm 0; }
+                    .sab-offer-total .grand td { border-top: 1px solid #000; font-weight: bold; }
+                    .sab-offer-condition { display: table; width: 100%; margin-top: 4mm; page-break-inside: avoid; }
+                    .sab-offer-condition .label { display: table-cell; width: 25%; font-weight: bold; vertical-align: top; padding-right: 4mm; }
+                    .sab-offer-condition .content { display: table-cell; width: 75%; vertical-align: top; }
+                    .sab-offer-terms { page-break-before: always; font-size: 8.2pt; line-height: 1.25; }
+                    .sab-offer-terms h2 { text-align: center; font-size: 12pt; }
+                    .sab-offer-terms h3 { margin: 4mm 0 1.5mm; font-size: 9pt; }
+                    .text-end { text-align: right; }
+                    .text-center { text-align: center; }
+                    .nowrap { white-space: nowrap; }
+                </style>
+
+                <div class="sab-offer sab-offer-header">
+                    <div class="company">
+                        <strong t-out="o.company_id.name"/><br/>
+                        <span t-if="o.company_id.street" t-out="o.company_id.street"/><br t-if="o.company_id.street"/>
+                        <span t-out="('%s %s' % (o.company_id.zip or '', o.company_id.city or '')).strip()"/><br/>
+                        <br/>
+                        <span t-if="o.company_id.phone">Telefon: <span t-out="o.company_id.phone"/><br/></span>
+                        <span t-if="o.company_id.email">E-Mail: <span t-out="o.company_id.email"/></span>
+                    </div>
+                    <div class="logo">
+                        <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" alt="SAB-P"/>
+                    </div>
+                </div>
+
+                <div class="sab-offer sab-offer-footer">
+                    <table>
+                        <tr>
+                            <td style="width:33%;"><span t-out="o.company_id.name"/></td>
+                            <td class="text-center" style="width:34%;">Geschäftsführer <span t-out="template.footer_manager_name or ''"/></td>
+                            <td class="text-end" style="width:33%;"><span t-out="o.company_id.company_registry or ''"/></td>
+                        </tr>
+                        <tr>
+                            <td><span t-out="time.strftime('%H:%M')"/></td>
+                            <td class="text-center">Seite <span class="page"/> von <span class="topage"/></td>
+                            <td class="text-end"><span t-out="o.sab_offer_reference or o.name"/></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="page sab-offer sab-offer-body">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <tr>
+                            <td class="sab-offer-address">
+                                <strong>Firma / Frau / Herr</strong><br/>
+                                <strong t-out="customer.name"/><br/>
+                                <span t-if="o.partner_id.name != customer.name" t-out="o.partner_id.name"/><br t-if="o.partner_id.name != customer.name"/>
+                                <span t-out="customer.street or ''"/><br/>
+                                <span t-out="('%s %s' % (customer.zip or '', customer.city or '')).strip()"/><br/>
+                                <br/>
+                                <span t-if="o.partner_id.phone">Tel.: <span t-out="o.partner_id.phone"/><br/></span>
+                                <span t-if="o.partner_id.email">E-Mail: <span t-out="o.partner_id.email"/><br/></span>
+                                <span t-if="o.user_id">Projektleiter: <span t-out="o.user_id.name"/></span>
+                            </td>
+                            <td class="sab-offer-meta">
+                                <h2>ANGEBOT</h2>
+                                <strong>Angebots-Nr.:</strong> <span t-out="o.sab_offer_reference or o.name"/><br/>
+                                <strong>Kd-Nr.:</strong> <span t-out="customer.ref or ''"/><br/>
+                                <strong>Datum:</strong> <span t-out="o.date_order" t-options="{'widget':'date'}"/><br/>
+                                <strong>Zeichen:</strong> <span t-out="o.user_id.name or ''"/>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="sab-offer-intro">
+                        <p><strong>Ihre Anfrage</strong> <span t-out="o.client_order_ref or o.sab_project_id.name or ''"/></p>
+                        <div t-if="template and template.intro_html" t-field="template.intro_html"/>
+                    </div>
+
+                    <table class="sab-offer-items">
+                        <thead>
+                            <tr>
+                                <th style="width:10%;" class="text-start">Pos.</th>
+                                <th style="width:10%;" class="text-end">Menge</th>
+                                <th style="width:8%;" class="text-start">Einh.</th>
+                                <th style="width:44%;" class="text-start">Bezeichnung</th>
+                                <th style="width:14%;" class="text-end">Einzelpreis</th>
+                                <th style="width:14%;" class="text-end">Gesamtpreis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="o.sab_calculation_line_ids">
+                                <t t-set="position" t-value="0"/>
+                                <t t-foreach="o.sab_calculation_line_ids.sorted(key=lambda line: (line.sequence, line.id))" t-as="line">
+                                    <t t-if="line.line_type in ('cabinet', 'section')">
+                                        <tr t-att-class="'cabinet' if line.line_type == 'cabinet' else 'section'">
+                                            <td></td>
+                                            <td class="text-end"><span t-out="line.quantity if line.line_type == 'section' else ''"/></td>
+                                            <td></td>
+                                            <td><span t-out="line.description"/></td>
+                                            <td></td>
+                                            <td class="text-end nowrap">
+                                                <span t-out="line.cabinet_total if line.line_type == 'cabinet' else line.section_total" t-options="{'widget':'monetary','display_currency':o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-elif="line.line_type == 'item'">
+                                        <t t-set="position" t-value="position + 1"/>
+                                        <tr>
+                                            <td><span t-out="line.lv_position or line.schematic_reference or position"/></td>
+                                            <td class="text-end"><span t-out="line.quantity" t-options="{'widget':'float','precision':2}"/></td>
+                                            <td>St.</td>
+                                            <td><span t-out="line.description or (line.calculation_item_id and line.calculation_item_id.name) or ''"/></td>
+                                            <td class="text-end nowrap"><span t-out="line.unit_recommended_net_price" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td>
+                                            <td class="text-end nowrap"><span t-out="line.recommended_net_price" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td>
+                                        </tr>
+                                    </t>
+                                    <tr t-elif="line.line_type == 'info'">
+                                        <td></td><td></td><td></td><td colspan="3"><em t-out="line.description"/></td>
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <tr t-foreach="o.order_line.filtered(lambda line: not line.display_type)" t-as="line">
+                                    <td><span t-out="line_index + 1"/></td>
+                                    <td class="text-end"><span t-out="line.product_uom_qty"/></td>
+                                    <td><span t-out="line.product_uom_id.name or ''"/></td>
+                                    <td><span t-field="line.name"/></td>
+                                    <td class="text-end nowrap"><span t-field="line.price_unit" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td>
+                                    <td class="text-end nowrap"><span t-field="line.price_subtotal" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <table class="sab-offer-total">
+                        <tr><td>Nettobetrag:</td><td class="text-end"><span t-out="o.sab_offer_net_total if o.sab_calculation_line_ids else o.amount_untaxed" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td></tr>
+                        <tr t-if="o.sab_transport_cost"><td>Transportkosten:</td><td class="text-end"><span t-out="o.sab_transport_cost" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td></tr>
+                        <tr><td>zuzüglich MwSt. <span t-out="o.sab_vat_rate"/> %:</td><td class="text-end"><span t-out="o.sab_offer_vat_total if o.sab_calculation_line_ids else o.amount_tax" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td></tr>
+                        <tr class="grand"><td>Gesamtbetrag:</td><td class="text-end"><span t-out="o.sab_offer_gross_total if o.sab_calculation_line_ids else o.amount_total" t-options="{'widget':'monetary','display_currency':o.currency_id}"/></td></tr>
+                    </table>
+
+                    <div class="sab-offer-condition" t-if="(template and template.scope_html) or o.sab_service_description">
+                        <div class="label">Leistungsbeschreibung:</div>
+                        <div class="content">
+                            <div t-if="template and template.scope_html" t-field="template.scope_html"/>
+                            <div t-else="" t-field="o.sab_service_description"/>
+                        </div>
+                    </div>
+                    <div class="sab-offer-condition">
+                        <div class="label">Lieferzeit:</div>
+                        <div class="content">
+                            <div t-if="template and template.delivery_html" t-field="template.delivery_html"/>
+                            <span t-else="" t-out="o.sab_delivery_time_text or ''"/>
+                        </div>
+                    </div>
+                    <div class="sab-offer-condition">
+                        <div class="label">Zahlung:</div>
+                        <div class="content">
+                            <div t-if="template and template.payment_html" t-field="template.payment_html"/>
+                            <span t-else="" t-out="o.sab_payment_text or ''"/>
+                        </div>
+                    </div>
+                    <div class="sab-offer-condition" t-if="template">
+                        <div class="label">Bindefrist / Preisbindung:</div>
+                        <div class="content">An unser Angebot halten wir uns gebunden bis zum <span t-out="o._sab_offer_binding_date(template)" t-options="{'widget':'date'}"/>; danach ist es freibleibend.</div>
+                    </div>
+                    <div class="sab-offer-condition" t-if="(template and template.reservations_html) or o.sab_reservations_text">
+                        <div class="label">Vorbehalte:</div>
+                        <div class="content">
+                            <div t-if="template and template.reservations_html" t-field="template.reservations_html"/>
+                            <div t-else="" t-field="o.sab_reservations_text"/>
+                        </div>
+                    </div>
+                    <div class="sab-offer-condition" t-if="(template and template.conditions_html) or o.sab_additional_terms_text">
+                        <div class="label">Bedingungen:</div>
+                        <div class="content">
+                            <div t-if="template and template.conditions_html" t-field="template.conditions_html"/>
+                            <div t-else="" t-field="o.sab_additional_terms_text"/>
+                        </div>
+                    </div>
+                    <div class="mt-4" t-if="template and template.closing_html" t-field="template.closing_html"/>
+
+                    <div class="sab-offer-terms" t-if="template and template.terms_html">
+                        <h2>Allgemeine Verkaufsbedingungen</h2>
+                        <div t-field="template.terms_html"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

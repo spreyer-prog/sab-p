@@ -75,3 +75,9 @@ access_sab_procurement_extra_line_wizard_purchasing,sab.procurement.extra.line.w
 access_sab_procurement_extra_line_wizard_manager,sab.procurement.extra.line.wizard manager,model_sab_procurement_extra_line_wizard,project.group_project_manager,1,1,1,1
 access_sab_production_print_profile_user,sab.production.print.profile user,model_sab_production_print_profile,base.group_user,1,1,1,1
 access_sab_production_print_profile_system,sab.production.print.profile system,model_sab_production_print_profile,base.group_system,1,1,1,1
+access_sab_receipt_assignment_list_user,sab.receipt.assignment.list user,model_sab_receipt_assignment_list,base.group_user,1,0,0,0
+access_sab_receipt_assignment_list_system,sab.receipt.assignment.list system,model_sab_receipt_assignment_list,base.group_system,1,1,1,1
+access_sab_receipt_assignment_list_line_user,sab.receipt.assignment.list.line user,model_sab_receipt_assignment_list_line,base.group_user,1,0,0,0
+access_sab_receipt_assignment_list_line_system,sab.receipt.assignment.list.line system,model_sab_receipt_assignment_list_line,base.group_system,1,1,1,1
+access_sab_offer_print_template_user,sab.offer.print.template user,model_sab_offer_print_template,base.group_user,1,1,1,0
+access_sab_offer_print_template_system,sab.offer.print.template system,model_sab_offer_print_template,base.group_system,1,1,1,1

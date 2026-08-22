@@ -208,3 +208,26 @@ class TestSabStandardCommissioningBridge(TransactionCase):
             location=warehouse.lot_stock_id.id,
         ).qty_available
         self.assertEqual(stock_quantity, 0.0)
+
+    def test_receipt_creates_project_assignment_list_from_done_quantity(self):
+        cabinet_bom, package, requirement, purchase_order = (
+            self._prepare_received_package()
+        )
+        receipt = purchase_order.picking_ids.filtered(
+            lambda picking: picking.state == "done"
+            and picking.picking_type_id.code == "incoming"
+        )
+        self.assertEqual(len(receipt), 1)
+        self.assertEqual(receipt.sab_receipt_assignment_list_count, 1)
+        assignment = receipt.sab_receipt_assignment_list_ids
+        self.assertEqual(assignment.picking_id, receipt)
+        self.assertEqual(len(assignment.line_ids), 1)
+        line = assignment.line_ids
+        self.assertEqual(line.purchase_requirement_id, requirement)
+        self.assertEqual(line.project_id, self.project)
+        self.assertEqual(line.source_cabinet_bom_id, cabinet_bom)
+        self.assertEqual(line.procurement_bom_id, package)
+        self.assertEqual(line.quantity_received, 6.0)
+        self.assertEqual(line.quantity_project, 6.0)
+        self.assertEqual(line.quantity_free_stock, 0.0)
+        self.assertEqual(line.supplier_article_number, "SUP-KOM-100")

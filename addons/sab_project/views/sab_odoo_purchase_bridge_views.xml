@@ -146,6 +146,105 @@
         </field>
     </record>
 
+    <!-- Verbindliche deutsche Beschriftungen. Das ist zusätzlich zum Laden des
+         deutschen Sprachpakets nötig, damit ein unvollständiger Odoo-
+         Übersetzungsstand nicht wieder gemischte Schaltflächen erzeugt. -->
+    <record id="view_sab_standard_purchase_order_form_german" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.form.german</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Bestellung</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_acknowledge']" position="attributes">
+                <attribute name="string">Lieferantenbestätigung erfassen</attribute>
+            </xpath>
+            <xpath expr="//button[@name='print_quotation']" position="attributes">
+                <attribute name="string">Drucken</attribute>
+            </xpath>
+            <xpath expr="//button[@name='%(purchase.action_report_purchase_order)d']" position="attributes">
+                <attribute name="string">Drucken</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rfq_send'][@string='Send PO']" position="attributes">
+                <attribute name="string">Bestellung per E-Mail senden</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_approve']" position="attributes">
+                <attribute name="string">Bestellung freigeben</attribute>
+            </xpath>
+            <xpath expr="//span[hasclass('o_form_label')][contains(normalize-space(.), 'Purchase Order')]" position="replace">
+                <span class="o_form_label" invisible="state in ('draft', 'sent')">Bestellung </span>
+            </xpath>
+            <xpath expr="//field[@name='partner_ref']" position="attributes">
+                <attribute name="string">Lieferantenreferenz</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_approve']" position="attributes">
+                <attribute name="string">Bestätigungsdatum</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_planned']" position="attributes">
+                <attribute name="string">Erwartete Ankunft</attribute>
+            </xpath>
+            <xpath expr="//div[@name='reminder']/span[1]" position="replace">
+                <span>Bestätigung anfordern</span>
+            </xpath>
+            <xpath expr="//page[@name='products']" position="attributes">
+                <attribute name="string">Produkte</attribute>
+            </xpath>
+            <xpath expr="//page[@name='purchase_delivery_invoice']" position="attributes">
+                <attribute name="string">Weitere Informationen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/create[@name='add_product_control']" position="attributes">
+                <attribute name="string">Produkt hinzufügen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/create[@name='add_section_control']" position="attributes">
+                <attribute name="string">Abschnitt hinzufügen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/create[@name='add_note_control']" position="attributes">
+                <attribute name="string">Notiz hinzufügen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/button[@name='action_add_from_catalog']" position="attributes">
+                <attribute name="string">Katalog</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="attributes">
+                <attribute name="string">Produkt</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="attributes">
+                <attribute name="string">Menge</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='qty_received']" position="attributes">
+                <attribute name="string">Erhalten</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='qty_invoiced']" position="attributes">
+                <attribute name="string">Abgerechnet</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="attributes">
+                <attribute name="string">Einzelpreis</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_subtotal']" position="attributes">
+                <attribute name="string">Betrag</attribute>
+            </xpath>
+            <xpath expr="//field[@name='note']" position="attributes">
+                <attribute name="placeholder">Liefer- und Zahlungsbedingungen eingeben …</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_stock_order_form_german" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.stock.form.german</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
+        <field name="priority">900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_picking'][@string='Receive']" position="attributes">
+                <attribute name="string">Wareneingang buchen</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_view_picking']/field[@name='incoming_picking_count']" position="attributes">
+                <attribute name="string">Wareneingang</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="action_sab_standard_purchase_order_drafts" model="ir.actions.act_window">
         <field name="name">Bestellvorschläge</field>
         <field name="res_model">purchase.order</field>

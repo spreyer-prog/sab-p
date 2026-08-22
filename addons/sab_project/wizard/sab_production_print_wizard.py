@@ -180,7 +180,43 @@ class SabProductionPrintWizard(models.TransientModel):
         selected = self._selected_documents()
         if not selected:
             raise ValidationError(_("Bitte mindestens ein Blatt zum Drucken auswählen."))
-        return selected._sab_production_report_action()
+
+        Profile = self.env["sab.production.print.profile"]
+        jobs = []
+        sortable = []
+        for document in selected:
+            profile = Profile.effective_profile(document.document_type, self.env.user)
+            sortable.append((profile.sequence if profile else 999, document.id, document, profile))
+
+        for _sequence, _document_id, document, profile in sorted(sortable):
+            action = document._sab_production_report_action()
+            copies = profile.copies if profile else 1
+            printer_name = (
+                profile.resolved_printer_name()
+                if profile
+                else self.env["ir.config_parameter"].sudo().get_param(
+                    "sab_project.default_pdf_printer", "PDF-Drucker"
+                )
+            )
+            for copy_number in range(1, copies + 1):
+                jobs.append(
+                    {
+                        "label": document.name,
+                        "printer_name": printer_name,
+                        "copy_number": copy_number,
+                        "copies": copies,
+                        "action": action,
+                    }
+                )
+
+        if len(jobs) == 1:
+            return jobs[0]["action"]
+        return {
+            "type": "ir.actions.client",
+            "tag": "sab_production_multi_print",
+            "name": _("Fertigungsdruck"),
+            "params": {"jobs": jobs},
+        }
 
 
 class SabProductionPrintWizardLine(models.TransientModel):

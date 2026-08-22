@@ -99,10 +99,12 @@ class TestSabProductionPrintSelection(TransactionCase):
         first.write({"print_run_card": True, "print_nameplate": True})
         action = wizard.action_print_selected()
 
-        self.assertEqual(action["type"], "ir.actions.report")
+        self.assertEqual(action["type"], "ir.actions.client")
+        self.assertEqual(action["tag"], "sab_production_multi_print")
+        self.assertEqual(len(action["params"]["jobs"]), 2)
         self.assertEqual(
-            action["report_name"],
-            "sab_project.report_sab_production_document",
+            {job["action"]["context"]["active_id"] for job in action["params"]["jobs"]},
+            set(wizard._selected_documents().ids),
         )
         self.assertFalse(wizard.line_ids.sorted("cabinet_instance_no")[1].print_run_card)
 
@@ -123,15 +125,48 @@ class TestSabProductionPrintSelection(TransactionCase):
         self.assertEqual(len(selected), expected_count)
 
         action = wizard.action_print_selected()
-        self.assertEqual(action["type"], "ir.actions.report")
-        self.assertEqual(set(action["context"]["active_ids"]), set(selected.ids))
-        self.assertIn("Fertigungsordner", action["name"])
+        self.assertEqual(action["type"], "ir.actions.client")
+        jobs = action["params"]["jobs"]
+        self.assertEqual(len(jobs), expected_count)
+        self.assertEqual(
+            {job["action"]["context"]["active_id"] for job in jobs},
+            set(selected.ids),
+        )
+        self.assertTrue(
+            all(len(job["action"]["context"]["active_ids"]) == 1 for job in jobs)
+        )
 
-        report = self.env.ref("sab_project.action_report_sab_production_documents")
-        html, _report_type = report.with_context(
-            action["context"]
-        )._render_qweb_html(report.report_name, selected.ids)
+        first_job = jobs[0]["action"]
+        runtime_report = self.env["ir.actions.report"].browse(first_job["id"])
+        html, _report_type = runtime_report.with_context(
+            first_job["context"]
+        )._render_qweb_html(runtime_report.report_name, first_job["context"]["active_ids"])
         self.assertTrue(html)
+
+    def test_approved_original_formats_are_the_company_defaults(self):
+        profiles = self.env["sab.production.print.profile"]
+        profiles._sab_apply_original_standard_profiles()
+        expected = {
+            "conformity": ("portrait", 210.0, 297.0),
+            "run_card": ("portrait", 210.0, 297.0),
+            "production_test": ("portrait", 210.0, 297.0),
+            "final_inspection": ("portrait", 210.0, 297.0),
+            "missing_parts": ("landscape", 297.0, 210.0),
+            "shipping_sheet": ("landscape", 297.0, 210.0),
+            "add_pack": ("landscape", 297.0, 210.0),
+            "nameplate": ("portrait", 176.0, 265.0),
+            "info_sheet": ("landscape", 265.0, 176.0),
+            "folder_label": ("portrait", 61.0, 192.0),
+        }
+        for document_type, geometry in expected.items():
+            profile = profiles.search(
+                [("user_id", "=", False), ("document_type", "=", document_type)],
+                limit=1,
+            )
+            self.assertEqual(
+                (profile.orientation, profile.width_mm, profile.height_mm),
+                geometry,
+            )
 
     def test_single_document_has_direct_print_action_and_specific_filename(self):
         self.production.action_prepare_production_documents()

@@ -31,6 +31,30 @@
                         <setting string="Freigabecode ändern" help="Ändert den künftig gültigen Code. Auch dafür muss unten zuerst der bisherige Code bestätigt werden."><field name="sab_calculation_change_code" password="True"/></setting>
                         <setting string="Freigabecode bestätigen" help="Nur erforderlich, wenn mindestens ein Kalkulationsparameter oder der Freigabecode geändert wurde."><field name="sab_calculation_change_code_confirm" password="True"/></setting>
                     </block>
+
+                    <block title="Fertigungsdruck" help="Papierformat, Ausrichtung, Drucker, Ränder, Skalierung, Exemplare und Druckreihenfolge werden je Blatt eingestellt.">
+                        <setting string="Standard-PDF-Drucker" help="Dieser Drucker wird verwendet, wenn eine einzelne Vorlage keinen eigenen Drucker enthält.">
+                            <field name="sab_default_pdf_printer" placeholder="PDF-Drucker"/>
+                        </setting>
+                        <setting string="Vorlagen individuell bearbeiten" help="Jedes Fertigungsblatt besitzt ein eigenes Druckprofil und wird beim Gesamtdruck als eigener Druckauftrag erzeugt.">
+                            <button name="%(action_sab_production_print_profiles)d"
+                                    type="action"
+                                    string="Fertigungsdruck – Vorlagen öffnen"
+                                    class="btn-primary"/>
+                        </setting>
+                        <setting string="Projektzuordnungsliste nach Wareneingang" help="Die Liste enthält ausschließlich tatsächlich gebuchte Mengen und wird bei Teillieferungen erneut erzeugt.">
+                            <field name="sab_receipt_assignment_printer" placeholder="Leer = Standard-PDF-Drucker"/>
+                        </setting>
+                    </block>
+
+                    <block title="Angebotsdruck" help="Das Angebotslayout entspricht der geprüften SAB-P-Mustervorlage. Firmenkopf, Kundendaten, Positionen, Summen, Bedingungen und AGB werden dynamisch ausgegeben.">
+                        <setting string="Angebotsvorlage bearbeiten" help="A4-Hochformat, Seitenränder, Drucker, Textbausteine, Bindefrist und AGB individuell pflegen.">
+                            <button name="%(action_sab_offer_print_templates)d"
+                                    type="action"
+                                    string="Angebotsdruck – Vorlagen öffnen"
+                                    class="btn-primary"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

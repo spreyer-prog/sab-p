@@ -49,6 +49,17 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="sab_project.offer_digits",
         required=True,
     )
+    sab_default_pdf_printer = fields.Char(
+        string="Standard-PDF-Drucker",
+        default="PDF-Drucker",
+        config_parameter="sab_project.default_pdf_printer",
+        help="Rückfall, wenn in einer einzelnen Druckvorlage kein Drucker hinterlegt ist.",
+    )
+    sab_receipt_assignment_printer = fields.Char(
+        string="Drucker Projektzuordnungsliste",
+        config_parameter="sab_project.receipt_assignment_printer",
+        help="Leer = Standard-PDF-Drucker.",
+    )
 
     # ---------------------------------------------------------
     # Kalkulationskonstanten

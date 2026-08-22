@@ -27,7 +27,7 @@ class SabProductionDocumentFormatRouter(models.Model):
                 "sab_multi_production_print": False,
                 "sab_native_sheet_format": True,
                 "sab_print_profile_id": profile.id,
-                "sab_printer_name": profile.printer_name or "",
+                "sab_printer_name": profile.resolved_printer_name(),
                 "sab_print_scale_percent": profile.scale_percent,
                 "sab_print_width_mm": profile.width_mm,
                 "sab_print_height_mm": profile.height_mm,
