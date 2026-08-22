@@ -4,7 +4,7 @@
         <!-- Bestellung Fehlteile: feste Geometrie nach Originalvorlage -->
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'missing_parts'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'missing_parts'">
-                <div class="sab-master-page" style="font-family:Arial, Helvetica, sans-serif; color:#000;">
+                <div class="sab-master-page" style="font-family:'Arial Narrow', Arial, Helvetica, sans-serif; color:#000;">
                     <div style="height:33mm;"></div>
                     <div style="height:13mm; border-top:0.7mm solid #000; border-bottom:0.7mm solid #000; display:flex; align-items:center; justify-content:flex-end; padding:0 2mm; font-size:20pt; font-weight:700;">Bestellung Fehlteile</div>
                     <div style="height:8mm; background:#00f10a; border-bottom:0.7mm solid #000;"></div>
@@ -34,44 +34,43 @@
             </t>
         </xpath>
 
-        <!-- Versandblatt: groß gesetztes Versandkennblatt nach Original -->
+        <!-- Versandblatt: Original ist ein nahezu vollflächiger Rahmen mit vier sehr großen Zeilen -->
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'shipping_sheet'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'shipping_sheet'">
-                <div class="sab-master-page" style="font-family:Arial, Helvetica, sans-serif; color:#000;">
-                    <div style="border:0.7mm solid #000; width:182mm; height:250mm; margin:10mm auto 0 auto; overflow:hidden; position:relative;">
-                        <div style="position:absolute; top:24mm; left:0; width:100%; text-align:center; font-size:43pt; font-weight:700; line-height:1;"><span t-out="doc.project_reference or ''"/></div>
-                        <div style="position:absolute; top:82mm; left:0; width:100%; text-align:center; font-size:37pt; font-weight:700; line-height:1;"><span t-out="doc.customer_name or ''"/></div>
-                        <div style="position:absolute; top:137mm; left:0; width:100%; text-align:center; font-size:39pt; font-weight:700; line-height:1;"><span t-out="doc.project_name or ''"/></div>
-                        <div style="position:absolute; top:193mm; left:0; width:100%; text-align:center; font-size:37pt; font-weight:700; line-height:1;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></div>
+                <div class="sab-master-page" style="font-family:'Arial Narrow', Arial, Helvetica, sans-serif; color:#000;">
+                    <div style="border:0.65mm solid #000; width:184mm; height:252mm; margin:9mm auto 0 auto; overflow:hidden; position:relative;">
+                        <div style="position:absolute; top:20mm; left:0; width:100%; text-align:center; font-size:50pt; font-weight:700; line-height:0.96; letter-spacing:-1.2mm;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="position:absolute; top:78mm; left:0; width:100%; text-align:center; font-size:45pt; font-weight:700; line-height:0.96; letter-spacing:-0.9mm;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="position:absolute; top:136mm; left:0; width:100%; text-align:center; font-size:43pt; font-weight:700; line-height:0.96; letter-spacing:-0.8mm;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="position:absolute; top:194mm; left:0; width:100%; text-align:center; font-size:43pt; font-weight:700; line-height:0.96; letter-spacing:-0.8mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></div>
                     </div>
                 </div>
             </t>
         </xpath>
 
-        <!-- Beipackzettel: Rahmen, Kopf und Hinweisblöcke wie Original -->
+        <!-- Beipackzettel: großer Rahmen und kondensierte, zentrierte Originaltypografie -->
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'add_pack'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'add_pack'">
-                <div class="sab-master-page" style="font-family:Arial, Helvetica, sans-serif; color:#000;">
-                    <div style="border:0.7mm solid #000; width:180mm; min-height:238mm; margin:12mm auto 0 auto; padding:10mm 13mm; box-sizing:border-box; text-align:center;">
-                        <div style="font-size:31pt; font-weight:700; text-decoration:underline; line-height:1; margin-top:1mm;">Beipackzettel</div>
-                        <div style="font-size:19pt; font-weight:700; margin-top:14mm;"><span t-out="doc.customer_name or ''"/></div>
-                        <div style="font-size:16pt; margin-top:3mm;"><span t-out="doc.project_reference or ''"/></div>
-                        <div style="font-size:17pt; margin-top:2mm;"><span t-out="doc.project_name or ''"/></div>
-                        <div style="font-size:26pt; font-weight:700; margin-top:16mm; line-height:1.05;">Achtung! Bitte beachten.</div>
-                        <div style="font-size:15.5pt; font-weight:700; line-height:1.32; margin-top:15mm;">
+                <div class="sab-master-page" style="font-family:'Arial Narrow', Arial, Helvetica, sans-serif; color:#000;">
+                    <div style="border:0.65mm solid #000; width:184mm; height:248mm; margin:10mm auto 0 auto; padding:8mm 10mm; box-sizing:border-box; text-align:center; overflow:hidden;">
+                        <div style="font-size:34pt; font-weight:700; line-height:1; margin-top:1mm; border-bottom:0.5mm solid #000; padding-bottom:2.5mm; display:inline-block;">Beipackzettel</div>
+                        <div style="font-size:21pt; font-weight:700; margin-top:12mm;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="font-size:18pt; margin-top:3mm;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="font-size:18pt; margin-top:2mm;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="font-size:29pt; font-weight:700; margin-top:13mm; line-height:1.02;">Achtung! Bitte beachten.</div>
+                        <div style="font-size:18pt; font-weight:700; line-height:1.25; margin-top:12mm;">
                             Die Dokumentation befindet sich in der Schaltplantasche<br/>
                             oder separat gepackt hinter der Türe / den Abdeckungen.
                         </div>
-                        <div style="font-size:15.5pt; font-weight:700; line-height:1.32; margin-top:13mm;">
+                        <div style="font-size:18pt; font-weight:700; line-height:1.25; margin-top:11mm;">
                             Anschlußschrauben für Trenner sind in den unbestückten<br/>
                             Sicherungskammern beigelegt. (Ansonsten im Beipack)
                         </div>
-                        <div style="font-size:15.5pt; font-weight:700; line-height:1.32; margin-top:15mm;">
+                        <div style="font-size:18pt; font-weight:700; line-height:1.25; margin-top:12mm;">
                             Weiteres Zubehör, wie z. B. Sicherungshalter,<br/>
                             Befestigungswinkel usw. befinden sich hinter<br/>
                             den Abdeckungen bzw. im Beipack.
                         </div>
-                        <div style="font-size:12pt; font-weight:700; margin-top:14mm;">Verteiler: <span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></div>
                     </div>
                 </div>
             </t>
