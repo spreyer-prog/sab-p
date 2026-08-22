@@ -15,7 +15,7 @@
         </field>
     </record>
 
-    <!-- Bestellvorschläge: mehrere Vorschläge desselben Lieferanten können markiert und zusammengeführt werden. -->
+    <!-- Bestellvorschläge: gemischte Auswahl wird automatisch nach Lieferant getrennt. -->
     <record id="view_sab_standard_purchase_order_list_bulk_merge" model="ir.ui.view">
         <field name="name">purchase.order.sab.p.list.bulk.merge</field>
         <field name="model">purchase.order</field>
@@ -26,8 +26,20 @@
                 <header>
                     <button name="action_sab_merge_selected_orders"
                             type="object"
-                            string="Gleichen Lieferanten zusammenführen"
+                            string="Nach Lieferant zusammenfassen"
                             icon="fa-compress"
+                            display="always"
+                            groups="sab_project.group_sab_purchasing,base.group_system"/>
+                    <button name="action_sab_prepare_supplier_inquiries"
+                            type="object"
+                            string="Anfragen vorbereiten"
+                            icon="fa-envelope-o"
+                            display="always"
+                            groups="sab_project.group_sab_purchasing,base.group_system"/>
+                    <button name="action_sab_direct_order"
+                            type="object"
+                            string="Bestellungen erzeugen"
+                            icon="fa-shopping-cart"
                             class="btn-primary"
                             display="always"
                             groups="sab_project.group_sab_purchasing,base.group_system"/>
@@ -61,7 +73,7 @@
         </field>
     </record>
 
-    <!-- Auch die bestehende separate Freigabestufe muss für Systemadministratoren sichtbar sein. -->
+    <!-- Auch die separate Freigabestufe bleibt für Systemadministratoren erreichbar. -->
     <record id="view_sab_standard_purchase_order_form_admin_approval_visibility" model="ir.ui.view">
         <field name="name">purchase.order.sab.p.form.admin.approval.visibility</field>
         <field name="model">purchase.order</field>
