@@ -80,16 +80,16 @@
         <field name="inherit_id" ref="sab_project.view_sab_standard_purchase_order_form_mandatory_approval"/>
         <field name="priority">960</field>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='button_confirm' and @string='Zur Bestellfreigabe vorlegen']" position="attributes">
+            <xpath expr="//form/header/button[@name='button_confirm' and @groups='sab_project.group_sab_purchasing']" position="attributes">
                 <attribute name="groups">sab_project.group_sab_purchasing,base.group_system</attribute>
             </xpath>
-            <xpath expr="//button[@name='button_approve' and @string='Bestellung freigeben']" position="attributes">
+            <xpath expr="//form/header/button[@name='button_approve' and @groups='sab_project.group_sab_purchase_approver']" position="attributes">
                 <attribute name="groups">sab_project.group_sab_purchase_approver,base.group_system</attribute>
             </xpath>
-            <xpath expr="//button[@name='action_rfq_send' and @string='Bestellung per E-Mail senden']" position="attributes">
+            <xpath expr="//form/header/button[@name='action_rfq_send' and @groups='sab_project.group_sab_purchasing']" position="attributes">
                 <attribute name="groups">sab_project.group_sab_purchasing,base.group_system</attribute>
             </xpath>
-            <xpath expr="//button[@name='button_cancel' and @string='SAB-P-Bestellung stornieren']" position="attributes">
+            <xpath expr="//form/header/button[@name='button_cancel' and @groups='sab_project.group_sab_purchasing']" position="attributes">
                 <attribute name="groups">sab_project.group_sab_purchasing,base.group_system</attribute>
             </xpath>
         </field>
