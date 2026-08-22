@@ -470,7 +470,7 @@ class SabProjectBomOdooCommissioning(models.Model):
         readonly=True,
     )
     odoo_commissioning_picking_count = fields.Integer(
-        string="Odoo-Kommissionierungen",
+        string="Anzahl Odoo-Kommissionierungen",
         compute="_compute_odoo_commissioning_picking_count",
     )
 

@@ -98,7 +98,7 @@ class SabProductionDocument(models.Model):
     )
 
     project_reference = fields.Char(string="Auftragsnummer", compute="_compute_prefill", store=True)
-    project_name = fields.Char(string="Projekt", compute="_compute_prefill", store=True)
+    project_name = fields.Char(string="Projektname", compute="_compute_prefill", store=True)
     customer_name = fields.Char(string="Kunde", compute="_compute_prefill", store=True)
     customer_street = fields.Char(string="Straße", compute="_compute_prefill", store=True)
     customer_zip = fields.Char(string="PLZ", compute="_compute_prefill", store=True)

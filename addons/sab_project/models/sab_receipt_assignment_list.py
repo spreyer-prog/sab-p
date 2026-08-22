@@ -165,7 +165,7 @@ class StockPickingSabReceiptAssignment(models.Model):
         copy=False,
     )
     sab_receipt_assignment_list_count = fields.Integer(
-        string="Projektzuordnungslisten",
+        string="Anzahl Projektzuordnungslisten",
         compute="_compute_sab_receipt_assignment_list_count",
     )
 
