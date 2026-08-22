@@ -4,8 +4,13 @@
               inherit_id="sab_project.report_sab_production_document"
               priority="1005">
         <xpath expr="//style" position="inside">
-            /* Jeder ausgewählte Dokumenttyp ist ein eigenständiges Blatt. */
-            .sab-production-sheet {
+            /*
+             * Stabiler globaler Seitenschutz für alle Fertigungs-Master.
+             * Die einzelnen Master werden von parallelen QWeb-Erweiterungen
+             * bereitgestellt. Deshalb darf dieser Layer nicht per XPath in
+             * deren erzeugte Knoten greifen.
+             */
+            .sab-master-page {
                 page-break-before: always !important;
                 page-break-after: always !important;
                 page-break-inside: avoid !important;
@@ -16,52 +21,13 @@
                 overflow: hidden;
                 box-sizing: border-box;
             }
-            /* Die drei historischen Tabellenblätter wurden im Original quer aufgebaut
-               und im Fertigungsordner gedreht abgelegt. Sie müssen innerhalb EINER
-               A4-Seite bleiben und dürfen nicht auf Folgeseiten umbrechen. */
-            .sab-production-landscape {
-                width: 277mm !important;
-                height: 190mm !important;
-                min-height: 190mm !important;
-                max-height: 190mm !important;
-                margin: 0 !important;
-                transform-origin: 0 0;
-                transform: rotate(90deg) translateY(-190mm);
-                overflow: hidden !important;
-            }
-            .sab-production-landscape table {
+            .sab-master-page table,
+            .sab-master-page tr,
+            .sab-master-page td,
+            .sab-master-page th {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
-        </xpath>
-
-        <xpath expr="//t[@t-if=&quot;doc.document_type == 'run_card'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet sab-production-landscape</attribute>
-        </xpath>
-        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'production_test'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet sab-production-landscape</attribute>
-        </xpath>
-        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'final_inspection'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet sab-production-landscape</attribute>
-        </xpath>
-
-        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'missing_parts'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet</attribute>
-        </xpath>
-        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'shipping_sheet'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet</attribute>
-        </xpath>
-        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'add_pack'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet</attribute>
-        </xpath>
-        <xpath expr="//t[@t-if=&quot;doc.document_type == 'nameplate'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet</attribute>
-        </xpath>
-        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'info_sheet'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet</attribute>
-        </xpath>
-        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'folder_label'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-production-sheet</attribute>
         </xpath>
     </template>
 </odoo>
