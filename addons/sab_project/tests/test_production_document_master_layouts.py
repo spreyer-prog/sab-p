@@ -26,6 +26,19 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("Prüfprotokoll der Fertigung", xml)
         self.assertIn("Prüfprotokoll Endkontrolle", xml)
 
+    def test_master_v5_keeps_legacy_table_sheets_horizontal_on_one_page(self):
+        arch = self._view_arch(
+            "sab_project.report_sab_production_document_master_v5_orientation"
+        )
+        xml = etree.tostring(arch, encoding="unicode")
+        self.assertIn("sab-run-card-landscape", xml)
+        self.assertIn("sab-test-landscape", xml)
+        self.assertIn("sab-final-landscape", xml)
+        self.assertIn("width: 277mm", xml)
+        self.assertIn("height: 190mm", xml)
+        self.assertIn("rotate(90deg)", xml)
+        self.assertIn("page-break-inside: avoid", xml)
+
     def test_master_labels_contains_nameplate_and_info_sheet(self):
         arch = self._view_arch("sab_project.report_sab_production_document_master_labels")
         xml = etree.tostring(arch, encoding="unicode")
