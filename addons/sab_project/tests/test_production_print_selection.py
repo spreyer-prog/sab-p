@@ -150,3 +150,44 @@ class TestSabProductionPrintSelection(TransactionCase):
 
         report = self.env.ref("sab_project.action_report_sab_production_documents")
         self.assertEqual(report.print_report_name, "object._sab_pdf_filename()")
+
+    def test_personal_print_profile_controls_paperformat_and_printer_context(self):
+        self.production.action_prepare_production_documents()
+        document = self.production.document_ids.filtered(
+            lambda item: item.document_type == "run_card"
+        )[0]
+        profile = self.env["sab.production.print.profile"].create(
+            {
+                "user_id": self.env.user.id,
+                "document_type": "run_card",
+                "paper_kind": "custom",
+                "orientation": "landscape",
+                "width_mm": 281.0,
+                "height_mm": 205.0,
+                "margin_top_mm": 3.0,
+                "margin_bottom_mm": 4.0,
+                "margin_left_mm": 5.0,
+                "margin_right_mm": 6.0,
+                "printer_name": "TEST-QUERDRUCKER",
+                "scale_percent": 97.0,
+            }
+        )
+
+        action = document.action_print_document()
+        self.assertEqual(action["context"]["sab_print_profile_id"], profile.id)
+        self.assertEqual(action["context"]["sab_printer_name"], "TEST-QUERDRUCKER")
+        self.assertEqual(action["context"]["sab_print_scale_percent"], 97.0)
+        self.assertEqual(action["context"]["sab_print_width_mm"], 281.0)
+        self.assertEqual(action["context"]["sab_print_height_mm"], 205.0)
+
+        runtime_report = self.env["ir.actions.report"].browse(action["id"])
+        paper = runtime_report.paperformat_id
+        self.assertTrue(paper)
+        self.assertEqual(paper.format, "custom")
+        self.assertEqual(paper.orientation, "Landscape")
+        self.assertEqual(paper.page_width, 281.0)
+        self.assertEqual(paper.page_height, 205.0)
+        self.assertEqual(paper.margin_top, 3.0)
+        self.assertEqual(paper.margin_bottom, 4.0)
+        self.assertEqual(paper.margin_left, 5.0)
+        self.assertEqual(paper.margin_right, 6.0)
