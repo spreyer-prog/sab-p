@@ -3,11 +3,16 @@ from odoo import fields, models, _
 
 EXTRA_PRODUCTION_DOCUMENT_TYPES = [
     ("shipping_sheet", "Blatt Versand"),
-    ("inspection_label", "Prüfetikett"),
     ("folder_label", "Ordneretikett"),
 ]
 
-OBSOLETE_PRODUCTION_DOCUMENT_TYPES = {"conversion_sheet", "commissioning"}
+# Diese früher separat geführten Drucktypen entfallen vollständig.
+# Das ehemalige Prüfetikett ist fachlich identisch mit dem Infoschild.
+OBSOLETE_PRODUCTION_DOCUMENT_TYPES = {
+    "conversion_sheet",
+    "commissioning",
+    "inspection_label",
+}
 
 
 class SabProductionDocumentPrinting(models.Model):
