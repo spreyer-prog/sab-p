@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.73.0",
+    "version": "19.0.5.74.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -17,7 +17,7 @@
         "views/sab_manufacturer_views.xml", "views/sab_product_views.xml", "views/sab_cabinet_product_views.xml",
         "wizard/sab_supplier_import_views.xml", "wizard/sab_supplier_price_import_views.xml", "views/sab_supplier_views.xml",
         "views/sab_supplier_product_views.xml", "views/sab_calculation_change_log_views.xml", "views/sab_project_bom_views.xml", "views/sab_switchboard_bom_views.xml",
-        "views/sab_production_order_views.xml", "views/sab_production_document_views.xml", "views/sab_production_print_views.xml", "wizard/sab_production_print_wizard_views.xml", "report/sab_production_document_report.xml", "report/sab_production_document_filename.xml", "report/sab_production_document_report_exact.xml", "report/sab_production_document_report_master_v2.xml", "report/sab_production_document_report_master_labels.xml", "report/sab_production_document_report_master_v3.xml", "report/sab_production_document_report_folder_label.xml", "views/sab_purchase_requirement_views.xml", "views/sab_stock_movement_views.xml", "views/sab_procurement_views.xml", "views/sab_stock_workspace_views.xml",
+        "views/sab_production_order_views.xml", "views/sab_production_document_views.xml", "views/sab_production_print_views.xml", "wizard/sab_production_print_wizard_views.xml", "report/sab_production_document_report.xml", "report/sab_production_document_filename.xml", "report/sab_production_document_report_exact.xml", "report/sab_production_document_report_master_v2.xml", "report/sab_production_document_report_master_labels.xml", "report/sab_production_document_report_master_v3.xml", "report/sab_production_document_report_folder_label.xml", "report/sab_production_document_report_master_v4_layout.xml", "views/sab_purchase_requirement_views.xml", "views/sab_stock_movement_views.xml", "views/sab_procurement_views.xml", "views/sab_stock_workspace_views.xml",
         "views/sab_procurement_detail_views.xml", "views/sab_project_material_overview_views.xml", "views/sab_procurement_visibility_views.xml", "views/sab_procurement_dashboard_views.xml", "views/sab_procurement_package_views.xml", "views/sab_procurement_package_fix_views.xml", "views/sab_bom_procurement_handover_views.xml", "views/sab_minimum_stock_views.xml", "views/sab_delivery_overdue_views.xml", "views/sab_odoo_purchase_bridge_views.xml", "views/sab_odoo_purchase_delivery_views.xml", "views/sab_odoo_purchase_project_views.xml", "views/sab_odoo_commissioning_views.xml", "views/sab_odoo_purchase_approval_views.xml", "views/sab_odoo_receipt_security_views.xml", "views/sab_supplier_confirmation_views.xml", "views/sab_three_way_match_views.xml", "wizard/sab_supplier_choice_wizard_views.xml",
         "report/sab_purchase_order_report.xml", "report/sab_purchase_order_delivery_report.xml", "report/sab_purchase_order_procurement_package_report.xml", "report/sab_procurement_picking_report.xml",
         "views/sab_project_document_views.xml", "views/sab_time_entry_views.xml", "views/sab_project_controlling_views.xml",
