@@ -238,10 +238,16 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
             }
         )
         report_action = wizard.action_print_selected()
-        self.assertEqual(report_action["type"], "ir.actions.report")
+        self.assertEqual(report_action["type"], "ir.actions.client")
+        self.assertEqual(report_action["tag"], "sab_production_multi_print")
+        jobs = report_action["params"]["jobs"]
+        self.assertEqual(len(jobs), 4)
         self.assertEqual(
-            report_action["report_name"],
-            "sab_project.report_sab_production_document",
+            {job["action"]["context"]["active_id"] for job in jobs},
+            set(wizard._selected_documents().ids),
+        )
+        self.assertTrue(
+            all(job["action"]["type"] == "ir.actions.report" for job in jobs)
         )
 
         run_card = production.document_ids.filtered(
