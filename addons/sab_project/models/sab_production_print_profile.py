@@ -30,10 +30,7 @@ class SabProductionPrintProfile(models.Model):
     )
     document_type = fields.Selection(DOCUMENT_TYPES, string="Blatt", required=True, index=True)
     paper_kind = fields.Selection(
-        [
-            ("a4", "DIN A4"),
-            ("custom", "Sonderformat / Etikett"),
-        ],
+        [("a4", "DIN A4"), ("custom", "Sonderformat / Etikett")],
         string="Papierformat",
         required=True,
         default="a4",
@@ -70,6 +67,54 @@ class SabProductionPrintProfile(models.Model):
                 raise ValidationError(_("Die Druckskalierung muss zwischen 0 und 200 Prozent liegen."))
 
     @api.model
+    def _sab_apply_original_standard_profiles(self):
+        """Synchronise only company defaults with the uploaded legacy originals.
+
+        Personal profiles are deliberately untouched. This method is called from
+        normal XML data on every module upgrade because the first generation of
+        standard profiles was created with noupdate=1 and therefore cannot be
+        corrected reliably by changing that original XML alone.
+        """
+        defaults = {
+            "conformity": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
+            # Uploaded originals Laufkarte.pdf and both pages of Blatt Endprüfung.pdf
+            # are genuine A4 portrait pages. They must never inherit the former
+            # shared A4-landscape workaround.
+            "run_card": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
+            "production_test": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
+            "final_inspection": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
+            "missing_parts": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
+            # Blatt Versand.pdf carries a 90 degree page rotation and therefore
+            # prints as A4 landscape.
+            "shipping_sheet": dict(paper_kind="a4", orientation="landscape", width_mm=297.0, height_mm=210.0),
+            "add_pack": dict(paper_kind="a4", orientation="portrait", width_mm=210.0, height_mm=297.0),
+            # Original Typenschild.pdf and Infoschild.pdf are 1280 x 720 pt,
+            # equivalent to approx. 451.6 x 254.0 mm. Keep that canvas exactly;
+            # their inner artwork is positioned independently by its own template.
+            "nameplate": dict(paper_kind="custom", orientation="portrait", width_mm=451.6, height_mm=254.0),
+            "info_sheet": dict(paper_kind="custom", orientation="portrait", width_mm=451.6, height_mm=254.0),
+            "folder_label": dict(paper_kind="custom", orientation="portrait", width_mm=61.0, height_mm=192.0),
+        }
+        for document_type, values in defaults.items():
+            values = {
+                **values,
+                "margin_top_mm": 0.0,
+                "margin_bottom_mm": 0.0,
+                "margin_left_mm": 0.0,
+                "margin_right_mm": 0.0,
+                "scale_percent": 100.0,
+            }
+            profile = self.sudo().search(
+                [("user_id", "=", False), ("document_type", "=", document_type)],
+                limit=1,
+            )
+            if profile:
+                profile.write(values)
+            else:
+                self.sudo().create({"document_type": document_type, **values})
+        return True
+
+    @api.model
     def effective_profile(self, document_type, user=None):
         user = user or self.env.user
         personal = self.search(
@@ -84,14 +129,7 @@ class SabProductionPrintProfile(models.Model):
         )
 
     def _ensure_runtime_report_action(self):
-        """Return a private report action using exactly this profile's geometry.
-
-        Odoo stores the paper format on the report action itself. Reusing one
-        global action would therefore make one user's printer geometry affect
-        every other user. Each SAB-P profile receives a deterministic hidden
-        report action and paper format instead. They are refreshed on every
-        use, so changes in the profile are effective immediately.
-        """
+        """Return a private report action using exactly this profile's geometry."""
         self.ensure_one()
         profile_key = "SAB-P Druckprofil %s" % self.id
         Paperformat = self.env["report.paperformat"].sudo()
