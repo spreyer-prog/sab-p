@@ -54,7 +54,11 @@ class SabProductionPrintWizard(models.TransientModel):
         production.action_prepare_production_documents()
         rows = []
         grouped = {}
-        for document in production.document_ids.sorted(
+        documents = production.document_ids.filtered(
+            lambda document: bool(document.cabinet_bom_id)
+            and (document.cabinet_instance_no or 0) > 0
+        )
+        for document in documents.sorted(
             key=lambda d: (d.cabinet_bom_id.id, d.cabinet_instance_no, d.document_type, d.id)
         ):
             key = (document.cabinet_bom_id.id, document.cabinet_instance_no)
@@ -72,19 +76,27 @@ class SabProductionPrintWizard(models.TransientModel):
 
     def action_select_all(self):
         self.ensure_one()
-        if not self.line_ids:
+        valid_lines = self.line_ids.filtered(
+            lambda line: bool(line.cabinet_bom_id)
+            and (line.cabinet_instance_no or 0) > 0
+        )
+        if not valid_lines:
             self.production_order_id.action_prepare_production_documents()
             raise ValidationError(
                 _("Für diesen Fertigungsauftrag wurden keine druckbaren Schränke gefunden.")
             )
-        self.line_ids.write(
+        valid_lines.write(
             {field_name: True for field_name in DOCUMENT_FIELD_MAP.values()}
         )
         return self._reopen()
 
     def action_clear_all(self):
         self.ensure_one()
-        self.line_ids.write(
+        valid_lines = self.line_ids.filtered(
+            lambda line: bool(line.cabinet_bom_id)
+            and (line.cabinet_instance_no or 0) > 0
+        )
+        valid_lines.write(
             {field_name: False for field_name in DOCUMENT_FIELD_MAP.values()}
         )
         return self._reopen()
@@ -109,7 +121,11 @@ class SabProductionPrintWizard(models.TransientModel):
     def _selected_documents(self):
         self.ensure_one()
         selected = self.env["sab.production.document"]
-        for line in self.line_ids:
+        valid_lines = self.line_ids.filtered(
+            lambda line: bool(line.cabinet_bom_id)
+            and (line.cabinet_instance_no or 0) > 0
+        )
+        for line in valid_lines:
             for document_type, field_name in DOCUMENT_FIELD_MAP.items():
                 if not getattr(line, field_name):
                     continue
@@ -143,10 +159,10 @@ class SabProductionPrintWizardLine(models.TransientModel):
     cabinet_bom_id = fields.Many2one(
         "sab.project.bom",
         string="Verteiler",
-        required=True,
+        required=False,
         readonly=True,
     )
-    cabinet_instance_no = fields.Integer(string="Schrank-Nr.", required=True, readonly=True)
+    cabinet_instance_no = fields.Integer(string="Schrank-Nr.", required=False, readonly=True)
     cabinet_instance_label = fields.Char(string="Physischer Schrank", readonly=True)
 
     print_conformity = fields.Boolean(string="Konformität")
