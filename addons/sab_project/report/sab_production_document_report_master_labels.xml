@@ -1,83 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_sab_production_document_master_labels" inherit_id="sab_project.report_sab_production_document" priority="995">
-        <!-- Typenschild: Originalaufbau -->
+        <!-- Typenschild: Originalaufbau, schmale technische Typografie -->
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'nameplate'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'nameplate'">
-                <div class="sab-master-page" style="font-size:9pt; line-height:1.08;">
-                    <table style="border:0; margin-bottom:2.5mm;">
-                        <colgroup><col style="width:95mm;"/><col style="width:95mm;"/></colgroup>
+                <div class="sab-master-page" style="width:190mm; height:277mm; margin:0 auto; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; font-size:8.8pt; line-height:1.03; color:#000;">
+                    <table style="border:0; width:100%; height:32mm; margin:0 0 1.5mm 0; table-layout:fixed;">
+                        <colgroup><col style="width:102mm;"/><col style="width:88mm;"/></colgroup>
                         <tr>
                             <td style="border:0; padding:0; vertical-align:middle;">
-                                <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:70mm; max-height:29mm; object-fit:contain;"/>
-                                <div t-if="not doc.project_id.company_id.logo" style="font-size:31pt; font-weight:700;">SAB-P</div>
+                                <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:82mm; max-height:30mm; object-fit:contain; object-position:left center;"/>
+                                <div t-if="not doc.project_id.company_id.logo" style="font-size:32pt; font-weight:700;">SAB-P</div>
                             </td>
-                            <td style="border:0; padding:0 0 0 5mm; font-size:8.5pt; line-height:1.25; vertical-align:middle;">
-                                <b>SAB-P GmbH</b><br/>
-                                <b>Schaltanlagenbau Preyer</b><br/>
-                                Albert-Einstein-Str. 7a<br/>
-                                <b>42929 Wermelskirchen</b><br/>
-                                <span style="font-size:7pt;">Tel. 02196 90901 0&#160;&#160;-&#160;&#160;FAX 02196 90901 99</span>
+                            <td style="border:0; padding:0 0 0 4mm; font-size:9pt; line-height:1.14; vertical-align:middle; font-weight:700;">
+                                SAB-P GmbH<br/>
+                                Schaltanlagenbau Preyer<br/>
+                                <span style="font-weight:400;">Albert-Einstein-Str. 7a</span><br/>
+                                42929 Wermelskirchen<br/>
+                                <span style="font-size:6.8pt; font-weight:400;">Tel. 02196 90901 0&#160;&#160;-&#160;&#160;FAX 02196 90901 99</span>
                             </td>
                         </tr>
                     </table>
-                    <div style="border-top:1.1mm solid #000; margin-bottom:3.2mm;"></div>
+                    <div style="border-top:1.2mm solid #000; margin-bottom:2.2mm;"></div>
 
-                    <table style="font-size:11pt; border-collapse:collapse; table-layout:fixed;">
-                        <colgroup><col style="width:40mm;"/><col style="width:60mm;"/><col style="width:38mm;"/><col style="width:52mm;"/></colgroup>
-                        <tr style="height:18mm;">
-                            <td style="border:0; font-weight:700; vertical-align:middle;">Typen-<br/>bezeichnung</td>
-                            <td class="m-cell" style="font-size:15pt; font-weight:700; vertical-align:middle;"><span t-out="doc.type_designation or doc.cabinet_type or ''"/></td>
-                            <td class="m-cell" style="font-weight:700; vertical-align:middle;">Auftrag-Nr.:</td>
-                            <td class="m-cell" style="font-size:14pt; font-weight:700; vertical-align:middle;"><span t-out="doc.project_reference or ''"/></td>
-                        </tr>
-                        <tr style="height:13mm;">
-                            <td style="border:0; font-weight:700; vertical-align:middle;">Verteilung</td>
-                            <td class="m-cell" colspan="3" style="font-size:13pt; font-weight:700; vertical-align:middle;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td>
+                    <table style="width:100%; font-size:10.2pt; border-collapse:collapse; table-layout:fixed; font-weight:700;">
+                        <colgroup><col style="width:38mm;"/><col style="width:62mm;"/><col style="width:40mm;"/><col style="width:50mm;"/></colgroup>
+                        <tr style="height:17mm;">
+                            <td style="border:0; padding:1mm 1mm 1mm 0; vertical-align:middle;">Typen-<br/>bezeichnung</td>
+                            <td class="m-cell" style="font-size:15.5pt; vertical-align:middle; padding:1mm 2mm;"><span t-out="doc.type_designation or doc.cabinet_type or ''"/></td>
+                            <td class="m-cell" style="vertical-align:middle; padding:1mm 2mm;">Auftrag-Nr.:</td>
+                            <td class="m-cell" style="font-size:14.5pt; vertical-align:middle; padding:1mm 2mm;"><span t-out="doc.project_reference or ''"/></td>
                         </tr>
                         <tr style="height:14mm;">
-                            <td style="border:0; font-weight:700;">Baujahr</td>
-                            <td class="m-cell" style="font-size:12pt; font-weight:700;"><span t-out="doc.construction_year or ''"/></td>
-                            <td class="m-cell" style="font-weight:700;">DIN EN</td>
-                            <td class="m-cell" style="font-size:12pt; font-weight:700;"><span t-out="(doc.standard_family or '61439') + (' - ' + doc.standard_part if doc.standard_part else '')"/></td>
+                            <td style="border:0; padding:1mm 1mm 1mm 0; vertical-align:middle;">Verteilung</td>
+                            <td class="m-cell" colspan="3" style="font-size:14pt; vertical-align:middle; padding:1mm 2mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td>
                         </tr>
-                        <tr style="height:19mm;">
-                            <td style="border:0; font-weight:700;">Bemessungs-<br/>spannung</td>
-                            <td class="m-cell m-right" style="font-size:12pt; font-weight:700;"><span t-out="doc.rated_voltage or ''"/> V</td>
-                            <td class="m-cell" style="font-weight:700;">Bemessungs-<br/>strom</td>
-                            <td class="m-cell m-right" style="font-size:12pt; font-weight:700;"><span t-out="doc.rated_current or ''"/> A</td>
+                        <tr style="height:14mm;">
+                            <td style="border:0; padding:1mm 1mm 1mm 0;">Baujahr</td>
+                            <td class="m-cell" style="font-size:12.5pt; padding:1mm 2mm;"><span t-out="doc.construction_year or ''"/></td>
+                            <td class="m-cell" style="padding:1mm 2mm;">DIN EN</td>
+                            <td class="m-cell" style="font-size:12.5pt; padding:1mm 2mm;"><span t-out="(doc.standard_family or '61439') + (' - ' + doc.standard_part if doc.standard_part else '')"/></td>
                         </tr>
                         <tr style="height:18mm;">
-                            <td style="border:0; font-weight:700;">Frequenz</td>
-                            <td class="m-cell m-right" style="font-size:12pt; font-weight:700;"><span t-out="doc.frequency or ''"/> Hz</td>
-                            <td class="m-cell" style="font-weight:700;">Sammel-<br/>schiene</td>
-                            <td class="m-cell m-right" style="font-size:12pt; font-weight:700;"><span t-out="doc.busbar_current or ''"/> A</td>
+                            <td style="border:0; padding:1mm 1mm 1mm 0;">Bemessungs-<br/>spannung</td>
+                            <td class="m-cell m-right" style="font-size:12.5pt; padding:1mm 2mm; text-align:right;"><span t-out="doc.rated_voltage or ''"/> V</td>
+                            <td class="m-cell" style="padding:1mm 2mm;">Bemessungs-<br/>strom</td>
+                            <td class="m-cell m-right" style="font-size:12.5pt; padding:1mm 2mm; text-align:right;"><span t-out="doc.rated_current or ''"/> A</td>
                         </tr>
-                        <tr style="height:15mm;">
-                            <td style="border:0; font-weight:700;">Schutzklasse</td>
-                            <td class="m-cell" style="font-size:12pt; font-weight:700;"><span t-out="doc.protection_class or ''"/></td>
-                            <td class="m-cell" style="font-weight:700;">IP-Schutzart</td>
-                            <td class="m-cell" style="font-size:12pt; font-weight:700;"><span t-out="doc.ip_rating or ''"/></td>
+                        <tr style="height:17mm;">
+                            <td style="border:0; padding:1mm 1mm 1mm 0;">Frequenz</td>
+                            <td class="m-cell m-right" style="font-size:12.5pt; padding:1mm 2mm; text-align:right;"><span t-out="doc.frequency or ''"/> Hz</td>
+                            <td class="m-cell" style="padding:1mm 2mm;">Sammel-<br/>schiene</td>
+                            <td class="m-cell m-right" style="font-size:12.5pt; padding:1mm 2mm; text-align:right;"><span t-out="doc.busbar_current or ''"/> A</td>
+                        </tr>
+                        <tr style="height:14mm;">
+                            <td style="border:0; padding:1mm 1mm 1mm 0;">Schutzklasse</td>
+                            <td class="m-cell" style="font-size:12.5pt; padding:1mm 2mm;"><span t-out="doc.protection_class or ''"/></td>
+                            <td class="m-cell" style="padding:1mm 2mm;">IP-Schutzart</td>
+                            <td class="m-cell" style="font-size:12.5pt; padding:1mm 2mm;"><span t-out="doc.ip_rating or ''"/></td>
                         </tr>
                     </table>
 
-                    <table style="margin-top:3mm; border:0;">
+                    <table style="width:100%; margin-top:2.4mm; border:0; table-layout:fixed;">
                         <tr>
-                            <td style="border:0; font-size:7.8pt; line-height:1.25; padding:0; width:155mm; vertical-align:bottom;">
-                                <b>Achtung!</b> Dies ist ein Produkt für die Umgebung A. In Haushaltsumgebung kann dieses Produkt Funkstörungen verursachen; in diesem Fall kann der Anwender verpflichtet sein, angemessene Maßnahmen ergreifen.
+                            <td style="border:0; font-size:7.5pt; line-height:1.12; padding:0; width:158mm; vertical-align:bottom; font-weight:700;">
+                                Achtung! Dies ist ein Produkt für die Umgebung A. In Haushaltsumgebung kann dieses Produkt Funkstörungen verursachen; in diesem Fall kann der Anwender verpflichtet sein, angemessene Maßnahmen ergreifen.
                             </td>
-                            <td style="border:0; width:35mm; text-align:right; vertical-align:bottom; padding:0; font-size:28pt; font-weight:700; letter-spacing:-2px;">CE</td>
+                            <td style="border:0; width:32mm; text-align:right; vertical-align:bottom; padding:0; font-size:31pt; font-family:Arial,Helvetica,sans-serif; font-weight:700; letter-spacing:-2px;">CE</td>
                         </tr>
                     </table>
-                    <div style="border-top:1.1mm solid #000; margin:3mm 0 3mm 0;"></div>
+                    <div style="border-top:1.1mm solid #000; margin:2.5mm 0 2.5mm 0;"></div>
 
-                    <div style="text-align:center; font-size:15pt; font-weight:700; margin-bottom:2mm;">Achtung!</div>
-                    <div style="text-align:center; font-size:11pt; font-weight:700; line-height:1.25; margin-bottom:3mm;">
+                    <div style="text-align:center; font-size:15.5pt; font-weight:700; margin-bottom:1.5mm;">Achtung!</div>
+                    <div style="text-align:center; font-size:11pt; font-weight:700; line-height:1.13; margin-bottom:3mm;">
                         Durchsicht der Schaltgeräte- Kombinationen nach dem<br/>
                         Transport und vor Inbetriebnahme erforderlich.<br/>
                         Prüfung gem. DIN VDE 0100-600.
                     </div>
-                    <div style="font-size:9.1pt; line-height:1.28;">
+                    <div style="font-size:8.8pt; line-height:1.14;">
                         Nach dem Errichten und vor der Inbetriebnahme der fabrikgefertigten Schaltanlage sind folgende Prüfungen durchzuführen:<br/>
                         1. Die Prüfungen nach DIN VDE 0100 sind vom Inbetriebnehmer der Anlage als „Erstprüfung der Anlage“ durchzuführen.<br/>
                         2. Die Anschlussschrauben und Anschlussklemmen an Stromschienen, Geräten und Klemmen sind auf Lockerung zu prüfen und falls erforderlich nachzuziehen. Empfohlenes Anzugsdrehmoment nach DIN 43673, Teil 1. Vergl. DIN EN 61439 VDE 0660-600.<br/>
@@ -92,46 +92,48 @@
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'info_sheet'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'info_sheet'">
                 <div class="sab-master-page" style="position:relative; overflow:hidden; height:277mm;">
-                    <div style="position:absolute; width:265mm; height:176mm; left:7mm; top:49mm; transform:rotate(-90deg) translate(-176mm,0); transform-origin:top left; font-family:Arial, Helvetica, sans-serif; color:#000;">
-                        <table style="height:176mm; border-left:0.8mm double #000; border-right:0.8mm double #000; table-layout:fixed; border-collapse:collapse;">
+                    <div style="position:absolute; width:265mm; height:176mm; left:7mm; top:49mm; transform:rotate(-90deg) translate(-176mm,0); transform-origin:top left; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000;">
+                        <table style="height:176mm; width:265mm; border-left:0.8mm double #000; border-right:0.8mm double #000; table-layout:fixed; border-collapse:collapse;">
                             <colgroup><col style="width:72mm;"/><col style="width:72mm;"/><col style="width:121mm;"/></colgroup>
                             <tr>
                                 <td style="border-right:0.35mm solid #000; padding:4mm; vertical-align:top;">
-                                    <div style="height:42mm; display:flex; align-items:center; justify-content:center;">
-                                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:60mm; max-height:28mm; object-fit:contain;"/>
-                                        <div t-if="not doc.project_id.company_id.logo" style="font-size:29pt; font-weight:700;">SAB-P</div>
+                                    <div style="height:39mm; display:flex; align-items:center; justify-content:center;">
+                                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
+                                        <div t-if="not doc.project_id.company_id.logo" style="font-size:30pt; font-weight:700;">SAB-P</div>
                                     </div>
-                                    <div style="font-size:8.3pt; line-height:1.22; text-align:center; margin-top:2mm;">
-                                        <b>SAB-P GmbH</b><br/><b>Schaltanlagenbau Preyer</b><br/>Albert-Einstein-Str. 7a<br/><b>42929 Wermelskirchen</b><br/>Tel. 02196 90901-0&#160;&#160;-&#160;&#160;FAX -99
+                                    <div style="font-size:8.5pt; line-height:1.12; text-align:center; margin-top:1mm; font-weight:700;">
+                                        SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/>Albert-Einstein-Str. 7a<br/>42929 Wermelskirchen<br/><span style="font-size:7pt; font-weight:400;">Tel. 02196 90901-0&#160;&#160;-&#160;&#160;FAX -99</span>
                                     </div>
-                                    <div style="border-top:0.35mm solid #000; margin:5mm 0 4mm 0;"></div>
-                                    <div style="font-size:10pt; font-weight:700; line-height:1.2; text-align:center;">Wartung und Prüfung von ortsfesten Anlagen nach DGUV Vorschrift 3<br/>und DIN VDE 0100</div>
+                                    <div style="border-top:0.35mm solid #000; margin:4mm 0 4mm 0;"></div>
+                                    <div style="font-size:10.5pt; font-weight:700; line-height:1.08; text-align:center;">Wartung und Prüfung von ortsfesten Anlagen nach DGUV Vorschrift 3<br/>und DIN VDE 0100</div>
                                     <div style="font-size:10pt; font-weight:700; margin-top:7mm;">Nächster vorgeschlagener<br/>Wartungstermin:</div>
-                                    <div style="width:45mm; height:33mm; border:0.35mm solid #777; margin:7mm auto 0 auto;"></div>
-                                    <div style="font-size:20pt; font-weight:700; text-align:center; margin-top:12mm;">Tel: 02196 90901 0</div>
+                                    <div style="width:45mm; min-height:31mm; border:0.35mm solid #777; margin:6mm auto 0 auto; display:flex; align-items:center; justify-content:center; font-size:15pt; font-weight:700;">
+                                        <span t-if="doc.next_maintenance_date" t-field="doc.next_maintenance_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/>
+                                    </div>
+                                    <div style="font-size:20pt; font-weight:700; text-align:center; margin-top:11mm;">Tel: 02196 90901 0</div>
                                 </td>
                                 <td style="border-right:0.35mm solid #000; padding:4mm; vertical-align:top;">
-                                    <div style="font-size:11pt; font-weight:700; margin-top:4mm;">Prüfung:</div>
-                                    <div style="border:0.35mm solid #aaa; margin-top:8mm; height:62mm; padding:7mm 5mm;">
-                                        <div style="font-size:18pt; font-weight:700; text-align:center;">Geprüft</div>
-                                        <div style="font-size:9.5pt; margin-top:9mm;">Name : __________________</div>
-                                        <div style="font-size:9.5pt; margin-top:6mm;">Datum: __________________</div>
+                                    <div style="font-size:11.5pt; font-weight:700; margin-top:4mm;">Prüfung:</div>
+                                    <div style="border:0.35mm solid #aaa; margin-top:8mm; min-height:62mm; padding:7mm 5mm; box-sizing:border-box;">
+                                        <div style="font-size:19pt; font-weight:700; text-align:center;">Geprüft</div>
+                                        <div style="font-size:9.5pt; margin-top:9mm;">Name : <strong><span t-out="doc.inspector_name or ''"/></strong></div>
+                                        <div style="font-size:9.5pt; margin-top:6mm;">Datum: <strong><span t-if="doc.inspection_date" t-field="doc.inspection_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/></strong></div>
                                     </div>
                                 </td>
                                 <td style="padding:0; vertical-align:top;">
-                                    <table style="height:176mm; table-layout:fixed; border-collapse:collapse; font-size:9pt;">
+                                    <table style="height:176mm; width:121mm; table-layout:fixed; border-collapse:collapse; font-size:9pt;">
                                         <colgroup><col style="width:30mm;"/><col style="width:42mm;"/><col style="width:49mm;"/></colgroup>
                                         <tr>
                                             <td style="border-right:0.35mm solid #000; padding:5mm 3mm; vertical-align:top;">
-                                                <div style="font-size:10.5pt; font-weight:700; margin-bottom:8mm;">Information zum<br/>Überspannungschutz:</div>
-                                                <div>Nachfolgende Information sind für Anlagen mit Überspannungselementen zu beachten!</div>
+                                                <div style="font-size:10.5pt; font-weight:700; line-height:1.05; margin-bottom:8mm;">Information zum<br/>Überspannungschutz:</div>
+                                                <div style="line-height:1.1;">Nachfolgende Information sind für Anlagen mit Überspannungselementen zu beachten!</div>
                                             </td>
                                             <td style="border-right:0.35mm solid #000; padding:5mm 3mm; vertical-align:top;">
-                                                <div style="font-size:10pt; font-weight:700; line-height:1.25;">Bei Isolationsmessungen<br/>bitte die Schutzmodule<br/>abziehen bzw. abklemmen.</div>
-                                                <div style="font-size:8.5pt; margin-top:10mm;">System contains overvolting protection devices.</div>
+                                                <div style="font-size:10pt; font-weight:700; line-height:1.12;">Bei Isolationsmessungen<br/>bitte die Schutzmodule<br/>abziehen bzw. abklemmen.</div>
+                                                <div style="font-size:8.7pt; line-height:1.1; margin-top:10mm;">System contains overvolting protection devices.</div>
                                             </td>
                                             <td style="padding:5mm 3mm; vertical-align:top;">
-                                                <div style="font-size:10pt; font-weight:700; line-height:1.25;">Please remove or<br/>disconnect the protectors<br/>during isolation tests.</div>
+                                                <div style="font-size:10.5pt; font-weight:700; line-height:1.12;">Please remove or<br/>disconnect the protectors<br/>during isolation tests.</div>
                                             </td>
                                         </tr>
                                     </table>
