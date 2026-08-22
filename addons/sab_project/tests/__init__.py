@@ -13,6 +13,7 @@ from . import test_production_workflow
 from . import test_production_document_cabinet_quantity
 from . import test_production_print_selection
 from . import test_production_document_master_layouts
+from . import test_production_original_individual_layouts
 from . import test_employee_production_start
 from . import test_purchase_requirement
 from . import test_procurement_roles_and_delivery
