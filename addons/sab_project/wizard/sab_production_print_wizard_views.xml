@@ -29,11 +29,8 @@
                             <field name="print_final_inspection" string="Endprüfung"/>
                             <field name="print_shipping_sheet" string="Versand"/>
                             <field name="print_add_pack" string="Beipack"/>
-                            <field name="print_conversion_sheet" string="Umbau"/>
                             <field name="print_nameplate" string="Typenschild"/>
-                            <field name="print_inspection_label" string="Prüfetikett"/>
-                            <field name="print_info_sheet" string="Infoschild"/>
-                            <field name="print_commissioning" string="Kommissionierung"/>
+                            <field name="print_info_sheet" string="Infoschild / Prüfetikett"/>
                             <field name="print_folder_label" string="Ordneretikett"/>
                             <field name="print_production_test" string="Prüfprotokoll Fertigung"/>
                             <field name="print_conformity" string="Konformität"/>
