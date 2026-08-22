@@ -73,3 +73,5 @@ access_sab_supplier_price_import_manager,sab.supplier.price.import manager,model
 access_sab_procurement_package_wizard_manager,sab.procurement.package.wizard manager,model_sab_procurement_package_wizard,project.group_project_manager,1,1,1,1
 access_sab_procurement_extra_line_wizard_purchasing,sab.procurement.extra.line.wizard purchasing,model_sab_procurement_extra_line_wizard,sab_project.group_sab_purchasing,1,1,1,1
 access_sab_procurement_extra_line_wizard_manager,sab.procurement.extra.line.wizard manager,model_sab_procurement_extra_line_wizard,project.group_project_manager,1,1,1,1
+access_sab_production_print_profile_user,sab.production.print.profile user,model_sab_production_print_profile,base.group_user,1,1,1,1
+access_sab_production_print_profile_system,sab.production.print.profile system,model_sab_production_print_profile,base.group_system,1,1,1,1
