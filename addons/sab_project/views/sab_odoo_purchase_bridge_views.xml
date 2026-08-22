@@ -167,7 +167,7 @@
             <xpath expr="//button[@name='%(purchase.action_report_purchase_order)d']" position="attributes">
                 <attribute name="string">Drucken</attribute>
             </xpath>
-            <xpath expr="//button[@name='action_rfq_send'][@string='Send PO']" position="attributes">
+            <xpath expr="//button[@name='action_rfq_send']" position="attributes">
                 <attribute name="string">Bestellung per E-Mail senden</attribute>
             </xpath>
             <xpath expr="//button[@name='button_approve']" position="attributes">
@@ -236,7 +236,7 @@
         <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
         <field name="priority">900</field>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_view_picking'][@string='Receive']" position="attributes">
+            <xpath expr="//button[@name='action_view_picking']" position="attributes">
                 <attribute name="string">Wareneingang buchen</attribute>
             </xpath>
             <xpath expr="//button[@name='action_view_picking']/field[@name='incoming_picking_count']" position="attributes">
