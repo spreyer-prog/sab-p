@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="print_profile_conformity" model="sab.production.print.profile">
+        <field name="document_type">conformity</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_production_test" model="sab.production.print.profile">
+        <field name="document_type">production_test</field><field name="paper_kind">a4</field><field name="orientation">landscape</field><field name="width_mm">297</field><field name="height_mm">210</field>
+    </record>
+    <record id="print_profile_final_inspection" model="sab.production.print.profile">
+        <field name="document_type">final_inspection</field><field name="paper_kind">a4</field><field name="orientation">landscape</field><field name="width_mm">297</field><field name="height_mm">210</field>
+    </record>
+    <record id="print_profile_run_card" model="sab.production.print.profile">
+        <field name="document_type">run_card</field><field name="paper_kind">a4</field><field name="orientation">landscape</field><field name="width_mm">297</field><field name="height_mm">210</field>
+    </record>
+    <record id="print_profile_missing_parts" model="sab.production.print.profile">
+        <field name="document_type">missing_parts</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_shipping_sheet" model="sab.production.print.profile">
+        <field name="document_type">shipping_sheet</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_add_pack" model="sab.production.print.profile">
+        <field name="document_type">add_pack</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_nameplate" model="sab.production.print.profile">
+        <field name="document_type">nameplate</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_info_sheet" model="sab.production.print.profile">
+        <field name="document_type">info_sheet</field><field name="paper_kind">custom</field><field name="orientation">landscape</field><field name="width_mm">265</field><field name="height_mm">176</field>
+    </record>
+    <record id="print_profile_folder_label" model="sab.production.print.profile">
+        <field name="document_type">folder_label</field><field name="paper_kind">custom</field><field name="orientation">portrait</field><field name="width_mm">61</field><field name="height_mm">192</field><field name="margin_top_mm">2</field><field name="margin_bottom_mm">2</field><field name="margin_left_mm">2</field><field name="margin_right_mm">2</field>
+    </record>
+</odoo>
