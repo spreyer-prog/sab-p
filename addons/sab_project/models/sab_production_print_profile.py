@@ -82,3 +82,57 @@ class SabProductionPrintProfile(models.Model):
             [("user_id", "=", False), ("document_type", "=", document_type)],
             limit=1,
         )
+
+    def _ensure_runtime_report_action(self):
+        """Return a private report action using exactly this profile's geometry.
+
+        Odoo stores the paper format on the report action itself. Reusing one
+        global action would therefore make one user's printer geometry affect
+        every other user. Each SAB-P profile receives a deterministic hidden
+        report action and paper format instead. They are refreshed on every
+        use, so changes in the profile are effective immediately.
+        """
+        self.ensure_one()
+        profile_key = "SAB-P Druckprofil %s" % self.id
+        Paperformat = self.env["report.paperformat"].sudo()
+        paperformat = Paperformat.search([("name", "=", profile_key)], limit=1)
+        paper_values = {
+            "name": profile_key,
+            "format": "custom",
+            "page_width": self.width_mm,
+            "page_height": self.height_mm,
+            "orientation": "Landscape" if self.orientation == "landscape" else "Portrait",
+            "margin_top": self.margin_top_mm,
+            "margin_bottom": self.margin_bottom_mm,
+            "margin_left": self.margin_left_mm,
+            "margin_right": self.margin_right_mm,
+            "dpi": 90,
+        }
+        if paperformat:
+            paperformat.write(paper_values)
+        else:
+            paperformat = Paperformat.create(paper_values)
+
+        action_name = "%s Report" % profile_key
+        Report = self.env["ir.actions.report"].sudo()
+        report = Report.search(
+            [
+                ("name", "=", action_name),
+                ("model", "=", "sab.production.document"),
+                ("report_name", "=", "sab_project.report_sab_production_document"),
+            ],
+            limit=1,
+        )
+        report_values = {
+            "name": action_name,
+            "model": "sab.production.document",
+            "report_type": "qweb-pdf",
+            "report_name": "sab_project.report_sab_production_document",
+            "report_file": "sab_project.report_sab_production_document",
+            "paperformat_id": paperformat.id,
+        }
+        if report:
+            report.write(report_values)
+        else:
+            report = Report.create(report_values)
+        return report
