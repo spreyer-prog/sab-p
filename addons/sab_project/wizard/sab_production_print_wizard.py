@@ -43,47 +43,84 @@ class SabProductionPrintWizard(models.TransientModel):
     )
 
     @api.model
-    def default_get(self, fields_list):
-        values = super().default_get(fields_list)
-        production_id = self.env.context.get("default_production_order_id") or self.env.context.get("active_id")
-        if not production_id:
-            return values
-        production = self.env["sab.production.order"].browse(production_id).exists()
-        if not production:
-            return values
-        production.action_prepare_production_documents()
-        rows = []
+    def _sab_print_rows_for_production(self, production):
         grouped = {}
         documents = production.document_ids.filtered(
             lambda document: bool(document.cabinet_bom_id)
             and (document.cabinet_instance_no or 0) > 0
         )
         for document in documents.sorted(
-            key=lambda d: (d.cabinet_bom_id.id, d.cabinet_instance_no, d.document_type, d.id)
+            key=lambda d: (
+                d.cabinet_bom_id.id,
+                d.cabinet_instance_no,
+                d.document_type,
+                d.id,
+            )
         ):
             key = (document.cabinet_bom_id.id, document.cabinet_instance_no)
             grouped.setdefault(key, document)
-        for (_cabinet_id, _instance_no), document in grouped.items():
-            rows.append(
-                (0, 0, {
-                    "cabinet_bom_id": document.cabinet_bom_id.id,
-                    "cabinet_instance_no": document.cabinet_instance_no,
-                    "cabinet_instance_label": document.cabinet_instance_label,
-                })
-            )
-        values.update({"production_order_id": production.id, "line_ids": rows})
+        return [
+            {
+                "cabinet_bom_id": document.cabinet_bom_id.id,
+                "cabinet_instance_no": document.cabinet_instance_no,
+                "cabinet_instance_label": document.cabinet_instance_label,
+            }
+            for document in grouped.values()
+        ]
+
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        production_id = (
+            self.env.context.get("default_production_order_id")
+            or self.env.context.get("active_id")
+        )
+        if not production_id:
+            return values
+        production = self.env["sab.production.order"].browse(production_id).exists()
+        if not production:
+            return values
+        production.action_prepare_production_documents()
+        rows = self._sab_print_rows_for_production(production)
+        values.update(
+            {
+                "production_order_id": production.id,
+                "line_ids": [(0, 0, row) for row in rows],
+            }
+        )
         return values
 
-    def action_select_all(self):
+    def _sab_refresh_print_rows(self):
         self.ensure_one()
-        valid_lines = self.line_ids.filtered(
+        production = self.production_order_id
+        production.action_prepare_production_documents()
+        rows = self._sab_print_rows_for_production(production)
+        existing_keys = {
+            (line.cabinet_bom_id.id, line.cabinet_instance_no)
+            for line in self.line_ids
+            if line.cabinet_bom_id and line.cabinet_instance_no > 0
+        }
+        Line = self.env["sab.production.print.wizard.line"]
+        for row in rows:
+            key = (row["cabinet_bom_id"], row["cabinet_instance_no"])
+            if key in existing_keys:
+                continue
+            Line.create({"wizard_id": self.id, **row})
+            existing_keys.add(key)
+        self.invalidate_recordset(["line_ids"])
+        return self.line_ids.filtered(
             lambda line: bool(line.cabinet_bom_id)
             and (line.cabinet_instance_no or 0) > 0
         )
+
+    def action_select_all(self):
+        self.ensure_one()
+        valid_lines = self._sab_refresh_print_rows()
         if not valid_lines:
-            self.production_order_id.action_prepare_production_documents()
             raise ValidationError(
-                _("Für diesen Fertigungsauftrag wurden keine druckbaren Schränke gefunden.")
+                _(
+                    "Für diesen Fertigungsauftrag konnten auch nach erneuter Dokumenterzeugung keine druckbaren Schränke gefunden werden. Bitte prüfen, ob zum Auftrag Verteilerstücklisten vorhanden sind."
+                )
             )
         valid_lines.write(
             {field_name: True for field_name in DOCUMENT_FIELD_MAP.values()}
@@ -162,8 +199,12 @@ class SabProductionPrintWizardLine(models.TransientModel):
         required=False,
         readonly=True,
     )
-    cabinet_instance_no = fields.Integer(string="Schrank-Nr.", required=False, readonly=True)
-    cabinet_instance_label = fields.Char(string="Physischer Schrank", readonly=True)
+    cabinet_instance_no = fields.Integer(
+        string="Schrank-Nr.", required=False, readonly=True
+    )
+    cabinet_instance_label = fields.Char(
+        string="Physischer Schrank", readonly=True
+    )
 
     print_conformity = fields.Boolean(string="Konformität")
     print_production_test = fields.Boolean(string="Prüfprotokoll Fertigung")
