@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_final_inspection_original"
+              inherit_id="sab_project.report_sab_production_document"
+              priority="2120">
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'final_inspection'&quot;]" position="replace">
+            <t t-elif="doc.document_type == 'final_inspection'">
+                <!-- Blatt Endprüfung.pdf, Seite 2: eigenständige A4-Hochformat-Vorlage -->
+                <div style="position:relative; width:210mm; height:297mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
+                    <div style="position:absolute; left:20.1mm; top:10.6mm; width:174.7mm; height:275mm; font-size:6.35pt; line-height:1.02; box-sizing:border-box;">
+                        <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; margin:0 0 1.8mm 0;">
+                            <colgroup><col style="width:42.3mm;"/><col style="width:42.3mm;"/><col style="width:37.2mm;"/><col style="width:52.9mm;"/></colgroup>
+                            <tr style="height:5.8mm;"><td colspan="3" style="font-size:12pt; font-weight:700; padding:0; vertical-align:middle;">Prüfprotokoll Endkontrolle</td><td rowspan="4" style="padding:0; text-align:right; vertical-align:top;"><img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:43mm; max-height:15mm; object-fit:contain; object-position:right top;"/><div t-if="not doc.project_id.company_id.logo" style="font-size:18pt; font-weight:700;">SAB-P</div></td></tr>
+                            <tr style="height:4.35mm;"><td style="padding:0;">Kunde:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.customer_name or ''"/></td></tr>
+                            <tr style="height:4.35mm;"><td style="padding:0;">Auftragsnr./Komission:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
+                            <tr style="height:4.35mm;"><td style="padding:0;">Verteiler:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                        </table>
+                        <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
+                            <colgroup><col style="width:10.6mm;"/><col style="width:74.1mm;"/><col style="width:26.5mm;"/><col style="width:63.5mm;"/></colgroup>
+                            <tr style="height:8.7mm;"><th colspan="4" style="border:0.18mm solid #000; padding:0.4mm 0.6mm; text-align:left; vertical-align:top;">Durchgeführte Kontrollen</th></tr>
+                            <tr style="height:8.7mm; font-weight:700;"><td style="text-align:center;">1.)</td><td>Mechanische Kontrolle</td><td>Prüfer<br/>(Kürzel)</td><td>Bemerkung<br/><span style="font-weight:400; font-size:4.4pt;">Nur bei Abweichung/Einschränkung ausfüllen</span></td></tr>
+                            <tr style="height:8.7mm;"><td>1.0</td><td>Anziehmomente der Schraubverbindungen geprüft<br/>(Stichproben)</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>1.1</td><td>Hochstrom-Verbindungen gekennzeichnet</td><td></td><td></td></tr>
+                            <tr style="height:8.7mm;"><td>1.2</td><td>Sicherungseinsätze eingebaut<br/>(sofern erforderlich)</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>1.3</td><td>Schaltplantasche eingebaut</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>1.4</td><td>Abdeckungen komplett eingebaut</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>1.5</td><td>Kennzeichnung aller Geräte</td><td></td><td></td></tr>
+                            <tr style="height:8.7mm;"><td>1.6</td><td>Transporttrennung entsprechend der Vorgabe eingehalten (sofern erforderlich)</td><td></td><td></td></tr>
+                            <tr style="height:8.7mm;"><td>1.7</td><td>Schutzklasse SK I/II entsprechend der Vorgabe eingehalten</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>1.8</td><td>Schutzart IPxx entsprechend der Vorgabe eingehalten</td><td></td><td></td></tr>
+                            <tr style="height:8.7mm; font-weight:700;"><td style="text-align:center;">2.)</td><td>Elektrische Kontrolle</td><td>Prüfer<br/>(Kürzel)</td><td>Bemerkung<br/><span style="font-weight:400; font-size:4.4pt;">Nur bei Abweichung/Einschränkung ausfüllen</span></td></tr>
+                            <tr style="height:8.7mm;"><td>2.1</td><td>Türerden eingebaut<br/>(sofern erforderlich, bei Geräteeinbau)</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>2.2</td><td>Grundparametrierung der Messgeräte erfolgt.</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>2.3</td><td>Anlage geprüft (siehe Prüfprotokoll)</td><td></td><td></td></tr>
+                            <tr style="height:8.7mm; font-weight:700;"><td style="text-align:center;">3.)</td><td>Sichtkontrolle</td><td>Prüfer<br/>(Kürzel)</td><td>Bemerkung<br/><span style="font-weight:400; font-size:4.4pt;">Nur bei Abweichung/Einschränkung ausfüllen</span></td></tr>
+                            <tr style="height:4.35mm;"><td>3.0</td><td>Schrankbeschriftung (Typenschild, Infoschild und Warnschilder)</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>3.1</td><td>Prüfaufkleber angebracht</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>3.2</td><td>Schaltschrank fotografiert</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>3.3</td><td>Änderungen im Schaltplan eingetragen</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>3.4</td><td>Schaltplan zur Revision ins technische Büro gegeben</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>3.5</td><td>Fehlende Komponenten gemeldet bzw. nachbestellt</td><td></td><td></td></tr>
+                            <tr style="height:4.35mm;"><td>3.6</td><td>Dokumentation vollständig beigefügt</td><td></td><td></td></tr>
+                            <tr style="height:8.7mm;"><td>3.7</td><td>Beipack vollständig zusammengestellt und im Schrank deponiert</td><td></td><td></td></tr>
+                        </table>
+                        <div style="margin-top:15mm; border-top:0.18mm solid #000; padding-top:2mm; font-size:5.5pt;">Wermelskirchen/</div>
+                        <div style="margin-top:5mm; display:flex; gap:8mm; font-size:5.2pt;"><div style="width:50%; border-top:0.18mm solid #777; padding-top:1mm;">Ort / Datum</div><div style="width:50%; border-top:0.18mm solid #777; padding-top:1mm;">Kennung/Name des Prüfers</div></div>
+                        <div style="position:absolute; left:0; right:0; bottom:0; border-top:0.18mm solid #777; padding-top:1mm; font-size:4.5pt; display:flex; justify-content:space-between;"><span>SP_PRF-PR_D3</span><span>Copyright © 2018 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                    </div>
+                    <style>
+                        #wrapwrap table:nth-of-type(2) td, #wrapwrap table:nth-of-type(2) th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
+                    </style>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
