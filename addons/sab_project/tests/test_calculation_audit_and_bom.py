@@ -161,6 +161,101 @@ class TestSabCalculationAuditAndBom(TransactionCase):
         with self.assertRaises(ValidationError):
             cabinet_bom.line_ids.write({"quantity": 7.0})
 
+    def test_bom_regeneration_preserves_referenced_cabinet_lines_and_stale_boms(self):
+        order, cabinet = self._schematic_order()
+        order.action_sab_release_offer()
+        order.state = "sale"
+        order.action_generate_sab_bom()
+
+        cabinet_bom = order.sab_bom_ids.filtered(
+            lambda bom: bom.bom_scope == "cabinet"
+            and bom.cabinet_line_id == cabinet
+        )
+        source_line = cabinet_bom.line_ids
+        self.assertTrue(source_line)
+        source_line_id = source_line.id
+
+        holder_order = self.env["sale.order"].create(
+            {"partner_id": self.partner.id}
+        )
+        holder_bom = self.env["sab.project.bom"].create(
+            {
+                "name": "STL Referenzhalter",
+                "order_id": holder_order.id,
+                "project_id": self.project.id,
+                "bom_scope": "total",
+                "line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product.id,
+                            "quantity": 1.0,
+                            "unit": "pcs",
+                            "source_cabinet_bom_id": cabinet_bom.id,
+                            "source_cabinet_line_id": source_line.id,
+                        },
+                    )
+                ],
+            }
+        )
+
+        # Re-running the button must keep the already referenced source line ID
+        # instead of clearing the O2M with (5, 0, 0), which previously caused
+        # the PostgreSQL FK error seen in the real UI.
+        order.action_generate_sab_bom()
+        source_line.invalidate_recordset()
+        self.assertTrue(source_line.exists())
+        self.assertEqual(source_line.id, source_line_id)
+        self.assertEqual(
+            holder_bom.line_ids.source_cabinet_line_id.id,
+            source_line_id,
+        )
+
+        fake_cabinet = self.env["sab.offer.calculation.line"].create(
+            {
+                "order_id": holder_order.id,
+                "line_type": "cabinet",
+                "description": "ALT-UV",
+                "sequence": 10,
+            }
+        )
+        stale_bom = self.env["sab.project.bom"].create(
+            {
+                "name": "STL Altverteiler",
+                "order_id": order.id,
+                "project_id": self.project.id,
+                "bom_scope": "cabinet",
+                "cabinet_line_id": fake_cabinet.id,
+                "line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product.id,
+                            "quantity": 1.0,
+                            "unit": "pcs",
+                        },
+                    )
+                ],
+            }
+        )
+        stale_holder = self.env["sab.project.bom.line"].create(
+            {
+                "bom_id": holder_bom.id,
+                "product_id": self.product.id,
+                "quantity": 1.0,
+                "unit": "pcs",
+                "source_cabinet_bom_id": stale_bom.id,
+                "source_cabinet_line_id": stale_bom.line_ids.id,
+            }
+        )
+
+        order.action_generate_sab_bom()
+        self.assertTrue(stale_bom.exists())
+        self.assertTrue(stale_holder.exists())
+        self.assertEqual(stale_holder.source_cabinet_bom_id, stale_bom)
+
     def test_calculation_setting_requires_code_and_creates_log(self):
         params = self.env["ir.config_parameter"].sudo()
         params.set_param("sab_project.calculation_change_code", "1111")
