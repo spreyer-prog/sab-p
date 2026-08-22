@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Deutsche Sprache für SAB-P Entwicklungs-/Testdatenbank aktivieren -->
+    <record id="base.lang_de" model="res.lang">
+        <field name="active">True</field>
+    </record>
+
+    <!-- Standard-Administrator direkt auf Deutsch setzen -->
+    <record id="base.user_admin" model="res.users">
+        <field name="lang">de_DE</field>
+    </record>
+</odoo>
