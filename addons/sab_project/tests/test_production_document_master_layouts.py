@@ -39,6 +39,24 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("rotate(90deg)", xml)
         self.assertIn("page-break-inside: avoid", xml)
 
+    def test_conformity_master_contains_complete_six_page_legacy_set(self):
+        arch = self._view_arch(
+            "sab_project.report_sab_production_document_conformity"
+        )
+        xml = etree.tostring(arch, encoding="unicode")
+        self.assertIn("doc.document_type == 'conformity'", xml)
+        self.assertEqual(xml.count('class="sab-conf-page"'), 6)
+        self.assertIn("Deckblatt &amp; Übersicht der Protokolle", xml)
+        self.assertIn("Prüfprotokoll", xml)
+        self.assertIn("Erklärung des Herstellers", xml)
+        self.assertIn("Bestätigung der DGUV V3", xml)
+        self.assertIn("EG-Konformitätserklärung", xml)
+        self.assertIn("2014/30/EU", xml)
+        self.assertIn("2014/35/EU", xml)
+        self.assertIn("EN 61000-6-4", xml)
+        self.assertIn("EN 60204-1", xml)
+        self.assertIn("-6-", xml)
+
     def test_master_labels_contains_nameplate_and_info_sheet(self):
         arch = self._view_arch("sab_project.report_sab_production_document_master_labels")
         xml = etree.tostring(arch, encoding="unicode")
