@@ -102,3 +102,4 @@ from . import sab_purchase_admin_access
 from . import sab_standard_purchase_release_compat
 from . import sab_bom_regeneration_reference_guard
 from . import sab_default_language_all_users
+from . import sab_purchase_bulk_and_merge
