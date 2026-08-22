@@ -20,7 +20,13 @@ class SabProductionDocumentFormatRouter(models.Model):
         if not report_xmlid:
             return super()._sab_production_report_action()
 
-        report = self.env.ref(report_xmlid)
+        report = self.env.ref(report_xmlid, raise_if_not_found=False)
+        if not report:
+            # Spezielle Papierformate dürfen den Fertigungsdruck nicht blockieren,
+            # wenn die zugehörige Report-Aktion in einem Build noch nicht geladen
+            # wurde. In diesem Fall bleibt der normale SAB-P-Report funktionsfähig.
+            return super()._sab_production_report_action()
+
         report_context = {
             **dict(self.env.context),
             "active_model": self._name,
