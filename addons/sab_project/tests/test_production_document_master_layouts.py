@@ -54,6 +54,20 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("width: 277mm", xml)
         self.assertIn("height: 190mm", xml)
 
+    def test_master_v7_native_typography_prevents_text_overlap(self):
+        arch = self._view_arch(
+            "sab_project.report_sab_production_document_master_v7_native_typography"
+        )
+        xml = etree.tostring(arch, encoding="unicode")
+        self.assertIn("sab-master-native-landscape", xml)
+        self.assertIn("line-height: 1.14", xml)
+        self.assertIn("vertical-align: middle", xml)
+        self.assertIn("white-space: normal", xml)
+        self.assertIn("overflow-wrap: break-word", xml)
+        self.assertIn("height: 5.15mm", xml)
+        self.assertIn("height: 7.4mm", xml)
+        self.assertIn("height: 31mm", xml)
+
     def test_conformity_master_contains_complete_six_page_legacy_set(self):
         arch = self._view_arch(
             "sab_project.report_sab_production_document_conformity"
