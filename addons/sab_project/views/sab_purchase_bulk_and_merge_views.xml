@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Einkaufsbedarf: sichtbare Mehrfachaktion über die ausgewählten Checkbox-Zeilen. -->
+    <record id="view_sab_purchase_requirement_list_bulk_visible" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.list.bulk.visible</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_list"/>
+        <field name="priority">900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_create_standard_purchase_orders_from_selection']" position="attributes">
+                <attribute name="display">always</attribute>
+                <attribute name="string">Markierte Positionen bestellen</attribute>
+                <attribute name="groups">sab_project.group_sab_purchasing,base.group_system</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Bestellvorschläge: mehrere Vorschläge desselben Lieferanten können markiert und zusammengeführt werden. -->
+    <record id="view_sab_standard_purchase_order_list_bulk_merge" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.list.bulk.merge</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_standard_purchase_order_list"/>
+        <field name="priority">900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="action_sab_merge_selected_orders"
+                            type="object"
+                            string="Gleichen Lieferanten zusammenführen"
+                            icon="fa-compress"
+                            class="btn-primary"
+                            display="always"
+                            groups="sab_project.group_sab_purchasing,base.group_system"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Im Beleg bewusst zwischen Lieferantenanfrage und echter Bestellung wählen. -->
+    <record id="view_sab_standard_purchase_order_form_choice" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.form.choice</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">950</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_sab_send_supplier_inquiry"
+                        type="object"
+                        string="Angebotsanfrage an Lieferanten"
+                        icon="fa-envelope"
+                        invisible="not sab_is_suite_order or state not in ('draft','sent')"
+                        groups="sab_project.group_sab_purchasing,base.group_system"/>
+                <button name="action_sab_direct_order"
+                        type="object"
+                        string="Bestellung auslösen"
+                        icon="fa-check"
+                        class="oe_highlight"
+                        invisible="not sab_is_suite_order or state not in ('draft','sent')"
+                        groups="sab_project.group_sab_purchasing,base.group_system"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Auch die bestehende separate Freigabestufe muss für Systemadministratoren sichtbar sein. -->
+    <record id="view_sab_standard_purchase_order_form_admin_approval_visibility" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.form.admin.approval.visibility</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_standard_purchase_order_form_mandatory_approval"/>
+        <field name="priority">960</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_confirm' and @string='Zur Bestellfreigabe vorlegen']" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchasing,base.group_system</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_approve' and @string='Bestellung freigeben']" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchase_approver,base.group_system</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rfq_send' and @string='Bestellung per E-Mail senden']" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchasing,base.group_system</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_cancel' and @string='SAB-P-Bestellung stornieren']" position="attributes">
+                <attribute name="groups">sab_project.group_sab_purchasing,base.group_system</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
