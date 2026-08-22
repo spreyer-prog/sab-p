@@ -2,6 +2,20 @@ from odoo.fields import Command
 from odoo.tests.common import TransactionCase
 
 
+PRINT_FIELDS = (
+    "print_conformity",
+    "print_production_test",
+    "print_final_inspection",
+    "print_run_card",
+    "print_missing_parts",
+    "print_shipping_sheet",
+    "print_add_pack",
+    "print_nameplate",
+    "print_info_sheet",
+    "print_folder_label",
+)
+
+
 class TestSabProductionPrintSelection(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -63,14 +77,17 @@ class TestSabProductionPrintSelection(TransactionCase):
             {"name": "FA PRINT", "bom_id": cls.total_bom.id}
         )
 
-    def test_print_wizard_has_one_row_per_physical_cabinet_and_selected_only(self):
+    def _wizard(self):
         self.production.action_prepare_production_documents()
         Wizard = self.env["sab.production.print.wizard"].with_context(
             default_production_order_id=self.production.id,
             active_id=self.production.id,
         )
         values = Wizard.default_get(["production_order_id", "line_ids"])
-        wizard = Wizard.create(values)
+        return Wizard.create(values)
+
+    def test_print_wizard_has_one_row_per_physical_cabinet_and_selected_only(self):
+        wizard = self._wizard()
 
         self.assertEqual(len(wizard.line_ids), 2)
         self.assertEqual(
@@ -89,7 +106,34 @@ class TestSabProductionPrintSelection(TransactionCase):
         )
         self.assertFalse(wizard.line_ids.sorted("cabinet_instance_no")[1].print_run_card)
 
-    def test_single_document_has_direct_print_action(self):
+    def test_select_all_marks_every_sheet_and_renders_complete_folder(self):
+        wizard = self._wizard()
+
+        reopen = wizard.action_select_all()
+        self.assertEqual(reopen["res_id"], wizard.id)
+        for line in wizard.line_ids:
+            for field_name in PRINT_FIELDS:
+                self.assertTrue(
+                    line[field_name],
+                    "%s wurde durch 'Alle Blätter markieren' nicht gesetzt" % field_name,
+                )
+
+        selected = wizard._selected_documents()
+        expected_count = len(wizard.line_ids) * len(PRINT_FIELDS)
+        self.assertEqual(len(selected), expected_count)
+
+        action = wizard.action_print_selected()
+        self.assertEqual(action["type"], "ir.actions.report")
+        self.assertEqual(set(action["context"]["active_ids"]), set(selected.ids))
+        self.assertIn("Fertigungsordner", action["name"])
+
+        report = self.env.ref("sab_project.action_report_sab_production_documents")
+        html, _report_type = report.with_context(
+            action["context"]
+        )._render_qweb_html(report.report_name, selected.ids)
+        self.assertTrue(html)
+
+    def test_single_document_has_direct_print_action_and_specific_filename(self):
         self.production.action_prepare_production_documents()
         document = self.production.document_ids.filtered(
             lambda item: item.document_type == "run_card"
@@ -100,3 +144,9 @@ class TestSabProductionPrintSelection(TransactionCase):
             action["report_name"],
             "sab_project.report_sab_production_document",
         )
+        self.assertIn("Laufkarte", action["name"])
+        self.assertNotIn("Fertigungsblätter", action["name"])
+        self.assertNotIn("/", action["name"])
+
+        report = self.env.ref("sab_project.action_report_sab_production_documents")
+        self.assertEqual(report.print_report_name, "object._sab_pdf_filename()")
