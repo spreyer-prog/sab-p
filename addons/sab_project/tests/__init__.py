@@ -43,3 +43,4 @@ from . import test_standard_purchase_approval
 from . import test_standard_receipt_security
 from . import test_standard_purchase_approver_edit_security
 from . import test_procurement_supplier_grouping_flow
+from . import test_standard_purchase_bridge_release_expectation
