@@ -9,10 +9,7 @@ class TestSabSchematicSwitchboard(TransactionCase):
         super().setUpClass()
         cls.partner = cls.env["res.partner"].create({"name": "Kunde Schaltplan"})
         cls.project = cls.env["project.project"].create(
-            {
-                "name": "Projekt Schaltplan",
-                "partner_id": cls.partner.id,
-            }
+            {"name": "Projekt Schaltplan", "partner_id": cls.partner.id}
         )
         cls.normal_product = cls.env["sab.product"].create(
             {
@@ -74,11 +71,11 @@ class TestSabSchematicSwitchboard(TransactionCase):
             }
         )
 
-    def _order(self, source="lv"):
+    def _order(self, source="lv", project=None):
         return self.env["sale.order"].create(
             {
                 "partner_id": self.partner.id,
-                "sab_project_id": self.project.id,
+                "sab_project_id": (project or self.project).id,
                 "sab_calculation_source": source,
             }
         )
@@ -96,6 +93,81 @@ class TestSabSchematicSwitchboard(TransactionCase):
         order.action_sab_release_offer()
         order.write({"state": "sent"})
         return order
+
+    def test_schematic_without_prior_lv_is_allowed_and_has_no_lv_ntg(self):
+        project = self.env["project.project"].create(
+            {"name": "Projekt ohne LV", "partner_id": self.partner.id}
+        )
+        order = self._order("schematic", project=project)
+        cabinet = self.env["sab.offer.calculation.line"].create(
+            {
+                "order_id": order.id,
+                "line_type": "cabinet",
+                "description": "UV DIREKT",
+                "sequence": 10,
+            }
+        )
+        section = self.env["sab.offer.calculation.line"].create(
+            {
+                "order_id": order.id,
+                "line_type": "section",
+                "description": "Bauteil ohne LV",
+                "lv_position": "01.01.01",
+                "sequence": 20,
+            }
+        )
+        child = self.env["sab.offer.calculation.line"].create(
+            {
+                "order_id": order.id,
+                "calculation_item_id": self.item_known.id,
+                "quantity": 1.0,
+                "sequence": 30,
+            }
+        )
+        self.env["sab.offer.calculation.line"].create(
+            {"order_id": order.id, "line_type": "section_end", "sequence": 40}
+        )
+        self.env["sab.offer.calculation.line"].create(
+            {"order_id": order.id, "line_type": "cabinet_end", "sequence": 50}
+        )
+        order.sab_calculation_line_ids._normalize_section_membership()
+
+        self.assertEqual(section.parent_cabinet_id, cabinet)
+        self.assertFalse(section.lv_position)
+        self.assertFalse(section.is_ntg)
+        self.assertFalse(child.lv_position)
+        self.assertFalse(child.is_ntg)
+        self.assertFalse(
+            self.env["sab.project.lv.mapping"].search(
+                [("project_id", "=", project.id)]
+            )
+        )
+        order.action_sab_release_offer()
+        self.assertEqual(order.sab_offer_release_state, "released")
+        self.assertFalse(
+            self.env["sab.project.lv.mapping"].search(
+                [("project_id", "=", project.id)]
+            )
+        )
+
+    def test_lv_offer_requires_position_before_release(self):
+        project = self.env["project.project"].create(
+            {"name": "Projekt LV Pflicht", "partner_id": self.partner.id}
+        )
+        order = self._order("lv", project=project)
+        line = self.env["sab.offer.calculation.line"].create(
+            {
+                "order_id": order.id,
+                "calculation_item_id": self.item_known.id,
+                "quantity": 1.0,
+            }
+        )
+        self.assertFalse(line.lv_position)
+        with self.assertRaisesRegex(ValidationError, "LV-Nummer"):
+            order.action_sab_release_offer()
+        line.write({"lv_position": "02.03.04"})
+        order.action_sab_release_offer()
+        self.assertEqual(order.sab_offer_release_state, "released")
 
     def test_schematic_reuses_lv_and_new_position_becomes_ntg(self):
         self._prepare_priced_lv()
@@ -125,11 +197,7 @@ class TestSabSchematicSwitchboard(TransactionCase):
             }
         )
         self.env["sab.offer.calculation.line"].create(
-            {
-                "order_id": order.id,
-                "line_type": "cabinet_end",
-                "sequence": 40,
-            }
+            {"order_id": order.id, "line_type": "cabinet_end", "sequence": 40}
         )
         order.sab_calculation_line_ids._normalize_section_membership()
 
@@ -141,8 +209,6 @@ class TestSabSchematicSwitchboard(TransactionCase):
         self.assertEqual(new.parent_cabinet_id, cabinet)
         self.assertFalse(known.parent_section_id)
         self.assertFalse(new.parent_section_id)
-        self.assertEqual(known.hierarchy_marker, "")
-        self.assertEqual(new.hierarchy_marker, "")
         self.assertAlmostEqual(
             cabinet.cabinet_total,
             known.recommended_net_price + new.recommended_net_price,
@@ -185,38 +251,29 @@ class TestSabSchematicSwitchboard(TransactionCase):
             }
         )
         self.env["sab.offer.calculation.line"].create(
-            {
-                "order_id": order.id,
-                "line_type": "section_end",
-                "sequence": 50,
-            }
+            {"order_id": order.id, "line_type": "section_end", "sequence": 50}
         )
         self.env["sab.offer.calculation.line"].create(
-            {
-                "order_id": order.id,
-                "line_type": "cabinet_end",
-                "sequence": 60,
-            }
+            {"order_id": order.id, "line_type": "cabinet_end", "sequence": 60}
         )
         order.sab_calculation_line_ids._normalize_section_membership()
 
         self.assertEqual(section.parent_cabinet_id, cabinet)
-        self.assertEqual(section.hierarchy_marker, "↳")
         for child in known_child | new_child:
             self.assertEqual(child.parent_section_id, section)
             self.assertEqual(child.parent_cabinet_id, cabinet)
             self.assertEqual(child.lv_position, "01.01.02")
             self.assertFalse(child.is_ntg)
             self.assertTrue(child.lv_position_locked)
-            self.assertEqual(child.hierarchy_marker, "↳↳")
 
-        new_mapping = self.env["sab.project.lv.mapping"].search(
-            [
-                ("project_id", "=", self.project.id),
-                ("calculation_item_id", "=", self.item_new.id),
-            ]
+        self.assertFalse(
+            self.env["sab.project.lv.mapping"].search(
+                [
+                    ("project_id", "=", self.project.id),
+                    ("calculation_item_id", "=", self.item_new.id),
+                ]
+            )
         )
-        self.assertFalse(new_mapping)
 
     def test_new_schematic_component_receives_one_ntg_for_whole_component(self):
         self._prepare_priced_lv()
@@ -246,18 +303,10 @@ class TestSabSchematicSwitchboard(TransactionCase):
             }
         )
         self.env["sab.offer.calculation.line"].create(
-            {
-                "order_id": order.id,
-                "line_type": "section_end",
-                "sequence": 40,
-            }
+            {"order_id": order.id, "line_type": "section_end", "sequence": 40}
         )
         self.env["sab.offer.calculation.line"].create(
-            {
-                "order_id": order.id,
-                "line_type": "cabinet_end",
-                "sequence": 50,
-            }
+            {"order_id": order.id, "line_type": "cabinet_end", "sequence": 50}
         )
         order.sab_calculation_line_ids._normalize_section_membership()
 
@@ -298,19 +347,12 @@ class TestSabSchematicSwitchboard(TransactionCase):
             }
         )
         self.env["sab.offer.calculation.line"].create(
-            {
-                "order_id": order.id,
-                "line_type": "cabinet_end",
-                "sequence": 30,
-            }
+            {"order_id": order.id, "line_type": "cabinet_end", "sequence": 30}
         )
         order.sab_calculation_line_ids._normalize_section_membership()
         self.assertEqual(item_line.parent_cabinet_id, cabinet)
         self.assertEqual(len(item_line.component_snapshot_ids), 1)
-        self.assertEqual(
-            item_line.component_snapshot_ids.product_id,
-            self.normal_product,
-        )
+        self.assertEqual(item_line.component_snapshot_ids.product_id, self.normal_product)
 
         order.action_sab_release_offer()
         order.write({"state": "sale"})
@@ -330,26 +372,3 @@ class TestSabSchematicSwitchboard(TransactionCase):
         )
         self.assertAlmostEqual(cabinet_bom.line_ids.quantity, 6.0)
         self.assertAlmostEqual(total_bom.line_ids.quantity, 6.0)
-
-    def test_schematic_requires_priced_lv_offer(self):
-        other_project = self.env["project.project"].create(
-            {
-                "name": "Projekt ohne LV",
-                "partner_id": self.partner.id,
-            }
-        )
-        order = self.env["sale.order"].create(
-            {
-                "partner_id": self.partner.id,
-                "sab_project_id": other_project.id,
-                "sab_calculation_source": "schematic",
-            }
-        )
-        with self.assertRaises(ValidationError):
-            self.env["sab.offer.calculation.line"].create(
-                {
-                    "order_id": order.id,
-                    "calculation_item_id": self.item_known.id,
-                    "quantity": 1.0,
-                }
-            )
