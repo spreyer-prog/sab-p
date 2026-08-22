@@ -4,6 +4,9 @@
               inherit_id="sab_project.report_sab_production_document_master_v2"
               priority="1010">
         <xpath expr="//style" position="inside">
+            /* Historische Fertigungsblätter: im Fertigungsordner horizontal/quer
+               auf genau EINER A4-Seite. Die 277-mm-Breite wird innerhalb der
+               190-mm-Blatthöhe gedreht dargestellt. */
             .sab-master-landscape {
                 width: 277mm !important;
                 min-height: 190mm !important;
@@ -24,24 +27,73 @@
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
+            .sab-master-landscape .m-cell {
+                padding: 0.25mm 0.65mm !important;
+            }
             .sab-master-landscape + * {
                 page-break-before: always !important;
+            }
+
+            /* Laufkarte: bisherige Hochformat-Zeilenhöhen auf Querformat
+               zurückführen, ohne die charakteristischen großen Arbeitsfelder
+               und das Bemerkungsfeld zu verlieren. */
+            .sab-run-card-landscape table:first-of-type tr {
+                height: 6.1mm !important;
+            }
+            .sab-run-card-landscape table:first-of-type tr:last-child {
+                height: 8.5mm !important;
+            }
+            .sab-run-card-landscape table:nth-of-type(2) tr {
+                height: 7.1mm !important;
+            }
+            .sab-run-card-landscape table:nth-of-type(2) tr:first-child {
+                height: 10mm !important;
+            }
+            .sab-run-card-landscape table:nth-of-type(2) tr.m-orange {
+                height: 4.5mm !important;
+            }
+            .sab-run-card-landscape table:nth-of-type(2) tr:last-child {
+                height: 30mm !important;
+            }
+
+            /* Beide Prüfblätter enthalten viele Tabellenzeilen. Im Original
+               stehen sie vollständig auf einem horizontalen Blatt. */
+            .sab-test-landscape table tr,
+            .sab-final-landscape table tr {
+                height: 4.25mm !important;
+            }
+            .sab-test-landscape table:first-of-type tr,
+            .sab-final-landscape table:first-of-type tr {
+                height: 5.2mm !important;
+            }
+            .sab-test-landscape td,
+            .sab-test-landscape th,
+            .sab-final-landscape td,
+            .sab-final-landscape th {
+                padding-top: 0.18mm !important;
+                padding-bottom: 0.18mm !important;
+                line-height: 1.0 !important;
+            }
+            .sab-test-landscape .m-footer,
+            .sab-final-landscape .m-footer {
+                margin-top: 1.5mm !important;
+                font-size: 6.2pt !important;
             }
         </xpath>
 
         <xpath expr="//t[@t-if=&quot;doc.document_type == 'run_card'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-master-landscape</attribute>
-            <attribute name="style">font-size:9pt; line-height:1.0;</attribute>
+            <attribute name="class">sab-master-page sab-master-landscape sab-run-card-landscape</attribute>
+            <attribute name="style">font-size:8.4pt; line-height:1.0;</attribute>
         </xpath>
 
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'production_test'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-master-landscape</attribute>
-            <attribute name="style">font-size:7.7pt; line-height:1.0;</attribute>
+            <attribute name="class">sab-master-page sab-master-landscape sab-test-landscape</attribute>
+            <attribute name="style">font-size:6.8pt; line-height:1.0;</attribute>
         </xpath>
 
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'final_inspection'&quot;]/div[1]" position="attributes">
-            <attribute name="class">sab-master-page sab-master-landscape</attribute>
-            <attribute name="style">font-size:7.8pt; line-height:1.0;</attribute>
+            <attribute name="class">sab-master-page sab-master-landscape sab-final-landscape</attribute>
+            <attribute name="style">font-size:6.9pt; line-height:1.0;</attribute>
         </xpath>
     </template>
 </odoo>
