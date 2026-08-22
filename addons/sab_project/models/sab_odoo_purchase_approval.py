@@ -38,13 +38,15 @@ class PurchaseOrderSabMandatoryApproval(models.Model):
         protected_orders = self.filtered("sab_is_suite_order")
         if protected_orders and not (
             self.env.is_superuser()
+            or self.env.user.has_group("base.group_system")
             or self.env.user.has_group(
                 "sab_project.group_sab_purchase_approver"
             )
         ):
             raise AccessError(
                 "SAB-P-Bestellungen dürfen nur durch einen im Mitarbeiterprofil "
-                "hinterlegten Bestellfreigeber bestätigt werden."
+                "hinterlegten Bestellfreigeber oder einen Systemadministrator "
+                "bestätigt werden."
             )
         result = super().button_approve(force=force)
         for order in protected_orders.filtered(
@@ -63,10 +65,12 @@ class PurchaseOrderSabMandatoryApproval(models.Model):
         protected_orders = self.filtered("sab_is_suite_order")
         if protected_orders and not (
             self.env.is_superuser()
+            or self.env.user.has_group("base.group_system")
             or self.env.user.has_group("sab_project.group_sab_purchasing")
         ):
             raise AccessError(
-                "SAB-P-Bestellungen dürfen nur durch den Einkauf storniert werden."
+                "SAB-P-Bestellungen dürfen nur durch den Einkauf oder einen "
+                "Systemadministrator storniert werden."
             )
         return super().button_cancel()
 
