@@ -30,6 +30,7 @@ from . import test_employee_record_rules
 from . import test_ui_contracts
 from . import test_end_to_end
 from . import test_operational_procurement_and_print_path
+from . import test_admin_procurement_without_employee_roles
 from . import test_portal_visibility
 from . import test_offer_release_and_procurement_workspace
 from . import test_minimum_stock_and_delivery_overdue
