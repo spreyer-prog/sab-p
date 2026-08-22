@@ -3,11 +3,11 @@ from odoo import fields, models, _
 
 EXTRA_PRODUCTION_DOCUMENT_TYPES = [
     ("shipping_sheet", "Blatt Versand"),
-    ("conversion_sheet", "Blatt Umbau"),
     ("inspection_label", "Prüfetikett"),
-    ("commissioning", "Kommissionierung"),
     ("folder_label", "Ordneretikett"),
 ]
+
+OBSOLETE_PRODUCTION_DOCUMENT_TYPES = {"conversion_sheet", "commissioning"}
 
 
 class SabProductionDocumentPrinting(models.Model):
@@ -58,6 +58,12 @@ class SabProductionOrderPrinting(models.Model):
         result = super().action_prepare_production_documents()
         Document = self.env["sab.production.document"]
         for production in self:
+            obsolete_documents = production.document_ids.filtered(
+                lambda document: document.document_type in OBSOLETE_PRODUCTION_DOCUMENT_TYPES
+            )
+            if obsolete_documents:
+                obsolete_documents.unlink()
+
             base_documents = production.document_ids.filtered(
                 lambda document: document.document_type not in dict(EXTRA_PRODUCTION_DOCUMENT_TYPES)
             )
