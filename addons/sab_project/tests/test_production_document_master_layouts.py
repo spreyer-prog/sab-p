@@ -46,3 +46,12 @@ class TestSabProductionDocumentMasterLayouts(TransactionCase):
         self.assertIn("Bestellung Fehlteile", xml)
         self.assertIn("Beipackzettel", xml)
         self.assertIn("mm", xml)
+
+    def test_folder_label_master_uses_project_number_and_fixed_mm_geometry(self):
+        arch = self._view_arch("sab_project.report_sab_production_document_folder_label")
+        xml = etree.tostring(arch, encoding="unicode")
+        self.assertIn("folder_label", xml)
+        self.assertIn("sab_project_reference", xml)
+        self.assertIn("Liefertermin", xml)
+        self.assertIn("dd.MM.yyyy", xml)
+        self.assertIn("mm", xml)
