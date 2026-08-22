@@ -100,3 +100,4 @@ from . import sab_odoo_supplier_return_assignment_fix
 from . import sab_procurement_standard_order_redirect
 from . import sab_purchase_admin_access
 from . import sab_standard_purchase_release_compat
+from . import sab_bom_regeneration_reference_guard
