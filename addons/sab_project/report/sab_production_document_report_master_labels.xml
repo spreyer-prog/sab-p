@@ -39,7 +39,7 @@
                             <td style="border:0; font-weight:700;">Baujahr</td>
                             <td class="m-cell" style="font-size:12pt; font-weight:700;"><span t-out="doc.construction_year or ''"/></td>
                             <td class="m-cell" style="font-weight:700;">DIN EN</td>
-                            <td class="m-cell" style="font-size:12pt; font-weight:700;"><span t-out="doc.standard_name or '61439 - 3'"/></td>
+                            <td class="m-cell" style="font-size:12pt; font-weight:700;"><span t-out="(doc.standard_family or '61439') + (' - ' + doc.standard_part if doc.standard_part else '')"/></td>
                         </tr>
                         <tr style="height:19mm;">
                             <td style="border:0; font-weight:700;">Bemessungs-<br/>spannung</td>
