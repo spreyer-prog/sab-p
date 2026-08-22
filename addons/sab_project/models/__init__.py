@@ -105,3 +105,4 @@ from . import sab_default_language_all_users
 from . import sab_purchase_bulk_and_merge
 from . import sab_production_print_profile
 from . import sab_total_bom_release_flow
+from . import sab_production_report_format_router
