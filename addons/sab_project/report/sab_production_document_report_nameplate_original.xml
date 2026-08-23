@@ -40,4 +40,74 @@
             </t>
         </xpath>
     </template>
++
+    <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
+    <record id="paperformat_sab_nameplate_studio" model="report.paperformat">
+        <field name="name">SAB-P Typenschild 176 x 265 mm</field>
+        <field name="format">custom</field>
+        <field name="page_width">176</field>
+        <field name="page_height">265</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_sab_nameplate_studio" model="ir.actions.report">
+        <field name="name">SAB-P Typenschild (Studio)</field>
+        <field name="model">sab.production.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_nameplate_studio</field>
+        <field name="report_file">sab_project.report_sab_nameplate_studio</field>
+        <field name="paperformat_id" ref="paperformat_sab_nameplate_studio"/>
+        <field name="print_report_name">object._sab_pdf_filename()</field>
+    </record>
+
+    <template id="report_sab_nameplate_studio">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="sab_project.report_sab_nameplate_studio_page"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_sab_nameplate_studio_page">
+        <div class="page" name="sab_nameplate_studio_page" style="margin:0; padding:0;">
+                <!-- Geprüfter SAB-P-Ausgabeträger: 176 x 265 mm Hochformat. -->
+                <div style="position:relative; width:176mm; height:265mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:2.5mm; top:3.5mm; width:110.2mm; height:180mm; transform:scale(1.55,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
+                        <table style="border:0; width:100%; height:18.5mm; margin:0 0 0.9mm 0; table-layout:fixed;">
+                            <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
+                            <tr>
+                                <td style="border:0; padding:0; vertical-align:middle;">
+                                    <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
+                                    <div t-if="not doc.project_id.company_id.logo" style="font-size:18pt; font-weight:700;">SAB-P</div>
+                                </td>
+                                <td style="border:0; padding:0 0 0 2.3mm; font-size:5.2pt; line-height:1.12; vertical-align:middle; font-weight:700;">
+                                    SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/><span style="font-weight:400;">Albert-Einstein-Str. 7a</span><br/>42929 Wermelskirchen<br/><span style="font-size:4pt; font-weight:400;">Tel. 02196 90901 0 - FAX 02196 90901 99</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <div style="border-top:0.7mm solid #000; margin-bottom:1.3mm;"></div>
+                        <table style="width:100%; font-size:5.9pt; border-collapse:collapse; table-layout:fixed; font-weight:700;">
+                            <colgroup><col style="width:22.0mm;"/><col style="width:36.0mm;"/><col style="width:23.2mm;"/><col style="width:29.0mm;"/></colgroup>
+                            <tr style="height:9.9mm;"><td style="border:0; padding:0.6mm 0.6mm 0.6mm 0; vertical-align:middle;">Typen-<br/>bezeichnung</td><td style="border:0.18mm solid #000; font-size:9pt; vertical-align:middle; padding:0.6mm 1.1mm;"><span t-out="doc.type_designation or doc.cabinet_type or ''"/></td><td style="border:0.18mm solid #000; vertical-align:middle; padding:0.6mm 1.1mm;">Auftrag-Nr.:</td><td style="border:0.18mm solid #000; font-size:8.4pt; vertical-align:middle; padding:0.6mm 1.1mm;"><span t-out="doc.project_reference or ''"/></td></tr>
+                            <tr style="height:8.1mm;"><td style="border:0; padding:0.6mm 0.6mm 0.6mm 0; vertical-align:middle;">Verteilung</td><td colspan="3" style="border:0.18mm solid #000; font-size:8.1pt; vertical-align:middle; padding:0.6mm 1.1mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                            <tr style="height:8.1mm;"><td style="border:0; padding:0.6mm 0.6mm 0.6mm 0;">Baujahr</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm;"><span t-out="doc.construction_year or ''"/></td><td style="border:0.18mm solid #000; padding:0.6mm 1.1mm;">DIN EN</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm;"><span t-out="(doc.standard_family or '61439') + (' - ' + doc.standard_part if doc.standard_part else '')"/></td></tr>
+                            <tr style="height:10.4mm;"><td style="border:0; padding:0.6mm 0.6mm 0.6mm 0;">Bemessungs-<br/>spannung</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm; text-align:right;"><span t-out="doc.rated_voltage or ''"/> V</td><td style="border:0.18mm solid #000; padding:0.6mm 1.1mm;">Bemessungs-<br/>strom</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm; text-align:right;"><span t-out="doc.rated_current or ''"/> A</td></tr>
+                            <tr style="height:9.9mm;"><td style="border:0; padding:0.6mm 0.6mm 0.6mm 0;">Frequenz</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm; text-align:right;"><span t-out="doc.frequency or ''"/> Hz</td><td style="border:0.18mm solid #000; padding:0.6mm 1.1mm;">Sammel-<br/>schiene</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm; text-align:right;"><span t-out="doc.busbar_current or ''"/> A</td></tr>
+                            <tr style="height:8.1mm;"><td style="border:0; padding:0.6mm 0.6mm 0.6mm 0;">Schutzklasse</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm;"><span t-out="doc.protection_class or ''"/></td><td style="border:0.18mm solid #000; padding:0.6mm 1.1mm;">IP-Schutzart</td><td style="border:0.18mm solid #000; font-size:7.2pt; padding:0.6mm 1.1mm;"><span t-out="doc.ip_rating or ''"/></td></tr>
+                        </table>
+                        <table style="width:100%; margin-top:1.4mm; border:0; table-layout:fixed;"><tr><td style="border:0; font-size:4.3pt; line-height:1.1; padding:0; width:91.6mm; vertical-align:bottom; font-weight:700;">Achtung! Dies ist ein Produkt für die Umgebung A. In Haushaltsumgebung kann dieses Produkt Funkstörungen verursachen; in diesem Fall kann der Anwender verpflichtet sein, angemessene Maßnahmen ergreifen.</td><td style="border:0; width:18.6mm; text-align:right; vertical-align:bottom; padding:0; font-size:18pt; font-family:Arial,Helvetica,sans-serif; font-weight:700;">CE</td></tr></table>
+                        <div style="border-top:0.65mm solid #000; margin:1.5mm 0;"></div>
+                        <div style="text-align:center; font-size:9pt; font-weight:700; margin-bottom:0.8mm;">Achtung!</div>
+                        <div style="text-align:center; font-size:6.4pt; font-weight:700; line-height:1.1; margin-bottom:1.8mm;">Durchsicht der Schaltgeräte- Kombinationen nach dem<br/>Transport und vor Inbetriebnahme erforderlich.<br/>Prüfung gem. DIN VDE 0100-600.</div>
+                        <div style="font-size:5.0pt; line-height:1.12;">Nach dem Errichten und vor der Inbetriebnahme der fabrikgefertigten Schaltanlage sind folgende Prüfungen durchzuführen:<br/>1. Die Prüfungen nach DIN VDE 0100 sind vom Inbetriebnehmer der Anlage als „Erstprüfung der Anlage“ durchzuführen.<br/>2. Die Anschlussschrauben und Anschlussklemmen an Stromschienen, Geräten und Klemmen sind auf Lockerung zu prüfen und falls erforderlich nachzuziehen. Empfohlenes Anzugsdrehmoment nach DIN 43673, Teil 1. Vergl. DIN EN 61439 VDE 0660-600.<br/>3. Die Verteilung ist auf ggf. erforderliche N / PE Verbinder hin zu überprüfen.<br/>4. Nennstrom bei der Auswahl von Sicherungs- Schmelzeinsetzen bzw. die Einstellung der Überstrom-, Kurzschlussstrom- und Verzögerungswerte an den entsprechenden Bauteilen anhand vorgegebener Anschlusswerte der Verbraucher und zugehörender Leitungs- und Kabellängen (Querschnitt und Länge innerhalb und außerhalb des Schrankes) zur Sicherstellung der Kurzschlussfestigkeit und Selektivität zu ermitteln und entsprechend festzulegen. Vergleiche VDE 0100-600 sowie zugehörige Erläuterungen.</div>
+                    </div>
+                </div>
+        </div>
+    </template>
+
 </odoo>

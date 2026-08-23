@@ -29,4 +29,63 @@
             </t>
         </xpath>
     </template>
++
+    <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
+    <record id="paperformat_sab_folder_label_studio" model="report.paperformat">
+        <field name="name">SAB-P Ordneretikett 61 x 192 mm</field>
+        <field name="format">custom</field>
+        <field name="page_width">61</field>
+        <field name="page_height">192</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_sab_folder_label_studio" model="ir.actions.report">
+        <field name="name">SAB-P Ordneretikett (Studio)</field>
+        <field name="model">sab.production.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_folder_label_studio</field>
+        <field name="report_file">sab_project.report_sab_folder_label_studio</field>
+        <field name="paperformat_id" ref="paperformat_sab_folder_label_studio"/>
+        <field name="print_report_name">object._sab_pdf_filename()</field>
+    </record>
+
+    <template id="report_sab_folder_label_studio">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="sab_project.report_sab_folder_label_studio_page"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_sab_folder_label_studio_page">
+        <div class="page" name="sab_folder_label_studio_page" style="margin:0; padding:0;">
+                <!-- Geprüfter SAB-P-Ausgabeträger: 61 x 192 mm Hochformat. -->
+                <div style="position:relative; width:61mm; height:192mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:2.9mm; top:5.2mm; width:55.2mm; height:18mm; text-align:center; overflow:hidden;">
+                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:49.6mm; max-height:16mm; object-fit:contain;"/>
+                        <div t-if="not doc.project_id.company_id.logo" style="font-size:14pt; font-weight:700;">SAB-P</div>
+                    </div>
+                    <div style="position:absolute; left:2.6mm; top:32.7mm; width:55.8mm; font-size:8.4pt; font-weight:700; text-align:left;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
+                    <div style="position:absolute; left:2.6mm; top:45.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>
+                    <div style="position:absolute; left:2.6mm; top:51.8mm; width:55.8mm; max-height:24mm; overflow:hidden; font-size:7.2pt; line-height:1.05;"><span t-out="doc.project_name or ''"/></div>
+                    <div style="position:absolute; left:2.6mm; top:82.0mm; width:55.8mm; max-height:24mm; overflow:hidden; font-size:7.0pt; line-height:1.05;"><span t-out="doc.customer_name or ''"/></div>
+                    <div style="position:absolute; left:2.6mm; top:109.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>
+                    <div style="position:absolute; left:2.6mm; top:116.0mm; width:55.8mm; font-size:6.4pt; font-weight:700;">Liefertermin:</div>
+                    <div style="position:absolute; left:2.6mm; top:128.0mm; width:55.8mm; font-size:7.8pt; font-weight:700;"><span t-if="doc.delivery_date" t-field="doc.delivery_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/></div>
+                    <div style="position:absolute; left:2.6mm; top:147.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>
+                    <div style="position:absolute; left:1.6mm; top:156.0mm; width:57.8mm; text-align:center; font-family:'DejaVu Sans',Arial,sans-serif; font-size:4.4pt; line-height:1.2; white-space:nowrap;">
+                        <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
+                        <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
+                        <div>✌ ▤ ⧖ ✎ ▱ ▤ ▱ ▤</div>
+                    </div>
+                    <div style="position:absolute; left:1.6mm; bottom:2.2mm; width:57.8mm; text-align:center; font-size:5.5pt;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
+                </div>
+        </div>
+    </template>
+
 </odoo>

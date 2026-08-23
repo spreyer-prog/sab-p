@@ -60,6 +60,37 @@ class TestSabProductionOriginalIndividualLayouts(TransactionCase):
             self.assertIn(document_type, xml, xmlid)
             self.assertIn(marker, xml, xmlid)
 
+    def test_every_sheet_has_an_independent_studio_report(self):
+        expected = {
+            "conformity": ("Portrait", 210.0, 297.0),
+            "run_card": ("Portrait", 210.0, 297.0),
+            "production_test": ("Portrait", 210.0, 297.0),
+            "final_inspection": ("Portrait", 210.0, 297.0),
+            "missing_parts": ("Landscape", 297.0, 210.0),
+            "shipping_sheet": ("Landscape", 297.0, 210.0),
+            "add_pack": ("Landscape", 297.0, 210.0),
+            "nameplate": ("Portrait", 176.0, 265.0),
+            "info_sheet": ("Landscape", 265.0, 176.0),
+            "folder_label": ("Portrait", 61.0, 192.0),
+        }
+        for document_type, geometry in expected.items():
+            action = self.env.ref(
+                "sab_project.action_report_sab_%s_studio" % document_type
+            )
+            self.assertEqual(
+                action.report_name,
+                "sab_project.report_sab_%s_studio" % document_type,
+            )
+            self.assertEqual(action.model, "sab.production.document")
+            self.assertEqual(
+                (
+                    action.paperformat_id.orientation,
+                    action.paperformat_id.page_width,
+                    action.paperformat_id.page_height,
+                ),
+                geometry,
+            )
+
     def test_company_standard_profiles_follow_uploaded_original_page_formats(self):
         Profile = self.env["sab.production.print.profile"].sudo()
         Profile._sab_apply_original_standard_profiles()

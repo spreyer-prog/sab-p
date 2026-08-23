@@ -230,3 +230,26 @@ class TestSabProductionPrintSelection(TransactionCase):
         self.assertEqual(paper.margin_bottom, 4.0)
         self.assertEqual(paper.margin_left, 5.0)
         self.assertEqual(paper.margin_right, 6.0)
+
+    def test_each_document_type_routes_to_its_studio_report(self):
+        self.production.action_prepare_production_documents()
+        expected = {
+            "conformity": "sab_project.report_sab_conformity_studio",
+            "run_card": "sab_project.report_sab_run_card_studio",
+            "production_test": "sab_project.report_sab_production_test_studio",
+            "final_inspection": "sab_project.report_sab_final_inspection_studio",
+            "missing_parts": "sab_project.report_sab_missing_parts_studio",
+            "shipping_sheet": "sab_project.report_sab_shipping_sheet_studio",
+            "add_pack": "sab_project.report_sab_add_pack_studio",
+            "nameplate": "sab_project.report_sab_nameplate_studio",
+            "info_sheet": "sab_project.report_sab_info_sheet_studio",
+            "folder_label": "sab_project.report_sab_folder_label_studio",
+        }
+        documents = self.production.document_ids
+        self.assertTrue(set(expected).issubset(set(documents.mapped("document_type"))))
+        for document_type, report_name in expected.items():
+            document = documents.filtered(
+                lambda item, kind=document_type: item.document_type == kind
+            )[:1]
+            action = document.action_print_document()
+            self.assertEqual(action["report_name"], report_name)

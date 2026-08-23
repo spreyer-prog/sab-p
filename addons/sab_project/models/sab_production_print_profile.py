@@ -185,7 +185,16 @@ class SabProductionPrintProfile(models.Model):
         """Return a private report action using exactly this profile's geometry."""
         self.ensure_one()
         report_name = {
+            "conformity": "sab_project.report_sab_conformity_studio",
             "run_card": "sab_project.report_sab_run_card_studio",
+            "production_test": "sab_project.report_sab_production_test_studio",
+            "final_inspection": "sab_project.report_sab_final_inspection_studio",
+            "missing_parts": "sab_project.report_sab_missing_parts_studio",
+            "shipping_sheet": "sab_project.report_sab_shipping_sheet_studio",
+            "add_pack": "sab_project.report_sab_add_pack_studio",
+            "nameplate": "sab_project.report_sab_nameplate_studio",
+            "info_sheet": "sab_project.report_sab_info_sheet_studio",
+            "folder_label": "sab_project.report_sab_folder_label_studio",
         }.get(self.document_type, "sab_project.report_sab_production_document")
         profile_key = "SAB-P Druckprofil %s" % self.id
         Paperformat = self.env["report.paperformat"].sudo()
