@@ -1,52 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Eigenständiger Bericht für Odoo Studio. Das Papierformat dieses
+         Basisberichts dient der Studio-Vorschau; beim operativen Druck wird
+         weiterhin das persönliche/Firmen-Druckprofil verwendet. -->
+    <record id="paperformat_sab_run_card_studio" model="report.paperformat">
+        <field name="name">SAB-P Laufkarte A4 Hochformat</field>
+        <field name="format">custom</field>
+        <field name="page_width">210</field>
+        <field name="page_height">297</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_sab_run_card_studio" model="ir.actions.report">
+        <field name="name">SAB-P Laufkarte (Studio)</field>
+        <field name="model">sab.production.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_run_card_studio</field>
+        <field name="report_file">sab_project.report_sab_run_card_studio</field>
+        <field name="paperformat_id" ref="paperformat_sab_run_card_studio"/>
+        <field name="print_report_name">object._sab_pdf_filename()</field>
+    </record>
+
+    <template id="report_sab_run_card_studio">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="sab_project.report_sab_run_card_studio_page"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Dieser benannte Seitenblock ist die stabile Studio-Arbeitsfläche. -->
+    <template id="report_sab_run_card_studio_page">
+        <div class="page" name="sab_run_card_page" style="position:relative; width:210mm; height:297mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
+            <div name="sab_run_card_layout" style="position:absolute; left:24.8mm; top:24.5mm; width:164.7mm; height:247.0mm; box-sizing:border-box; font-size:7.1pt; line-height:1.04;">
+                <table name="sab_run_card_header" style="border-collapse:collapse; table-layout:fixed; width:164.7mm; border:0.35mm solid #000;">
+                    <colgroup><col style="width:47.8mm;"/><col style="width:42.3mm;"/><col style="width:29.0mm;"/><col style="width:45.6mm;"/></colgroup>
+                    <tr style="height:6.3mm; background:#fffda0; font-weight:700; font-size:7.7pt;">
+                        <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm;">Laufkarte</td>
+                        <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm; text-align:center;"><span t-out="doc.project_reference or ''"/></td>
+                        <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm;">Liefertermin:</td>
+                        <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm; text-align:center;"><span t-if="doc.delivery_date" t-field="doc.delivery_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/></td>
+                    </tr>
+                    <tr style="height:6.1mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;">Projekt:</td><td colspan="3" style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;"><span t-out="doc.project_name or ''"/></td></tr>
+                    <tr style="height:6.1mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;">Kunde:</td><td colspan="3" style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;"><span t-out="doc.customer_name or ''"/></td></tr>
+                    <tr style="height:6.1mm; background:#fffda0;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;">Bauteil:</td><td colspan="3" style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                    <tr style="height:8.9mm;"><td colspan="4" style="border:0.18mm solid #000; padding:0.45mm 0.7mm; font-size:5.8pt; line-height:1.08; vertical-align:top;">Diese Laufkarte ist vollständig und wahrheitsgemäß auszufüllen!<br/>Unvollständig ausgefüllte Karten werden nicht angenommen und als nicht abgearbeitet gewertet.</td></tr>
+                </table>
+                <table name="sab_run_card_workflow" style="border-collapse:collapse; table-layout:fixed; width:164.7mm; border-left:0.35mm solid #000; border-right:0.35mm solid #000; border-bottom:0.35mm solid #000; margin-top:-0.18mm;">
+                    <colgroup><col style="width:47.8mm;"/><col style="width:42.3mm;"/><col style="width:5.3mm;"/><col style="width:5.3mm;"/><col style="width:64.0mm;"/></colgroup>
+                    <tr style="height:12.7mm; font-weight:700; font-size:7.0pt;">
+                        <th style="border:0.18mm solid #000; padding:0.5mm 0.7mm; text-align:left; vertical-align:middle;">Abteilung / Tätigkeit</th>
+                        <th style="border:0.18mm solid #000; padding:0.5mm 0.7mm; text-align:left; vertical-align:middle;">Mitarbeiter</th>
+                        <th style="border:0.18mm solid #000; padding:0; text-align:center; vertical-align:middle; font-size:4.7pt;"><span style="display:inline-block; transform:rotate(-90deg);">fertig</span></th>
+                        <th style="border:0.18mm solid #000; padding:0; text-align:center; vertical-align:middle; font-size:4.7pt;"><span style="display:inline-block; transform:rotate(-90deg);">gepr.</span></th>
+                        <th style="border:0.18mm solid #000; padding:0.5mm 0.7mm; text-align:left; vertical-align:middle;">Bemerkung</th>
+                    </tr>
+                    <tr style="height:4.3mm; background:#f6bd87; font-weight:700;"><td colspan="5" style="border:0.18mm solid #000; padding:0.35mm 0.7mm;">Mechanische Fertigung</td></tr>
+                    <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Mechanischer Aufbau</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Bestückung Geräte</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Bestückung Klemmen</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:19.8mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Endkontrolle</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:4.3mm; background:#f6bd87; font-weight:700;"><td colspan="5" style="border:0.18mm solid #000; padding:0.35mm 0.7mm;">Elektrische Fertigung</td></tr>
+                    <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Vorbereitung Verdrahtung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Verdrahtung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:19.8mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Endkontrolle</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:4.3mm; background:#f6bd87; font-weight:700;"><td colspan="5" style="border:0.18mm solid #000; padding:0.35mm 0.7mm;">Prüfung</td></tr>
+                    <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Mechanische Prüfung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Elektrische Prüfung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Meldung Versandfertig</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                    <tr style="height:49.0mm;"><td style="border:0.18mm solid #000; padding:0.5mm 0.7mm; vertical-align:top;">Bemerkungen</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
+                </table>
+            </div>
+        </div>
+    </template>
+
     <template id="report_sab_production_document_run_card_original"
               inherit_id="sab_project.report_sab_production_document"
               priority="2100">
         <xpath expr="//t[@t-if=&quot;doc.document_type == 'run_card'&quot;]" position="replace">
             <t t-if="doc.document_type == 'run_card'">
-                <!-- Laufkarte.pdf: A4 Hochformat, Originalrahmen ca. x=24,8..189,5 mm / y=24,5..272,0 mm -->
-                <div style="position:relative; width:210mm; height:297mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
-                    <div style="position:absolute; left:24.8mm; top:24.5mm; width:164.7mm; height:247.0mm; box-sizing:border-box; font-size:7.1pt; line-height:1.04;">
-                        <table style="border-collapse:collapse; table-layout:fixed; width:164.7mm; border:0.35mm solid #000;">
-                            <colgroup><col style="width:47.8mm;"/><col style="width:42.3mm;"/><col style="width:29.0mm;"/><col style="width:45.6mm;"/></colgroup>
-                            <tr style="height:6.3mm; background:#fffda0; font-weight:700; font-size:7.7pt;">
-                                <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm;">Laufkarte</td>
-                                <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm; text-align:center;"><span t-out="doc.project_reference or ''"/></td>
-                                <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm;">Liefertermin:</td>
-                                <td style="border:0.18mm solid #000; padding:0.45mm 0.7mm; text-align:center;"><span t-if="doc.delivery_date" t-field="doc.delivery_date" t-options='{"widget":"date","format":"dd.MM.yyyy"}'/></td>
-                            </tr>
-                            <tr style="height:6.1mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;">Projekt:</td><td colspan="3" style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;"><span t-out="doc.project_name or ''"/></td></tr>
-                            <tr style="height:6.1mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;">Kunde:</td><td colspan="3" style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;"><span t-out="doc.customer_name or ''"/></td></tr>
-                            <tr style="height:6.1mm; background:#fffda0;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;">Bauteil:</td><td colspan="3" style="border:0.18mm solid #000; padding:0.4mm 0.7mm; font-weight:700;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
-                            <tr style="height:8.9mm;"><td colspan="4" style="border:0.18mm solid #000; padding:0.45mm 0.7mm; font-size:5.8pt; line-height:1.08; vertical-align:top;">Diese Laufkarte ist vollständig und wahrheitsgemäß auszufüllen!<br/>Unvollständig ausgefüllte Karten werden nicht angenommen und als nicht abgearbeitet gewertet.</td></tr>
-                        </table>
-                        <table style="border-collapse:collapse; table-layout:fixed; width:164.7mm; border-left:0.35mm solid #000; border-right:0.35mm solid #000; border-bottom:0.35mm solid #000; margin-top:-0.18mm;">
-                            <colgroup><col style="width:47.8mm;"/><col style="width:42.3mm;"/><col style="width:5.3mm;"/><col style="width:5.3mm;"/><col style="width:64.0mm;"/></colgroup>
-                            <tr style="height:12.7mm; font-weight:700; font-size:7.0pt;">
-                                <th style="border:0.18mm solid #000; padding:0.5mm 0.7mm; text-align:left; vertical-align:middle;">Abteilung / Tätigkeit</th>
-                                <th style="border:0.18mm solid #000; padding:0.5mm 0.7mm; text-align:left; vertical-align:middle;">Mitarbeiter</th>
-                                <th style="border:0.18mm solid #000; padding:0; text-align:center; vertical-align:middle; font-size:4.7pt;">fertig</th>
-                                <th style="border:0.18mm solid #000; padding:0; text-align:center; vertical-align:middle; font-size:4.7pt;">gepr.</th>
-                                <th style="border:0.18mm solid #000; padding:0.5mm 0.7mm; text-align:left; vertical-align:middle;">Bemerkung</th>
-                            </tr>
-                            <tr style="height:4.3mm; background:#f6bd87; font-weight:700;"><td colspan="5" style="border:0.18mm solid #000; padding:0.35mm 0.7mm;">Mechanische Fertigung</td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Mechanischer Aufbau</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Bestückung Geräte</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Bestückung Klemmen</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Endkontrolle</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:4.3mm; background:#f6bd87; font-weight:700;"><td colspan="5" style="border:0.18mm solid #000; padding:0.35mm 0.7mm;">Elektrische Fertigung</td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Vorbereitung Verdrahtung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Verdrahtung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:13.2mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm; vertical-align:top;">Endkontrolle</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:4.3mm; background:#f6bd87; font-weight:700;"><td colspan="5" style="border:0.18mm solid #000; padding:0.35mm 0.7mm;">Prüfung</td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Mechanische Prüfung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Elektrische Prüfung</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:6.6mm;"><td style="border:0.18mm solid #000; padding:0.4mm 0.7mm;">Meldung Versandfertig</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                            <tr style="height:52.0mm;"><td style="border:0.18mm solid #000; padding:0.5mm 0.7mm; vertical-align:top;">Bemerkungen</td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td><td style="border:0.18mm solid #000;"></td></tr>
-                        </table>
-                    </div>
-                </div>
+                <t t-call="sab_project.report_sab_run_card_studio_page"/>
             </t>
         </xpath>
     </template>

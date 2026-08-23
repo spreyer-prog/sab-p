@@ -13,6 +13,11 @@ class TestSabProductionOriginalIndividualLayouts(TransactionCase):
     def test_run_card_is_its_own_a4_portrait_original(self):
         xml = self._xml("sab_project.report_sab_production_document_run_card_original")
         self.assertIn("doc.document_type == 'run_card'", xml)
+        self.assertIn("report_sab_run_card_studio_page", xml)
+        studio = self.env.ref("sab_project.action_report_sab_run_card_studio")
+        self.assertEqual(studio.report_name, "sab_project.report_sab_run_card_studio")
+        self.assertEqual(studio.paperformat_id.orientation, "Portrait")
+        self.assertEqual((studio.paperformat_id.page_width, studio.paperformat_id.page_height), (210.0, 297.0))
         self.assertIn("width:210mm", xml)
         self.assertIn("height:297mm", xml)
         self.assertIn("left:24.8mm", xml)

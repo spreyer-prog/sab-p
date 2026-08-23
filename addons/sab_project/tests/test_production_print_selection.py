@@ -177,7 +177,7 @@ class TestSabProductionPrintSelection(TransactionCase):
         self.assertEqual(action["type"], "ir.actions.report")
         self.assertEqual(
             action["report_name"],
-            "sab_project.report_sab_production_document",
+            "sab_project.report_sab_run_card_studio",
         )
         self.assertIn("Laufkarte", action["name"])
         self.assertNotIn("Fertigungsblätter", action["name"])
@@ -216,6 +216,10 @@ class TestSabProductionPrintSelection(TransactionCase):
         self.assertEqual(action["context"]["sab_print_height_mm"], 205.0)
 
         runtime_report = self.env["ir.actions.report"].browse(action["id"])
+        self.assertEqual(
+            runtime_report.report_name,
+            "sab_project.report_sab_run_card_studio",
+        )
         paper = runtime_report.paperformat_id
         self.assertTrue(paper)
         self.assertEqual(paper.format, "custom")

@@ -184,6 +184,9 @@ class SabProductionPrintProfile(models.Model):
     def _ensure_runtime_report_action(self):
         """Return a private report action using exactly this profile's geometry."""
         self.ensure_one()
+        report_name = {
+            "run_card": "sab_project.report_sab_run_card_studio",
+        }.get(self.document_type, "sab_project.report_sab_production_document")
         profile_key = "SAB-P Druckprofil %s" % self.id
         Paperformat = self.env["report.paperformat"].sudo()
         paperformat = Paperformat.search([("name", "=", profile_key)], limit=1)
@@ -210,7 +213,6 @@ class SabProductionPrintProfile(models.Model):
             [
                 ("name", "=", action_name),
                 ("model", "=", "sab.production.document"),
-                ("report_name", "=", "sab_project.report_sab_production_document"),
             ],
             limit=1,
         )
@@ -218,8 +220,8 @@ class SabProductionPrintProfile(models.Model):
             "name": action_name,
             "model": "sab.production.document",
             "report_type": "qweb-pdf",
-            "report_name": "sab_project.report_sab_production_document",
-            "report_file": "sab_project.report_sab_production_document",
+            "report_name": report_name,
+            "report_file": report_name,
             "paperformat_id": paperformat.id,
         }
         if report:
