@@ -173,9 +173,6 @@
             <xpath expr="//button[@name='button_approve']" position="attributes">
                 <attribute name="string">Bestellung freigeben</attribute>
             </xpath>
-            <xpath expr="//span[hasclass('o_form_label')][contains(normalize-space(.), 'Purchase Order')]" position="replace">
-                <span class="o_form_label" invisible="state in ('draft', 'sent')">Bestellung </span>
-            </xpath>
             <xpath expr="//field[@name='partner_ref']" position="attributes">
                 <attribute name="string">Lieferantenreferenz</attribute>
             </xpath>

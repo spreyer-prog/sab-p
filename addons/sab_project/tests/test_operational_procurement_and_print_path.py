@@ -158,6 +158,19 @@ class TestSabOperationalProcurementAndPrintPath(TransactionCase):
         self.assertEqual(row_button[0].get("string"), "Bestellen")
         self.assertIn("base.group_system", row_button[0].get("groups", ""))
 
+    def test_01b_purchase_order_form_opens_with_german_language(self):
+        """Reproduce the browser get_views call with the real German context.
+
+        View inheritance must never depend on translated visible text, otherwise
+        the form can install in English but fail for German users at runtime.
+        """
+        purchase_form = self.env.ref("purchase.purchase_order_form")
+        result = self.env["purchase.order"].with_context(lang="de_DE").get_views(
+            [(purchase_form.id, "form")],
+            {"toolbar": False},
+        )
+        self.assertTrue(result["views"]["form"]["arch"])
+
     def test_02_full_handover_to_real_purchase_order_without_manual_imports(self):
         handover = self.total_bom.action_open_procurement_package_from_bom()
         self.assertEqual(handover["res_model"], "sab.procurement.package.wizard")
