@@ -13,8 +13,7 @@
                             <tr>
                                 <td style="border-right:0.35mm solid #000; padding:4mm; vertical-align:top;">
                                     <div style="height:39mm; display:flex; align-items:center; justify-content:center;">
-                                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
-                                        <div t-if="not doc.project_id.company_id.logo" style="font-size:30pt; font-weight:700;">SAB-P</div>
+                                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
                                     </div>
                                     <div style="font-size:8.5pt; line-height:1.12; text-align:center; margin-top:1mm; font-weight:700;">SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/>Albert-Einstein-Str. 7a<br/>42929 Wermelskirchen<br/><span style="font-size:7pt; font-weight:400;">Tel. 02196 90901-0 - FAX -99</span></div>
                                     <div style="border-top:0.35mm solid #000; margin:4mm 0 4mm 0;"></div>
@@ -53,8 +52,8 @@
     <record id="paperformat_sab_info_sheet_studio" model="report.paperformat">
         <field name="name">SAB-P Infoschild 265 x 176 mm</field>
         <field name="format">custom</field>
-        <field name="page_width">265</field>
-        <field name="page_height">176</field>
+        <field name="page_width">176</field>
+        <field name="page_height">265</field>
         <field name="orientation">Landscape</field>
         <field name="margin_top">0</field>
         <field name="margin_bottom">0</field>
@@ -91,8 +90,7 @@
                             <tr>
                                 <td style="border-right:0.35mm solid #000; padding:4mm; vertical-align:top;">
                                     <div style="height:39mm; display:flex; align-items:center; justify-content:center;">
-                                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
-                                        <div t-if="not doc.project_id.company_id.logo" style="font-size:30pt; font-weight:700;">SAB-P</div>
+                                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
                                     </div>
                                     <div style="font-size:8.5pt; line-height:1.12; text-align:center; margin-top:1mm; font-weight:700;">SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/>Albert-Einstein-Str. 7a<br/>42929 Wermelskirchen<br/><span style="font-size:7pt; font-weight:400;">Tel. 02196 90901-0 - FAX -99</span></div>
                                     <div style="border-top:0.35mm solid #000; margin:4mm 0 4mm 0;"></div>

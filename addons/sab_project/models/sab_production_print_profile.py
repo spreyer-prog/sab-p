@@ -90,7 +90,7 @@ class SabProductionPrintProfile(models.Model):
             "missing_parts": dict(paper_kind="a4", orientation="landscape", width_mm=297.0, height_mm=210.0, sequence=50),
             "shipping_sheet": dict(paper_kind="a4", orientation="landscape", width_mm=297.0, height_mm=210.0, sequence=60),
             "add_pack": dict(paper_kind="a4", orientation="landscape", width_mm=297.0, height_mm=210.0, sequence=70),
-            "nameplate": dict(paper_kind="custom", orientation="portrait", width_mm=176.0, height_mm=265.0, sequence=80),
+            "nameplate": dict(paper_kind="custom", orientation="landscape", width_mm=265.0, height_mm=176.0, sequence=80),
             "info_sheet": dict(paper_kind="custom", orientation="landscape", width_mm=265.0, height_mm=176.0, sequence=90),
             "folder_label": dict(paper_kind="custom", orientation="portrait", width_mm=61.0, height_mm=192.0, sequence=100),
         }
@@ -199,11 +199,17 @@ class SabProductionPrintProfile(models.Model):
         profile_key = "SAB-P Druckprofil %s" % self.id
         Paperformat = self.env["report.paperformat"].sudo()
         paperformat = Paperformat.search([("name", "=", profile_key)], limit=1)
+        # wkhtmltopdf rotates custom dimensions once more for Landscape.  Store
+        # the short edge as page_width and the long edge as page_height, then
+        # let the orientation perform exactly one rotation.  Otherwise a
+        # configured 297 x 210 mm landscape sheet is emitted as A4 portrait.
+        short_edge = min(self.width_mm, self.height_mm)
+        long_edge = max(self.width_mm, self.height_mm)
         paper_values = {
             "name": profile_key,
             "format": "custom",
-            "page_width": self.width_mm,
-            "page_height": self.height_mm,
+            "page_width": short_edge,
+            "page_height": long_edge,
             "orientation": "Landscape" if self.orientation == "landscape" else "Portrait",
             "margin_top": self.margin_top_mm,
             "margin_bottom": self.margin_bottom_mm,
@@ -232,6 +238,7 @@ class SabProductionPrintProfile(models.Model):
             "report_name": report_name,
             "report_file": report_name,
             "paperformat_id": paperformat.id,
+            "print_report_name": "object._sab_pdf_filename()",
         }
         if report:
             report.write(report_values)

@@ -5,15 +5,14 @@
               priority="2140">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'nameplate'&quot;]" position="replace">
             <t t-elif="doc.document_type == 'nameplate'">
-                <!-- Geprüfter SAB-P-Ausgabeträger: 176 x 265 mm Hochformat. -->
-                <div style="position:relative; width:176mm; height:265mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
-                    <div style="position:absolute; left:2.5mm; top:3.5mm; width:110.2mm; height:180mm; transform:scale(1.55,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
+                <!-- Typenschild.pdf: 265 x 176 mm Querformat; Druckbild rechts auf dem Träger. -->
+                <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; transform:scale(1.52,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
                         <table style="border:0; width:100%; height:18.5mm; margin:0 0 0.9mm 0; table-layout:fixed;">
                             <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
                             <tr>
                                 <td style="border:0; padding:0; vertical-align:middle;">
-                                    <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
-                                    <div t-if="not doc.project_id.company_id.logo" style="font-size:18pt; font-weight:700;">SAB-P</div>
+                                    <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
                                 </td>
                                 <td style="border:0; padding:0 0 0 2.3mm; font-size:5.2pt; line-height:1.12; vertical-align:middle; font-weight:700;">
                                     SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/><span style="font-weight:400;">Albert-Einstein-Str. 7a</span><br/>42929 Wermelskirchen<br/><span style="font-size:4pt; font-weight:400;">Tel. 02196 90901 0 - FAX 02196 90901 99</span>
@@ -43,11 +42,11 @@
 
     <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
     <record id="paperformat_sab_nameplate_studio" model="report.paperformat">
-        <field name="name">SAB-P Typenschild 176 x 265 mm</field>
+        <field name="name">SAB-P Typenschild 265 x 176 mm</field>
         <field name="format">custom</field>
         <field name="page_width">176</field>
         <field name="page_height">265</field>
-        <field name="orientation">Portrait</field>
+        <field name="orientation">Landscape</field>
         <field name="margin_top">0</field>
         <field name="margin_bottom">0</field>
         <field name="margin_left">0</field>
@@ -75,15 +74,14 @@
 
     <template id="report_sab_nameplate_studio_page">
         <div class="page" name="sab_nameplate_studio_page" style="margin:0; padding:0;">
-                <!-- Geprüfter SAB-P-Ausgabeträger: 176 x 265 mm Hochformat. -->
-                <div style="position:relative; width:176mm; height:265mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
-                    <div style="position:absolute; left:2.5mm; top:3.5mm; width:110.2mm; height:180mm; transform:scale(1.55,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
+                <!-- Typenschild.pdf: 265 x 176 mm Querformat; Druckbild rechts auf dem Träger. -->
+                <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; transform:scale(1.52,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
                         <table style="border:0; width:100%; height:18.5mm; margin:0 0 0.9mm 0; table-layout:fixed;">
                             <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
                             <tr>
                                 <td style="border:0; padding:0; vertical-align:middle;">
-                                    <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
-                                    <div t-if="not doc.project_id.company_id.logo" style="font-size:18pt; font-weight:700;">SAB-P</div>
+                                    <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
                                 </td>
                                 <td style="border:0; padding:0 0 0 2.3mm; font-size:5.2pt; line-height:1.12; vertical-align:middle; font-weight:700;">
                                     SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/><span style="font-weight:400;">Albert-Einstein-Str. 7a</span><br/>42929 Wermelskirchen<br/><span style="font-size:4pt; font-weight:400;">Tel. 02196 90901 0 - FAX 02196 90901 99</span>

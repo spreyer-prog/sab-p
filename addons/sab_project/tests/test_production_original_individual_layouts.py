@@ -50,7 +50,7 @@ class TestSabProductionOriginalIndividualLayouts(TransactionCase):
             "sab_project.report_sab_production_document_shipping_original": ("shipping_sheet", "width:297mm"),
             "sab_project.report_sab_production_document_missing_parts_original": ("missing_parts", "Bestellung Fehlteile"),
             "sab_project.report_sab_production_document_add_pack_original": ("add_pack", "Beipackzettel"),
-            "sab_project.report_sab_production_document_nameplate_original": ("nameplate", "width:176mm"),
+            "sab_project.report_sab_production_document_nameplate_original": ("nameplate", "width:265mm"),
             "sab_project.report_sab_production_document_info_sheet_original": ("info_sheet", "width:265mm"),
             "sab_project.report_sab_production_document_folder_label_original": ("folder_label", "width:61mm"),
             "sab_project.report_sab_production_document_conformity": ("conformity", "2014/35/EU"),
@@ -66,11 +66,11 @@ class TestSabProductionOriginalIndividualLayouts(TransactionCase):
             "run_card": ("Portrait", 210.0, 297.0),
             "production_test": ("Portrait", 210.0, 297.0),
             "final_inspection": ("Portrait", 210.0, 297.0),
-            "missing_parts": ("Landscape", 297.0, 210.0),
-            "shipping_sheet": ("Landscape", 297.0, 210.0),
-            "add_pack": ("Landscape", 297.0, 210.0),
-            "nameplate": ("Portrait", 176.0, 265.0),
-            "info_sheet": ("Landscape", 265.0, 176.0),
+            "missing_parts": ("Landscape", 210.0, 297.0),
+            "shipping_sheet": ("Landscape", 210.0, 297.0),
+            "add_pack": ("Landscape", 210.0, 297.0),
+            "nameplate": ("Landscape", 176.0, 265.0),
+            "info_sheet": ("Landscape", 176.0, 265.0),
             "folder_label": ("Portrait", 61.0, 192.0),
         }
         for document_type, geometry in expected.items():
@@ -127,6 +127,7 @@ class TestSabProductionOriginalIndividualLayouts(TransactionCase):
             [("user_id", "=", False), ("document_type", "=", "folder_label")],
             limit=1,
         )
-        self.assertEqual((nameplate.width_mm, nameplate.height_mm), (176.0, 265.0))
+        self.assertEqual((nameplate.width_mm, nameplate.height_mm), (265.0, 176.0))
+        self.assertEqual(nameplate.orientation, "landscape")
         self.assertEqual((info_sheet.width_mm, info_sheet.height_mm), (265.0, 176.0))
         self.assertEqual((folder_label.width_mm, folder_label.height_mm), (61.0, 192.0))

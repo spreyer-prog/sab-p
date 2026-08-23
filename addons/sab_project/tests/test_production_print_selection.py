@@ -154,7 +154,7 @@ class TestSabProductionPrintSelection(TransactionCase):
             "missing_parts": ("landscape", 297.0, 210.0),
             "shipping_sheet": ("landscape", 297.0, 210.0),
             "add_pack": ("landscape", 297.0, 210.0),
-            "nameplate": ("portrait", 176.0, 265.0),
+            "nameplate": ("landscape", 265.0, 176.0),
             "info_sheet": ("landscape", 265.0, 176.0),
             "folder_label": ("portrait", 61.0, 192.0),
         }
@@ -179,12 +179,32 @@ class TestSabProductionPrintSelection(TransactionCase):
             action["report_name"],
             "sab_project.report_sab_run_card_studio",
         )
-        self.assertIn("Laufkarte", action["name"])
+        self.assertEqual(action["name"], "Laufkarte")
         self.assertNotIn("Fertigungsblätter", action["name"])
         self.assertNotIn("/", action["name"])
 
         report = self.env.ref("sab_project.action_report_sab_production_documents")
         self.assertEqual(report.print_report_name, "object._sab_pdf_filename()")
+
+    def test_each_single_pdf_filename_is_exactly_its_document_type(self):
+        self.production.action_prepare_production_documents()
+        expected = {
+            "conformity": "Konformitätserklärung",
+            "production_test": "Prüfprotokoll Fertigung",
+            "final_inspection": "Prüfprotokoll Endkontrolle",
+            "run_card": "Laufkarte",
+            "missing_parts": "Bestellung Fehlteile",
+            "shipping_sheet": "Versandblatt",
+            "add_pack": "Beipackzettel",
+            "nameplate": "Typenschild",
+            "info_sheet": "Infoschild",
+            "folder_label": "Ordneretikett",
+        }
+        for document_type, filename in expected.items():
+            document = self.production.document_ids.filtered(
+                lambda item: item.document_type == document_type
+            )[0]
+            self.assertEqual(document._sab_pdf_filename(), filename)
 
     def test_personal_print_profile_controls_paperformat_and_printer_context(self):
         self.production.action_prepare_production_documents()
@@ -220,12 +240,16 @@ class TestSabProductionPrintSelection(TransactionCase):
             runtime_report.report_name,
             "sab_project.report_sab_run_card_studio",
         )
+        self.assertEqual(
+            runtime_report.print_report_name,
+            "object._sab_pdf_filename()",
+        )
         paper = runtime_report.paperformat_id
         self.assertTrue(paper)
         self.assertEqual(paper.format, "custom")
         self.assertEqual(paper.orientation, "Landscape")
-        self.assertEqual(paper.page_width, 281.0)
-        self.assertEqual(paper.page_height, 205.0)
+        self.assertEqual(paper.page_width, 205.0)
+        self.assertEqual(paper.page_height, 281.0)
         self.assertEqual(paper.margin_top, 3.0)
         self.assertEqual(paper.margin_bottom, 4.0)
         self.assertEqual(paper.margin_left, 5.0)

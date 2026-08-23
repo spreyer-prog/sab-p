@@ -8,8 +8,7 @@
                 <!-- Geprüfter SAB-P-Ausgabeträger: 61 x 192 mm Hochformat. -->
                 <div style="position:relative; width:61mm; height:192mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; left:2.9mm; top:5.2mm; width:55.2mm; height:18mm; text-align:center; overflow:hidden;">
-                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:49.6mm; max-height:16mm; object-fit:contain;"/>
-                        <div t-if="not doc.project_id.company_id.logo" style="font-size:14pt; font-weight:700;">SAB-P</div>
+                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:49.6mm; max-height:16mm; object-fit:contain;"/>
                     </div>
                     <div style="position:absolute; left:2.6mm; top:32.7mm; width:55.8mm; font-size:8.4pt; font-weight:700; text-align:left;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
                     <div style="position:absolute; left:2.6mm; top:45.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>
@@ -67,8 +66,7 @@
                 <!-- Geprüfter SAB-P-Ausgabeträger: 61 x 192 mm Hochformat. -->
                 <div style="position:relative; width:61mm; height:192mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; left:2.9mm; top:5.2mm; width:55.2mm; height:18mm; text-align:center; overflow:hidden;">
-                        <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:49.6mm; max-height:16mm; object-fit:contain;"/>
-                        <div t-if="not doc.project_id.company_id.logo" style="font-size:14pt; font-weight:700;">SAB-P</div>
+                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:49.6mm; max-height:16mm; object-fit:contain;"/>
                     </div>
                     <div style="position:absolute; left:2.6mm; top:32.7mm; width:55.8mm; font-size:8.4pt; font-weight:700; text-align:left;"><span t-out="(doc.project_id.sab_project_reference if doc.project_id else False) or doc.project_reference or ''"/></div>
                     <div style="position:absolute; left:2.6mm; top:45.0mm; width:40.8mm; border-top:0.25mm solid #555;"></div>

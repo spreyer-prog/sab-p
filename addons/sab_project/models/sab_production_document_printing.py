@@ -67,12 +67,10 @@ class SabProductionDocumentPrinting(models.Model):
             first.document_type,
             first.name or "Fertigungsdokument",
         )
-        parts = [
-            project,
-            self._sab_safe_pdf_part(first.cabinet_instance_label or first.cabinet_name),
-            self._sab_safe_pdf_part(document_label),
-        ]
-        return "_".join(filter(None, parts)) or "Fertigungsdokument"
+        # Der sichtbare Dateiname muss die Dokumentart sein. Projekt- und
+        # Verteilerbezeichnungen gehören in den Dokumentinhalt und dürfen den
+        # Dateityp für Lager und Fertigung nicht verdecken.
+        return self._sab_safe_pdf_part(document_label) or "Fertigungsdokument"
 
     def _sab_production_report_action(self):
         """Return the native QWeb PDF report action for these exact documents.
