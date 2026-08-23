@@ -68,7 +68,7 @@
             </t>
         </xpath>
     </template>
-+
+
     <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
     <record id="paperformat_sab_production_test_studio" model="report.paperformat">
         <field name="name">SAB-P Prüfprotokoll Fertigung 210 x 297 mm</field>

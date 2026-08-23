@@ -29,7 +29,7 @@
             </t>
         </xpath>
     </template>
-+
+
     <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
     <record id="paperformat_sab_folder_label_studio" model="report.paperformat">
         <field name="name">SAB-P Ordneretikett 61 x 192 mm</field>

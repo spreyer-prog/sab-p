@@ -48,7 +48,7 @@
             </t>
         </xpath>
     </template>
-+
+
     <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
     <record id="paperformat_sab_info_sheet_studio" model="report.paperformat">
         <field name="name">SAB-P Infoschild 265 x 176 mm</field>

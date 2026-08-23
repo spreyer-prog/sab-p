@@ -21,7 +21,7 @@
             </t>
         </xpath>
     </template>
-+
+
     <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
     <record id="paperformat_sab_add_pack_studio" model="report.paperformat">
         <field name="name">SAB-P Beipackzettel 297 x 210 mm</field>

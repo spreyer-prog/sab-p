@@ -40,7 +40,7 @@
             </t>
         </xpath>
     </template>
-+
+
     <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
     <record id="paperformat_sab_nameplate_studio" model="report.paperformat">
         <field name="name">SAB-P Typenschild 176 x 265 mm</field>
