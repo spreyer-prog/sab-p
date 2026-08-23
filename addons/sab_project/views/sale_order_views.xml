@@ -45,6 +45,10 @@
                        invisible="not sab_project_id"
                        readonly="sab_offer_release_state == 'released'"/>
             </xpath>
+            <!-- Angebotszeilen müssen im Entwurfszustand einzeln löschbar sein. -->
+            <xpath expr="//field[@name='order_line']/list" position="attributes">
+                <attribute name="delete">1</attribute>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="SAB-P Kalkulation" name="sab_calculation">
                     <group string="Kalkulationspositionen" col="1">
@@ -52,6 +56,7 @@
                                nolabel="1"
                                readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'">
                             <list editable="bottom"
+                                  delete="1"
                                   default_order="sequence"
                                   decoration-muted="line_type in ('info', 'section_end')"
                                   decoration-bf="line_type == 'section'">

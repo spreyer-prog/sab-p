@@ -4,7 +4,7 @@
               inherit_id="sab_project.report_sab_production_document"
               priority="2150">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'info_sheet'&quot;]" position="replace">
-            <t t-elif="doc.document_type == 'info_sheet'">
+            <t t-elif="doc.document_type == 'info_sheet'" t-translation="off">
                 <!-- Geprüfter SAB-P-Ausgabeträger: 265 x 176 mm Querformat. -->
                 <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; width:265mm; height:176mm; left:0; top:0; transform:none; transform-origin:top left;">
@@ -13,7 +13,7 @@
                             <tr>
                                 <td style="border-right:0.35mm solid #000; padding:4mm; vertical-align:top;">
                                     <div style="height:39mm; display:flex; align-items:center; justify-content:center;">
-                                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
+                                        <img t-att-src="doc._sab_report_logo_src()" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
                                     </div>
                                     <div style="font-size:8.5pt; line-height:1.12; text-align:center; margin-top:1mm; font-weight:700;">SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/>Albert-Einstein-Str. 7a<br/>42929 Wermelskirchen<br/><span style="font-size:7pt; font-weight:400;">Tel. 02196 90901-0 - FAX -99</span></div>
                                     <div style="border-top:0.35mm solid #000; margin:4mm 0 4mm 0;"></div>
@@ -74,6 +74,7 @@
 
     <template id="report_sab_info_sheet_studio">
         <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
             <t t-foreach="docs" t-as="doc">
                 <t t-call="sab_project.report_sab_info_sheet_studio_page"/>
             </t>
@@ -81,7 +82,7 @@
     </template>
 
     <template id="report_sab_info_sheet_studio_page">
-        <div class="page" name="sab_info_sheet_studio_page" style="margin:0; padding:0;">
+        <div class="page" name="sab_info_sheet_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <!-- Geprüfter SAB-P-Ausgabeträger: 265 x 176 mm Querformat. -->
                 <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; width:265mm; height:176mm; left:0; top:0; transform:none; transform-origin:top left;">
@@ -90,7 +91,7 @@
                             <tr>
                                 <td style="border-right:0.35mm solid #000; padding:4mm; vertical-align:top;">
                                     <div style="height:39mm; display:flex; align-items:center; justify-content:center;">
-                                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
+                                        <img t-att-src="doc._sab_report_logo_src()" style="max-width:62mm; max-height:29mm; object-fit:contain;"/>
                                     </div>
                                     <div style="font-size:8.5pt; line-height:1.12; text-align:center; margin-top:1mm; font-weight:700;">SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/>Albert-Einstein-Str. 7a<br/>42929 Wermelskirchen<br/><span style="font-size:7pt; font-weight:400;">Tel. 02196 90901-0 - FAX -99</span></div>
                                     <div style="border-top:0.35mm solid #000; margin:4mm 0 4mm 0;"></div>

@@ -4,7 +4,7 @@
               inherit_id="sab_project.report_sab_production_document"
               priority="2160">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'missing_parts'&quot;]" position="replace">
-            <t t-elif="doc.document_type == 'missing_parts'">
+            <t t-elif="doc.document_type == 'missing_parts'" t-translation="off">
                 <!-- Bestelvorlage.pdf: A4 mit 90° Rotation = A4 Querformat. -->
                 <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; overflow:hidden; font-family:Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; left:19.8mm; top:24.8mm; width:255.2mm; height:151.1mm; box-sizing:border-box; font-size:5.2pt; line-height:1.0;">
@@ -52,6 +52,7 @@
 
     <template id="report_sab_missing_parts_studio">
         <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
             <t t-foreach="docs" t-as="doc">
                 <t t-call="sab_project.report_sab_missing_parts_studio_page"/>
             </t>
@@ -59,7 +60,7 @@
     </template>
 
     <template id="report_sab_missing_parts_studio_page">
-        <div class="page" name="sab_missing_parts_studio_page" style="margin:0; padding:0;">
+        <div class="page" name="sab_missing_parts_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <!-- Bestelvorlage.pdf: A4 mit 90° Rotation = A4 Querformat. -->
                 <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; overflow:hidden; font-family:Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; left:19.8mm; top:24.8mm; width:255.2mm; height:151.1mm; box-sizing:border-box; font-size:5.2pt; line-height:1.0;">

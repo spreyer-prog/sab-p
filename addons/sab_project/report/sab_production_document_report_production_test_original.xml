@@ -4,13 +4,13 @@
               inherit_id="sab_project.report_sab_production_document"
               priority="2110">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'production_test'&quot;]" position="replace">
-            <t t-elif="doc.document_type == 'production_test'">
+            <t t-elif="doc.document_type == 'production_test'" t-translation="off">
                 <!-- Blatt Endprüfung.pdf, Seite 1: A4 Hochformat, Tabellenrahmen ca. 20,1..194,8 mm -->
                 <div style="position:relative; width:210mm; height:297mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
                     <div style="position:absolute; left:20.1mm; top:10.6mm; width:174.7mm; height:275mm; font-size:6.35pt; line-height:1.02; box-sizing:border-box;">
                         <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; margin:0 0 1.8mm 0;">
                             <colgroup><col style="width:42.3mm;"/><col style="width:42.3mm;"/><col style="width:37.2mm;"/><col style="width:52.9mm;"/></colgroup>
-                            <tr style="height:5.8mm;"><td colspan="3" style="font-size:12pt; font-weight:700; padding:0; vertical-align:middle;">Prüfprotokoll der Fertigung</td><td rowspan="4" style="padding:0; text-align:right; vertical-align:top;"><img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:43mm; max-height:15mm; object-fit:contain; object-position:right top;"/></td></tr>
+                            <tr style="height:5.8mm;"><td colspan="3" style="font-size:12pt; font-weight:700; padding:0; vertical-align:middle;">Prüfprotokoll der Fertigung</td><td rowspan="4" style="padding:0; text-align:right; vertical-align:top;"><img t-att-src="doc._sab_report_logo_src()" style="max-width:43mm; max-height:15mm; object-fit:contain; object-position:right top;"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Kunde:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.customer_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Auftragsnr./Komission:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Verteiler:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
@@ -95,6 +95,7 @@
 
     <template id="report_sab_production_test_studio">
         <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
             <t t-foreach="docs" t-as="doc">
                 <t t-call="sab_project.report_sab_production_test_studio_page"/>
             </t>
@@ -102,13 +103,13 @@
     </template>
 
     <template id="report_sab_production_test_studio_page">
-        <div class="page" name="sab_production_test_studio_page" style="margin:0; padding:0;">
+        <div class="page" name="sab_production_test_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <!-- Blatt Endprüfung.pdf, Seite 1: A4 Hochformat, Tabellenrahmen ca. 20,1..194,8 mm -->
                 <div style="position:relative; width:210mm; height:297mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
                     <div style="position:absolute; left:20.1mm; top:10.6mm; width:174.7mm; height:275mm; font-size:6.35pt; line-height:1.02; box-sizing:border-box;">
                         <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; margin:0 0 1.8mm 0;">
                             <colgroup><col style="width:42.3mm;"/><col style="width:42.3mm;"/><col style="width:37.2mm;"/><col style="width:52.9mm;"/></colgroup>
-                            <tr style="height:5.8mm;"><td colspan="3" style="font-size:12pt; font-weight:700; padding:0; vertical-align:middle;">Prüfprotokoll der Fertigung</td><td rowspan="4" style="padding:0; text-align:right; vertical-align:top;"><img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:43mm; max-height:15mm; object-fit:contain; object-position:right top;"/></td></tr>
+                            <tr style="height:5.8mm;"><td colspan="3" style="font-size:12pt; font-weight:700; padding:0; vertical-align:middle;">Prüfprotokoll der Fertigung</td><td rowspan="4" style="padding:0; text-align:right; vertical-align:top;"><img t-att-src="doc._sab_report_logo_src()" style="max-width:43mm; max-height:15mm; object-fit:contain; object-position:right top;"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Kunde:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.customer_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Auftragsnr./Komission:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Verteiler:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>

@@ -1,6 +1,9 @@
+import base64
 import re
+from functools import lru_cache
 
 from odoo import fields, models, _
+from odoo.tools import file_open
 
 
 EXTRA_PRODUCTION_DOCUMENT_TYPES = [
@@ -17,6 +20,14 @@ OBSOLETE_PRODUCTION_DOCUMENT_TYPES = {
 }
 
 
+@lru_cache(maxsize=1)
+def _sab_logo_data_uri():
+    """Embed the logo so wkhtmltopdf never has to fetch a protected URL."""
+    with file_open("sab_project/static/src/img/sab_p_logo.jpg", "rb") as logo_file:
+        encoded = base64.b64encode(logo_file.read()).decode("ascii")
+    return f"data:image/jpeg;base64,{encoded}"
+
+
 class SabProductionDocumentPrinting(models.Model):
     _inherit = "sab.production.document"
 
@@ -24,6 +35,9 @@ class SabProductionDocumentPrinting(models.Model):
         selection_add=EXTRA_PRODUCTION_DOCUMENT_TYPES,
         ondelete={key: "cascade" for key, _label in EXTRA_PRODUCTION_DOCUMENT_TYPES},
     )
+
+    def _sab_report_logo_src(self):
+        return _sab_logo_data_uri()
 
     def _sab_safe_pdf_part(self, value):
         value = (value or "").strip()

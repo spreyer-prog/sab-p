@@ -4,7 +4,7 @@
               inherit_id="sab_project.report_sab_production_document"
               priority="2130">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'shipping_sheet'&quot;]" position="replace">
-            <t t-elif="doc.document_type == 'shipping_sheet'">
+            <t t-elif="doc.document_type == 'shipping_sheet'" t-translation="off">
                 <!-- Blatt Versand.pdf: A4 mit 90° Seitendrehung = effektives A4 Querformat. -->
                 <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
                     <div style="position:absolute; left:30.8mm; top:27.0mm; width:235.4mm; height:156.0mm; border:0.35mm solid #000; box-sizing:border-box; text-align:center; font-weight:700; overflow:hidden;">
@@ -44,6 +44,7 @@
 
     <template id="report_sab_shipping_sheet_studio">
         <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
             <t t-foreach="docs" t-as="doc">
                 <t t-call="sab_project.report_sab_shipping_sheet_studio_page"/>
             </t>
@@ -51,7 +52,7 @@
     </template>
 
     <template id="report_sab_shipping_sheet_studio_page">
-        <div class="page" name="sab_shipping_sheet_studio_page" style="margin:0; padding:0;">
+        <div class="page" name="sab_shipping_sheet_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <!-- Blatt Versand.pdf: A4 mit 90° Seitendrehung = effektives A4 Querformat. -->
                 <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; color:#000; overflow:hidden; box-sizing:border-box;">
                     <div style="position:absolute; left:30.8mm; top:27.0mm; width:235.4mm; height:156.0mm; border:0.35mm solid #000; box-sizing:border-box; text-align:center; font-weight:700; overflow:hidden;">

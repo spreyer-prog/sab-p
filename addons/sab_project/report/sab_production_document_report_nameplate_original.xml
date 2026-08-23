@@ -4,7 +4,7 @@
               inherit_id="sab_project.report_sab_production_document"
               priority="2140">
         <xpath expr="//t[@t-elif=&quot;doc.document_type == 'nameplate'&quot;]" position="replace">
-            <t t-elif="doc.document_type == 'nameplate'">
+            <t t-elif="doc.document_type == 'nameplate'" t-translation="off">
                 <!-- Typenschild.pdf: 265 x 176 mm Querformat; Druckbild rechts auf dem Träger. -->
                 <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; transform:scale(1.52,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
@@ -12,7 +12,7 @@
                             <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
                             <tr>
                                 <td style="border:0; padding:0; vertical-align:middle;">
-                                    <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
+                                    <img t-att-src="doc._sab_report_logo_src()" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
                                 </td>
                                 <td style="border:0; padding:0 0 0 2.3mm; font-size:5.2pt; line-height:1.12; vertical-align:middle; font-weight:700;">
                                     SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/><span style="font-weight:400;">Albert-Einstein-Str. 7a</span><br/>42929 Wermelskirchen<br/><span style="font-size:4pt; font-weight:400;">Tel. 02196 90901 0 - FAX 02196 90901 99</span>
@@ -66,6 +66,7 @@
 
     <template id="report_sab_nameplate_studio">
         <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
             <t t-foreach="docs" t-as="doc">
                 <t t-call="sab_project.report_sab_nameplate_studio_page"/>
             </t>
@@ -73,7 +74,7 @@
     </template>
 
     <template id="report_sab_nameplate_studio_page">
-        <div class="page" name="sab_nameplate_studio_page" style="margin:0; padding:0;">
+        <div class="page" name="sab_nameplate_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <!-- Typenschild.pdf: 265 x 176 mm Querformat; Druckbild rechts auf dem Träger. -->
                 <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
                     <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; transform:scale(1.52,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
@@ -81,7 +82,7 @@
                             <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
                             <tr>
                                 <td style="border:0; padding:0; vertical-align:middle;">
-                                    <img src="/sab_project/static/src/img/sab_p_logo.jpg" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
+                                    <img t-att-src="doc._sab_report_logo_src()" style="max-width:47.5mm; max-height:17.4mm; object-fit:contain; object-position:left center;"/>
                                 </td>
                                 <td style="border:0; padding:0 0 0 2.3mm; font-size:5.2pt; line-height:1.12; vertical-align:middle; font-weight:700;">
                                     SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/><span style="font-weight:400;">Albert-Einstein-Str. 7a</span><br/>42929 Wermelskirchen<br/><span style="font-size:4pt; font-weight:400;">Tel. 02196 90901 0 - FAX 02196 90901 99</span>

@@ -4,7 +4,7 @@
               inherit_id="sab_project.report_sab_production_document"
               priority="1020">
         <xpath expr="//t[@t-else]" position="before">
-            <t t-elif="doc.document_type == 'conformity'">
+            <t t-elif="doc.document_type == 'conformity'" t-translation="off">
                 <style>
                     .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
                     .sab-conf-page:last-child { page-break-after:auto; break-after:auto; }
@@ -29,7 +29,7 @@
                 <div class="sab-conf-page">
                     <div class="sab-conf-head">
                         <div class="sab-conf-title" style="margin-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
-                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/>
+                        <img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/>
                     </div>
                     <div class="sab-conf-rule"></div>
                     <table class="sab-conf-meta">
@@ -66,7 +66,7 @@
 
                 <!-- Seite 2: Prüfprotokoll -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">Prüfprotokoll</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Prüfprotokoll</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div>
                     <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td><td style="width:28mm;">Monteur:</td><td><span t-out="doc.responsible_name or ''"/></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td><td>Prüfer:</td><td><span t-out="doc.inspector_name or ''"/></td></tr><tr><td>Teil/Bezeichnung:</td><td><span t-out="doc.cabinet_instance_label or ''"/></td><td></td><td></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or ''"/></td><td></td><td></td></tr></table>
                     <div class="sab-conf-subtitle">Durchgeführte Prüfungen:</div>
@@ -85,7 +85,7 @@
 
                 <!-- Seite 3: Herstellererklärung -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">Erklärung des Herstellers gemäß EG-Richtlinien</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Erklärung des Herstellers gemäß EG-Richtlinien</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div>
                     <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div>
@@ -98,7 +98,7 @@
 
                 <!-- Seite 4: DGUV V3 -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">Bestätigung der DGUV V3 nach § 5 Absatz 4 der Unfallverhütungsvorschrift „Elektr. Anlagen und Betriebsmittel (DGUV V3)“</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Bestätigung der DGUV V3 nach § 5 Absatz 4 der Unfallverhütungsvorschrift „Elektr. Anlagen und Betriebsmittel (DGUV V3)“</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
                     <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage nach den vorgegebenen Aufbauzeichnungen und Materialien ausgeführt worden ist und den Bestimmungen der Unfallverhütungsvorschrift „Elektrische Betriebsmittel“ (DGUV Vorschrift 3) entsprechend beschaffen ist.</p><p>Diese Bestätigung dient ausschließlich dem Zweck, den Unternehmer davon zu entbinden, die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage vor der ersten Inbetriebnahme zu prüfen bzw. prüfen zu lassen (§ 5 Abs. 1, 4 der DGUV Vorschrift 3). Zivilrechtliche Gewährleistungs- und Haftungsansprüche werden durch diese Bestätigung nicht geregelt.</p>
@@ -108,7 +108,7 @@
 
                 <!-- Seite 5: EMV -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(EMV)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(EMV)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
                     <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten über die elektromagnetische Verträglichkeit (2014/30/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>
@@ -120,7 +120,7 @@
 
                 <!-- Seite 6: Niederspannungsrichtlinie -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(Niederspannungsrichtlinie)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(Niederspannungsrichtlinie)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
                     <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten betreffend elektrische Betriebsmittel zur Verwendung innerhalb bestimmter Spannungsgrenzen (2014/35/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>
@@ -159,6 +159,7 @@
 
     <template id="report_sab_conformity_studio">
         <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
             <t t-foreach="docs" t-as="doc">
                 <t t-call="sab_project.report_sab_conformity_studio_page"/>
             </t>
@@ -166,7 +167,7 @@
     </template>
 
     <template id="report_sab_conformity_studio_page">
-        <div class="page" name="sab_conformity_studio_page" style="margin:0; padding:0;">
+        <div class="page" name="sab_conformity_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <style>
                     .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
                     .sab-conf-page:last-child { page-break-after:auto; break-after:auto; }
@@ -191,7 +192,7 @@
                 <div class="sab-conf-page">
                     <div class="sab-conf-head">
                         <div class="sab-conf-title" style="margin-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
-                        <img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/>
+                        <img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/>
                     </div>
                     <div class="sab-conf-rule"></div>
                     <table class="sab-conf-meta">
@@ -228,7 +229,7 @@
 
                 <!-- Seite 2: Prüfprotokoll -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">Prüfprotokoll</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Prüfprotokoll</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div>
                     <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td><td style="width:28mm;">Monteur:</td><td><span t-out="doc.responsible_name or ''"/></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td><td>Prüfer:</td><td><span t-out="doc.inspector_name or ''"/></td></tr><tr><td>Teil/Bezeichnung:</td><td><span t-out="doc.cabinet_instance_label or ''"/></td><td></td><td></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or ''"/></td><td></td><td></td></tr></table>
                     <div class="sab-conf-subtitle">Durchgeführte Prüfungen:</div>
@@ -247,7 +248,7 @@
 
                 <!-- Seite 3: Herstellererklärung -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">Erklärung des Herstellers gemäß EG-Richtlinien</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Erklärung des Herstellers gemäß EG-Richtlinien</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div>
                     <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div>
@@ -260,7 +261,7 @@
 
                 <!-- Seite 4: DGUV V3 -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">Bestätigung der DGUV V3 nach § 5 Absatz 4 der Unfallverhütungsvorschrift „Elektr. Anlagen und Betriebsmittel (DGUV V3)“</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Bestätigung der DGUV V3 nach § 5 Absatz 4 der Unfallverhütungsvorschrift „Elektr. Anlagen und Betriebsmittel (DGUV V3)“</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
                     <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage nach den vorgegebenen Aufbauzeichnungen und Materialien ausgeführt worden ist und den Bestimmungen der Unfallverhütungsvorschrift „Elektrische Betriebsmittel“ (DGUV Vorschrift 3) entsprechend beschaffen ist.</p><p>Diese Bestätigung dient ausschließlich dem Zweck, den Unternehmer davon zu entbinden, die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage vor der ersten Inbetriebnahme zu prüfen bzw. prüfen zu lassen (§ 5 Abs. 1, 4 der DGUV Vorschrift 3). Zivilrechtliche Gewährleistungs- und Haftungsansprüche werden durch diese Bestätigung nicht geregelt.</p>
@@ -270,7 +271,7 @@
 
                 <!-- Seite 5: EMV -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(EMV)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(EMV)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
                     <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten über die elektromagnetische Verträglichkeit (2014/30/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>
@@ -282,7 +283,7 @@
 
                 <!-- Seite 6: Niederspannungsrichtlinie -->
                 <div class="sab-conf-page">
-                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(Niederspannungsrichtlinie)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img src="/sab_project/static/src/img/sab_p_logo.jpg" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(Niederspannungsrichtlinie)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
                     <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
                     <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
                     <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten betreffend elektrische Betriebsmittel zur Verwendung innerhalb bestimmter Spannungsgrenzen (2014/35/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>

@@ -168,4 +168,19 @@
             </t>
         </t>
     </template>
+
+    <!-- Bootstrap begrenzt <main class="container"> sonst auf eine feste
+         Bildschirmbreite. wkhtmltopdf verkleinert dadurch millimetergenaue
+         Vorlagen auf ca. 85 %. Dieser Reset erhält die realen Druckmaße. -->
+    <template id="report_sab_studio_pdf_reset">
+        <style>
+            html, body, #wrapwrap, main.container {
+                width: 100% !important;
+                max-width: none !important;
+                min-width: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        </style>
+    </template>
 </odoo>

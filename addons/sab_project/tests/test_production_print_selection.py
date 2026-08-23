@@ -1,3 +1,5 @@
+import base64
+
 from odoo.fields import Command
 from odoo.tests.common import TransactionCase
 
@@ -277,3 +279,53 @@ class TestSabProductionPrintSelection(TransactionCase):
             )[:1]
             action = document.action_print_document()
             self.assertEqual(action["report_name"], report_name)
+
+    def test_pdf_logo_is_embedded_and_does_not_require_an_http_request(self):
+        self.production.action_prepare_production_documents()
+        document = self.production.document_ids[:1]
+        source = document._sab_report_logo_src()
+        self.assertTrue(source.startswith("data:image/jpeg;base64,"))
+        image_data = base64.b64decode(source.split(",", 1)[1])
+        self.assertTrue(image_data.startswith(b"\xff\xd8"))
+        self.assertTrue(image_data.endswith(b"\xff\xd9"))
+
+    def test_studio_templates_keep_german_source_text_untranslated(self):
+        page_views = (
+            "sab_project.report_sab_conformity_studio_page",
+            "sab_project.report_sab_run_card_studio_page",
+            "sab_project.report_sab_production_test_studio_page",
+            "sab_project.report_sab_final_inspection_studio_page",
+            "sab_project.report_sab_missing_parts_studio_page",
+            "sab_project.report_sab_shipping_sheet_studio_page",
+            "sab_project.report_sab_add_pack_studio_page",
+            "sab_project.report_sab_nameplate_studio_page",
+            "sab_project.report_sab_info_sheet_studio_page",
+            "sab_project.report_sab_folder_label_studio_page",
+        )
+        for xmlid in page_views:
+            source = self.env.ref(xmlid).with_context(lang=None).arch_db
+            self.assertIn(
+                't-translation="off"',
+                source,
+                "%s lässt feste deutsche Texte erneut übersetzen" % xmlid,
+            )
+
+        reset = self.env.ref("sab_project.report_sab_studio_pdf_reset").arch_db
+        self.assertIn("main.container", reset)
+        self.assertIn("max-width: none", reset)
+
+        report_views = (
+            "sab_project.report_sab_conformity_studio",
+            "sab_project.report_sab_run_card_studio",
+            "sab_project.report_sab_production_test_studio",
+            "sab_project.report_sab_final_inspection_studio",
+            "sab_project.report_sab_missing_parts_studio",
+            "sab_project.report_sab_shipping_sheet_studio",
+            "sab_project.report_sab_add_pack_studio",
+            "sab_project.report_sab_nameplate_studio",
+            "sab_project.report_sab_info_sheet_studio",
+            "sab_project.report_sab_folder_label_studio",
+        )
+        for xmlid in report_views:
+            source = self.env.ref(xmlid).with_context(lang=None).arch_db
+            self.assertIn("report_sab_studio_pdf_reset", source)

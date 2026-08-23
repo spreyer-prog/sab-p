@@ -1,3 +1,5 @@
+from lxml import etree
+
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
 
@@ -75,3 +77,28 @@ class TestSabOfferCalculation(TransactionCase):
         order.state = "sale"
         with self.assertRaises(ValidationError):
             line.write({"quantity": 4.0})
+
+    def test_draft_line_can_be_deleted_but_confirmed_line_stays_locked(self):
+        draft_order = self._order()
+        draft_line = draft_order.sab_calculation_line_ids
+        draft_line.unlink()
+        self.assertFalse(draft_order.sab_calculation_line_ids)
+
+        confirmed_order = self._order()
+        confirmed_line = confirmed_order.sab_calculation_line_ids
+        confirmed_order.state = "sale"
+        with self.assertRaises(ValidationError):
+            confirmed_line.unlink()
+
+    def test_offer_views_explicitly_enable_individual_line_deletion(self):
+        view = self.env.ref("sab_project.sab_sale_order_form_inherit")
+        arch = etree.fromstring(view.arch_db.encode())
+        calculation_lists = arch.xpath(
+            ".//field[@name='sab_calculation_line_ids']/list[@delete='1']"
+        )
+        standard_line_delete = arch.xpath(
+            ".//xpath[contains(@expr, \"@name='order_line'\")]/attribute"
+            "[@name='delete' and normalize-space(.)='1']"
+        )
+        self.assertTrue(calculation_lists)
+        self.assertTrue(standard_line_delete)
