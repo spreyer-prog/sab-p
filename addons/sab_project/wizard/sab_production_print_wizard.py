@@ -3,7 +3,6 @@ from odoo.exceptions import ValidationError
 
 
 DOCUMENT_FIELD_MAP = {
-    "conformity": "print_conformity",
     "production_test": "print_production_test",
     "final_inspection": "print_final_inspection",
     "run_card": "print_run_card",
@@ -220,7 +219,9 @@ class SabProductionPrintWizardLine(models.TransientModel):
         string="Physischer Schrank", readonly=True
     )
 
-    print_conformity = fields.Boolean(string="Konformität")
+    # Aus Kompatibilitaetsgruenden bleibt das alte technische Feld erhalten.
+    # Die Konformitaetserklaerung wird jedoch nur noch unter Protokolle gedruckt.
+    print_conformity = fields.Boolean(string="Konformität", default=False)
     print_production_test = fields.Boolean(string="Prüfprotokoll Fertigung")
     print_final_inspection = fields.Boolean(string="Endprüfung")
     print_run_card = fields.Boolean(string="Laufkarte")

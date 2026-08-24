@@ -100,6 +100,11 @@ class SabProductionDocumentPrinting(models.Model):
         multi_print = len(documents) > 1
         report_context = {
             **dict(self.env.context),
+            # Die Vorlagen selbst sind der freigegebene deutsche Originaltext.
+            # Alte de_DE-QWeb-Uebersetzungen in bestehenden Datenbanken koennen
+            # UTF-8-Text doppelt dekodiert enthalten (z. B. "PrÃ¼fung").
+            # en_US waehlt hier bewusst den unveraenderten XML-Quelltext.
+            "lang": "en_US",
             "active_model": self._name,
             "active_id": documents[0].id,
             "active_ids": documents.ids,

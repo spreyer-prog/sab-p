@@ -74,6 +74,7 @@ class SabProductionDocumentFormatRouter(models.Model):
             report = profile._ensure_runtime_report_action()
             report_context = {
                 **dict(self.env.context),
+                "lang": "en_US",
                 "active_model": self._name,
                 "active_id": document.id,
                 "active_ids": [document.id],
@@ -117,6 +118,7 @@ class SabProductionDocumentFormatRouter(models.Model):
 
         report_context = {
             **dict(self.env.context),
+            "lang": "en_US",
             "active_model": self._name,
             "active_id": document.id,
             "active_ids": [document.id],

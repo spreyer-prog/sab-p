@@ -5,7 +5,6 @@ from odoo.tests.common import TransactionCase
 
 
 PRINT_FIELDS = (
-    "print_conformity",
     "print_production_test",
     "print_final_inspection",
     "print_run_card",
@@ -182,6 +181,10 @@ class TestSabProductionPrintSelection(TransactionCase):
                     line[field_name],
                     "%s wurde durch 'Alle Blätter markieren' nicht gesetzt" % field_name,
                 )
+            self.assertFalse(
+                line.print_conformity,
+                "Die Konformitätserklärung darf nicht zum Fertigungsdruck gehören",
+            )
 
         selected = wizard._selected_documents()
         expected_count = len(wizard.line_ids) * len(PRINT_FIELDS)
@@ -245,6 +248,7 @@ class TestSabProductionPrintSelection(TransactionCase):
         self.assertEqual(action["name"], "Laufkarte")
         self.assertNotIn("Fertigungsblätter", action["name"])
         self.assertNotIn("/", action["name"])
+        self.assertEqual(action["context"]["lang"], "en_US")
 
         report = self.env.ref("sab_project.action_report_sab_production_documents")
         self.assertEqual(report.print_report_name, "object._sab_pdf_filename()")
@@ -268,6 +272,21 @@ class TestSabProductionPrintSelection(TransactionCase):
                 lambda item: item.document_type == document_type
             )[0]
             self.assertEqual(document._sab_pdf_filename(), filename)
+
+    def test_print_action_bypasses_corrupted_legacy_qweb_translations(self):
+        self.production.action_prepare_production_documents()
+        document = self.production.document_ids.filtered(
+            lambda item: item.document_type == "production_test"
+        )[0]
+
+        action = document.with_context(lang="de_DE").action_print_document()
+
+        self.assertEqual(action["context"]["lang"], "en_US")
+        source = self.env.ref(
+            "sab_project.report_sab_production_test_studio_page"
+        ).with_context(lang=None).arch_db
+        self.assertIn("Prüfprotokoll", source)
+        self.assertNotIn("PrÃ¼fprotokoll", source)
 
     def test_personal_print_profile_controls_paperformat_and_printer_context(self):
         self.production.action_prepare_production_documents()
