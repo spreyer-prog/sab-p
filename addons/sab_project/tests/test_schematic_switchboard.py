@@ -17,6 +17,7 @@ class TestSabSchematicSwitchboard(TransactionCase):
                 "manufacturer_article_number": "LS-100",
                 "price_mode": "fixed",
                 "fixed_purchase_price": 100.0,
+                "space_units": 2.5,
             }
         )
         cls.aux_product = cls.env["sab.product"].create(
@@ -212,6 +213,16 @@ class TestSabSchematicSwitchboard(TransactionCase):
         self.assertAlmostEqual(
             cabinet.cabinet_total,
             known.recommended_net_price + new.recommended_net_price,
+        )
+        self.assertAlmostEqual(
+            cabinet.space_units,
+            known.space_units + new.space_units,
+        )
+
+        new.write({"quantity": 3.0})
+        self.assertAlmostEqual(
+            cabinet.space_units,
+            known.space_units + new.space_units,
         )
 
     def test_component_children_share_one_lv_position_and_receive_no_own_ntg(self):

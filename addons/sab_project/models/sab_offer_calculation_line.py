@@ -89,12 +89,34 @@ class SabOfferCalculationLine(models.Model):
             result.append((0,0,{"sequence":line.sequence,"product_id":line.product_id.id or False,"odoo_product_id":line.odoo_product_id.id or (line.product_id.odoo_product_id.id if line.product_id else False),"position_type":line.position_type,"quantity_per_unit":line.quantity or 0.0,"unit":line.unit,"fixed_quantity":line.fixed_quantity,"optional":line.optional,"source_calculation_line_id":line.id,"supplier_product_id":line.selected_supplier_product_id.id or False,"unit_purchase_price":line.unit_purchase_price or 0.0,"note":line.note}))
         return result
 
-    @api.depends("line_type","quantity","unit_material_purchase","unit_auxiliary_purchase","unit_mechanical_minutes","unit_wiring_minutes","unit_testing_minutes","unit_total_minutes","unit_space_units")
+    @api.depends(
+        "line_type",
+        "quantity",
+        "unit_material_purchase",
+        "unit_auxiliary_purchase",
+        "unit_mechanical_minutes",
+        "unit_wiring_minutes",
+        "unit_testing_minutes",
+        "unit_total_minutes",
+        "unit_space_units",
+        "cabinet_child_line_ids.line_type",
+        "cabinet_child_line_ids.space_units",
+    )
     def _compute_totals(self):
         for r in self:
-            if r.line_type != "item": r.material_purchase_total=r.auxiliary_purchase_total=r.mechanical_time_minutes=r.wiring_time_minutes=r.testing_time_minutes=r.total_time_minutes=r.total_hours=r.space_units=0.0
-            else:
+            if r.line_type == "item":
                 q=r.quantity or 0.0; r.material_purchase_total=r.unit_material_purchase*q; r.auxiliary_purchase_total=r.unit_auxiliary_purchase*q; r.mechanical_time_minutes=r.unit_mechanical_minutes*q; r.wiring_time_minutes=r.unit_wiring_minutes*q; r.testing_time_minutes=r.unit_testing_minutes*q; r.total_time_minutes=r.unit_total_minutes*q; r.total_hours=r.total_time_minutes/60.0; r.space_units=r.unit_space_units*q
+            else:
+                r.material_purchase_total=r.auxiliary_purchase_total=r.mechanical_time_minutes=r.wiring_time_minutes=r.testing_time_minutes=r.total_time_minutes=r.total_hours=0.0
+                r.space_units = (
+                    sum(
+                        r.cabinet_child_line_ids.filtered(
+                            lambda line: line.line_type == "item"
+                        ).mapped("space_units")
+                    )
+                    if r.line_type == "cabinet"
+                    else 0.0
+                )
 
     @api.depends("line_type","material_purchase_total","auxiliary_purchase_total","total_hours","quantity","order_id.sab_material_factor","order_id.sab_aux_material_factor","order_id.sab_hourly_rate","order_id.sab_time_factor","order_id.sab_difficulty_factor","order_id.sab_packaging_factor","order_id.sab_skonto_factor","order_id.sab_margin_factor","order_id.sab_rebate_factor")
     def _compute_price(self):

@@ -34,6 +34,9 @@
             <xpath expr="//page[@name='sab_calculation']//field[@name='section_total']" position="after">
                 <field name="cabinet_total" string="Schaltschrank gesamt" readonly="1" invisible="line_type != 'cabinet'"/>
             </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='space_units']" position="attributes">
+                <attribute name="invisible">line_type not in ('item', 'cabinet')</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>
