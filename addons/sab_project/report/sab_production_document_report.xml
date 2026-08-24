@@ -6,8 +6,11 @@
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">sab_project.report_sab_production_document</field>
         <field name="report_file">sab_project.report_sab_production_document</field>
-        <field name="binding_model_id" ref="model_sab_production_document"/>
-        <field name="binding_type">report</field>
+        <!-- Dieser technische Rueckfallbericht darf nicht im normalen
+             Drucken-Menue erscheinen. Ein Bericht auf mehreren Datensaetzen
+             kann nur ein Papierformat besitzen und wuerde dadurch die
+             individuellen Druckprofile der Fertigungsblaetter umgehen. -->
+        <field name="binding_model_id" eval="False"/>
     </record>
 
     <template id="report_sab_production_document">

@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.93.0",
+    "version": "19.0.5.95.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -9,7 +9,7 @@
     "data": [
         "security/sab_security.xml", "security/ir.model.access.csv", "security/sab_wizard_access.xml", "security/sab_record_rules.xml",
         "data/sab_default_language.xml", "data/sab_production_print_profiles.xml", "data/sab_production_original_profile_sync.xml", "data/sab_offer_print_template.xml", "data/sab_classification_data.xml", "data/sab_calculation_sequence.xml", "data/sab_stock_sequence.xml", "data/sab_procurement_request_sequence.xml", "data/sab_work_area_data.xml", "data/sab_system_admin_bootstrap.xml",
-        "data/sab_purchase_mail_template.xml", "data/sab_delivery_overdue_data.xml",
+        "data/sab_purchase_mail_template.xml", "data/sab_delivery_overdue_data.xml", "data/sab_receipt_open_move_repair.xml",
         "views/sab_menu_views.xml", "views/sab_employee_admin_views.xml", "views/sab_employee_confidential_views.xml",
         "views/sab_calculation_item_views.xml", "views/sab_calculation_component_template_views.xml", "views/sab_production_print_profile_views.xml", "views/sab_offer_print_template_views.xml", "views/res_config_settings_views.xml", "views/project_project_views.xml",
         "views/project_customer_portal_views.xml", "views/sab_project_overview_views.xml", "views/sab_classification_views.xml",
@@ -35,9 +35,11 @@
             "sab_project/static/src/js/datanorm_progress.js",
             "sab_project/static/src/js/offer_reuse_panel.js",
             "sab_project/static/src/js/production_multi_print.js",
+            "sab_project/static/src/js/suite_action_router.js",
             "sab_project/static/src/xml/datanorm_progress.xml",
             "sab_project/static/src/xml/offer_reuse_panel.xml",
             "sab_project/static/src/xml/production_multi_print.xml",
+            "sab_project/static/src/xml/suite_action_router.xml",
         ]
     },
     "installable": True,

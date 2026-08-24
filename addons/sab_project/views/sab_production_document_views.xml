@@ -5,6 +5,13 @@
         <field name="model">sab.production.document</field>
         <field name="arch" type="xml">
             <list string="Protokolle &amp; Fertigungsdokumente" create="0">
+                <header>
+                    <button name="action_print_documents_separately"
+                            type="object"
+                            string="Ausgewählte Blätter einzeln drucken / speichern"
+                            class="btn-primary"
+                            display="always"/>
+                </header>
                 <field name="project_reference" string="Auftrag"/>
                 <field name="project_name"/>
                 <field name="customer_name"/>

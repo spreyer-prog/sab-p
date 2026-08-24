@@ -345,12 +345,24 @@ class SabProductionOrderDocuments(models.Model):
 
     def action_view_production_documents(self):
         self.ensure_one()
+        action = self.env.ref("sab_project.action_sab_production_documents").read()[0]
+        action.update(
+            {
+                "name": _("Protokolle & Fertigungsdokumente"),
+                "domain": [("production_order_id", "=", self.id)],
+                "context": {"default_production_order_id": self.id},
+                "target": "main",
+            }
+        )
         return {
-            "type": "ir.actions.act_window",
+            "type": "ir.actions.client",
+            "tag": "sab_open_suite_action",
             "name": _("Protokolle & Fertigungsdokumente"),
-            "res_model": "sab.production.document",
-            "view_mode": "list,form",
-            "domain": [("production_order_id", "=", self.id)],
-            "context": {"default_production_order_id": self.id},
-            "target": "current",
+            "target": "main",
+            "params": {
+                "menu_id": self.env.ref(
+                    "sab_project.sab_production_document_menu"
+                ).id,
+                "action": action,
+            },
         }

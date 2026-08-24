@@ -346,6 +346,9 @@
                     <field name="sab_supplier_delivery_note_file" filename="sab_supplier_delivery_note_filename"/>
                     <field name="sab_supplier_delivery_note_filename" invisible="1"/>
                 </group>
+                <div class="alert alert-info" role="alert" invisible="not sab_is_suite_receipt or state in ('done','cancel')">
+                    Nicht gelieferte Positionen können gelöscht oder auf Menge 0 gesetzt werden. Sie bleiben in der Bestellung offen und erscheinen automatisch im nächsten Wareneingang.
+                </div>
             </xpath>
         </field>
     </record>

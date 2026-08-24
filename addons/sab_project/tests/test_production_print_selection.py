@@ -110,6 +110,67 @@ class TestSabProductionPrintSelection(TransactionCase):
         )
         self.assertFalse(wizard.line_ids.sorted("cabinet_instance_no")[1].print_run_card)
 
+    def test_list_print_keeps_every_document_in_its_own_report_action(self):
+        self.production.action_prepare_production_documents()
+        documents = self.production.document_ids.filtered(
+            lambda document: document.document_type in ("run_card", "nameplate")
+            and document.cabinet_instance_no == 1
+        )
+
+        action = documents.action_print_documents_separately()
+
+        self.assertEqual(action["type"], "ir.actions.client")
+        self.assertEqual(action["tag"], "sab_production_multi_print")
+        self.assertEqual(
+            action["params"]["menu_id"],
+            self.env.ref("sab_project.sab_production_document_menu").id,
+        )
+        jobs = action["params"]["jobs"]
+        self.assertEqual(len(jobs), 2)
+        self.assertTrue(
+            all(len(job["action"]["context"]["active_ids"]) == 1 for job in jobs)
+        )
+        self.assertEqual(
+            {job["action"]["context"]["active_id"] for job in jobs},
+            set(documents.ids),
+        )
+        self.assertEqual(
+            {job["action"]["report_name"] for job in jobs},
+            {
+                "sab_project.report_sab_run_card_studio",
+                "sab_project.report_sab_nameplate_studio",
+            },
+        )
+
+    def test_generic_combined_report_is_not_bound_to_the_print_menu(self):
+        report = self.env.ref("sab_project.action_report_sab_production_documents")
+        self.assertFalse(report.binding_model_id)
+
+    def test_document_list_exposes_only_the_separate_print_button(self):
+        source = self.env.ref(
+            "sab_project.view_sab_production_document_list"
+        ).arch_db
+        self.assertIn("action_print_documents_separately", source)
+        self.assertIn("Ausgewählte Blätter einzeln drucken / speichern", source)
+
+    def test_document_navigation_returns_to_the_sab_p_suite(self):
+        action = self.production.action_view_production_documents()
+
+        self.assertEqual(action["type"], "ir.actions.client")
+        self.assertEqual(action["tag"], "sab_open_suite_action")
+        self.assertEqual(action["target"], "main")
+        self.assertEqual(
+            action["params"]["menu_id"],
+            self.env.ref("sab_project.sab_production_document_menu").id,
+        )
+        document_action = action["params"]["action"]
+        self.assertEqual(document_action["res_model"], "sab.production.document")
+        self.assertEqual(document_action["target"], "main")
+        self.assertEqual(
+            document_action["domain"],
+            [("production_order_id", "=", self.production.id)],
+        )
+
     def test_select_all_marks_every_sheet_and_renders_complete_folder(self):
         wizard = self._wizard()
 

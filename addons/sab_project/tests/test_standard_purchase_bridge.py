@@ -396,6 +396,52 @@ class TestSabStandardPurchaseBridge(AccountTestInvoicingCommon):
         self.assertEqual(requirement.stock_status, "received")
         self.assertEqual(requirement.shortage_quantity, 0.0)
 
+    def test_deleted_receipt_row_is_kept_as_zero_for_the_next_receipt(self):
+        _cabinet, _total, _package, requirement, purchase_order = (
+            self._confirm_standard_purchase_order()
+        )
+        receipt = purchase_order.picking_ids.filtered(
+            lambda picking: picking.picking_type_id.code == "incoming"
+            and picking.state != "cancel"
+        )
+        move = receipt.move_ids
+        self.assertEqual(len(move), 1)
+        ordered_quantity = move.product_uom_qty
+
+        receipt.write({"move_ids": [Command.delete(move.id)]})
+
+        move.invalidate_recordset()
+        purchase_order.order_line.invalidate_recordset()
+        self.assertTrue(move.exists())
+        self.assertEqual(move.picking_id, receipt)
+        self.assertEqual(move.quantity, 0.0)
+        self.assertEqual(move.product_uom_qty, ordered_quantity)
+        self.assertEqual(purchase_order.order_line.product_qty, ordered_quantity)
+        self.assertEqual(purchase_order.order_line.qty_received, 0.0)
+        self.assertEqual(requirement.odoo_purchase_line_id, purchase_order.order_line)
+
+    def test_upgrade_repairs_a_previously_deleted_open_receipt_move(self):
+        _cabinet, _total, _package, requirement, purchase_order = (
+            self._confirm_standard_purchase_order()
+        )
+        deleted_move = purchase_order.picking_ids.move_ids
+        ordered_quantity = purchase_order.order_line.product_qty
+        deleted_move.unlink()
+        self.assertFalse(deleted_move.exists())
+
+        self.env["purchase.order"]._sab_repair_open_receipt_moves()
+
+        purchase_order.invalidate_recordset()
+        repaired_moves = purchase_order.picking_ids.filtered(
+            lambda picking: picking.state not in ("done", "cancel")
+        ).move_ids.filtered(
+            lambda move: move.purchase_line_id == purchase_order.order_line
+        )
+        self.assertEqual(len(repaired_moves), 1)
+        self.assertEqual(repaired_moves.product_uom_qty, ordered_quantity)
+        self.assertEqual(repaired_moves.quantity, 0.0)
+        self.assertEqual(requirement.odoo_purchase_line_id, purchase_order.order_line)
+
     def test_three_way_mismatch_requires_current_explicit_approval(self):
         _cabinet, _total, _package, _requirement, purchase_order = (
             self._confirm_standard_purchase_order()

@@ -9,6 +9,7 @@ export class SabProductionMultiPrint extends Component {
 
     setup() {
         this.actionService = useService("action");
+        this.menuService = useService("menu");
         this.state = useState({
             current: 0,
             total: (this.props.action.params.jobs || []).length,
@@ -23,6 +24,10 @@ export class SabProductionMultiPrint extends Component {
 
     async _run() {
         const jobs = this.props.action.params.jobs || [];
+        const menuId = this.props.action.params.menu_id;
+        if (menuId) {
+            this.menuService.setCurrentMenu(menuId);
+        }
         try {
             for (const job of jobs) {
                 this.state.current += 1;
