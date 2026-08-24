@@ -15,7 +15,15 @@ class PurchaseOrderSabReceiptLineRepair(models.Model):
             ]
         )
         for order in orders:
+            order_lines = order.order_line
+            moves_before_repair = order_lines.move_ids
             order._create_picking()
+            order_lines.invalidate_recordset(["move_ids"])
+            repaired_moves = (order_lines.move_ids - moves_before_repair).filtered(
+                lambda move: move.state not in ("done", "cancel")
+            )
+            if repaired_moves:
+                repaired_moves.write({"quantity": 0.0})
         return True
 
 
