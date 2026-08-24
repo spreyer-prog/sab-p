@@ -313,6 +313,11 @@ class TestSabProductionPrintSelection(TransactionCase):
         reset = self.env.ref("sab_project.report_sab_studio_pdf_reset").arch_db
         self.assertIn("main.container", reset)
         self.assertIn("max-width: none", reset)
+        self.assertIn("print-color-adjust: exact", reset)
+
+        utf8_head = self.env.ref("sab_project.report_sab_utf8_head").arch_db
+        self.assertIn("Content-Type", utf8_head)
+        self.assertIn("charset=utf-8", utf8_head)
 
         report_views = (
             "sab_project.report_sab_conformity_studio",
@@ -329,3 +334,32 @@ class TestSabProductionPrintSelection(TransactionCase):
         for xmlid in report_views:
             source = self.env.ref(xmlid).with_context(lang=None).arch_db
             self.assertIn("report_sab_studio_pdf_reset", source)
+
+    def test_exact_layout_reports_use_calibrated_render_dpi(self):
+        corrected = (
+            "paperformat_sab_run_card_studio",
+            "paperformat_sab_production_test_studio",
+            "paperformat_sab_final_inspection_studio",
+            "paperformat_sab_missing_parts_studio",
+            "paperformat_sab_shipping_sheet_studio",
+            "paperformat_sab_add_pack_studio",
+            "paperformat_sab_nameplate_studio",
+            "paperformat_sab_info_sheet_studio",
+        )
+        for xmlid in corrected:
+            self.assertEqual(self.env.ref("sab_project.%s" % xmlid).dpi, 77)
+        for xmlid in (
+            "paperformat_sab_conformity_studio",
+            "paperformat_sab_folder_label_studio",
+        ):
+            self.assertEqual(self.env.ref("sab_project.%s" % xmlid).dpi, 90)
+
+    def test_inspection_and_missing_parts_grids_have_stable_css_hooks(self):
+        expectations = {
+            "sab_project.report_sab_production_test_studio_page": "sab-production-test-grid",
+            "sab_project.report_sab_final_inspection_studio_page": "sab-final-inspection-grid",
+            "sab_project.report_sab_missing_parts_studio_page": "sab-missing-parts-grid",
+        }
+        for xmlid, css_class in expectations.items():
+            source = self.env.ref(xmlid).with_context(lang=None).arch_db
+            self.assertIn(css_class, source)

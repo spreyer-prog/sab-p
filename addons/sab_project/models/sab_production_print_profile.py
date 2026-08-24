@@ -205,6 +205,7 @@ class SabProductionPrintProfile(models.Model):
         # configured 297 x 210 mm landscape sheet is emitted as A4 portrait.
         short_edge = min(self.width_mm, self.height_mm)
         long_edge = max(self.width_mm, self.height_mm)
+        render_dpi = 90 if self.document_type in {"folder_label", "conformity"} else 77
         paper_values = {
             "name": profile_key,
             "format": "custom",
@@ -215,7 +216,11 @@ class SabProductionPrintProfile(models.Model):
             "margin_bottom": self.margin_bottom_mm,
             "margin_left": self.margin_left_mm,
             "margin_right": self.margin_right_mm,
-            "dpi": 90,
+            # Odoo/wkhtmltopdf renders the full-page production canvases at
+            # about 85.3 % when using 90 DPI. 77 DPI compensates that factor.
+            # Folder label and conformity use flowing layouts calibrated at
+            # the regular 90 DPI and must not receive that correction.
+            "dpi": render_dpi,
         }
         if paperformat:
             paperformat.write(paper_values)

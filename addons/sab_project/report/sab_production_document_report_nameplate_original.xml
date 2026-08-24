@@ -7,7 +7,7 @@
             <t t-elif="doc.document_type == 'nameplate'" t-translation="off">
                 <!-- Typenschild.pdf: 265 x 176 mm Querformat; Druckbild rechts auf dem Träger. -->
                 <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
-                    <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; transform:scale(1.52,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
+                    <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; -webkit-transform:scaleY(1.48); transform:scaleY(1.48); -webkit-transform-origin:top left; transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
                         <table style="border:0; width:100%; height:18.5mm; margin:0 0 0.9mm 0; table-layout:fixed;">
                             <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
                             <tr>
@@ -51,7 +51,7 @@
         <field name="margin_bottom">0</field>
         <field name="margin_left">0</field>
         <field name="margin_right">0</field>
-        <field name="dpi">90</field>
+        <field name="dpi">77</field>
     </record>
 
     <record id="action_report_sab_nameplate_studio" model="ir.actions.report">
@@ -77,7 +77,7 @@
         <div class="page" name="sab_nameplate_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <!-- Typenschild.pdf: 265 x 176 mm Querformat; Druckbild rechts auf dem Träger. -->
                 <div style="position:relative; width:265mm; height:176mm; margin:0; padding:0; overflow:hidden; font-family:'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
-                    <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; transform:scale(1.52,1.43); transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
+                    <div style="position:absolute; left:94mm; top:3.5mm; width:110.2mm; height:116mm; -webkit-transform:scaleY(1.48); transform:scaleY(1.48); -webkit-transform-origin:top left; transform-origin:top left; overflow:hidden; box-sizing:border-box; font-size:5.1pt; line-height:1.03;">
                         <table style="border:0; width:100%; height:18.5mm; margin:0 0 0.9mm 0; table-layout:fixed;">
                             <colgroup><col style="width:59.2mm;"/><col style="width:51.0mm;"/></colgroup>
                             <tr>

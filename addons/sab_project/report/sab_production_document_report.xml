@@ -169,9 +169,18 @@
         </t>
     </template>
 
+    <!-- wkhtmltopdf must receive an explicit HTTP content type. The regular
+         HTML5 charset marker is not sufficient on every Odoo.sh image and
+         otherwise UTF-8 text can be decoded as Latin-1. -->
+    <template id="report_sab_utf8_head" inherit_id="web.report_layout" priority="99">
+        <xpath expr="//head" position="inside">
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        </xpath>
+    </template>
+
     <!-- Bootstrap begrenzt <main class="container"> sonst auf eine feste
-         Bildschirmbreite. wkhtmltopdf verkleinert dadurch millimetergenaue
-         Vorlagen auf ca. 85 %. Dieser Reset erhält die realen Druckmaße. -->
+         Bildschirmbreite. Dieser Reset gibt millimetergenauen Vorlagen die
+         gesamte vom jeweiligen Papierformat bereitgestellte Fläche. -->
     <template id="report_sab_studio_pdf_reset">
         <style>
             html, body, #wrapwrap, main.container {
@@ -180,6 +189,10 @@
                 min-width: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         </style>
     </template>

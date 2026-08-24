@@ -6,10 +6,11 @@
         <xpath expr="//t[@t-else]" position="before">
             <t t-elif="doc.document_type == 'conformity'" t-translation="off">
                 <style>
-                    .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
+                    .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; padding-top:10mm; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
                     .sab-conf-page:last-child { page-break-after:auto; break-after:auto; }
-                    .sab-conf-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:7mm; }
-                    .sab-conf-logo { max-width:55mm; max-height:25mm; object-fit:contain; }
+                    .sab-conf-head { display:block; position:relative; min-height:25mm; margin-bottom:7mm; }
+                    .sab-conf-head &gt; div { padding-right:60mm; }
+                    .sab-conf-logo { position:absolute; right:0; top:0; max-width:55mm; max-height:25mm; object-fit:contain; }
                     .sab-conf-title { font-size:15pt; font-weight:700; margin:0 0 7mm 0; }
                     .sab-conf-subtitle { font-size:11pt; font-weight:700; margin:5mm 0 3mm 0; }
                     .sab-conf-rule { border-top:0.25mm solid #777; margin:2mm 0; }
@@ -28,7 +29,7 @@
                 <!-- Seite 1: Deckblatt & Übersicht -->
                 <div class="sab-conf-page">
                     <div class="sab-conf-head">
-                        <div class="sab-conf-title" style="margin-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
+                        <div class="sab-conf-title" style="padding-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
                         <img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/>
                     </div>
                     <div class="sab-conf-rule"></div>
@@ -169,10 +170,11 @@
     <template id="report_sab_conformity_studio_page">
         <div class="page" name="sab_conformity_studio_page" t-translation="off" style="margin:0; padding:0;">
                 <style>
-                    .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
+                    .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; padding-top:10mm; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
                     .sab-conf-page:last-child { page-break-after:auto; break-after:auto; }
-                    .sab-conf-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:7mm; }
-                    .sab-conf-logo { max-width:55mm; max-height:25mm; object-fit:contain; }
+                    .sab-conf-head { display:block; position:relative; min-height:25mm; margin-bottom:7mm; }
+                    .sab-conf-head &gt; div { padding-right:60mm; }
+                    .sab-conf-logo { position:absolute; right:0; top:0; max-width:55mm; max-height:25mm; object-fit:contain; }
                     .sab-conf-title { font-size:15pt; font-weight:700; margin:0 0 7mm 0; }
                     .sab-conf-subtitle { font-size:11pt; font-weight:700; margin:5mm 0 3mm 0; }
                     .sab-conf-rule { border-top:0.25mm solid #777; margin:2mm 0; }
@@ -191,7 +193,7 @@
                 <!-- Seite 1: Deckblatt & Übersicht -->
                 <div class="sab-conf-page">
                     <div class="sab-conf-head">
-                        <div class="sab-conf-title" style="margin-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
+                        <div class="sab-conf-title" style="padding-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
                         <img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/>
                     </div>
                     <div class="sab-conf-rule"></div>

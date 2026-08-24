@@ -15,7 +15,7 @@
                             <tr style="height:4.35mm;"><td style="padding:0;">Auftragsnr./Komission:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Verteiler:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
                         </table>
-                        <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
+                        <table class="sab-production-test-grid" style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
                             <colgroup><col style="width:10.6mm;"/><col style="width:74.1mm;"/><col style="width:26.5mm;"/><col style="width:63.5mm;"/></colgroup>
                             <tr style="height:8.7mm;"><th colspan="2" style="border:0.18mm solid #000; padding:0.4mm 0.6mm; text-align:left; vertical-align:top;">Durchgeführte Prüfungen</th><th colspan="2" style="border:0.18mm solid #000; padding:0.4mm 0.6mm; text-align:left; vertical-align:top;">Legende<br/><span style="font-weight:400; font-size:4.7pt;">iO - in Ordnung | niO - nicht in Ordnung | nr - nicht relevant</span></th></tr>
                             <tr style="height:8.7mm; font-weight:700;"><td style="border:0.18mm solid #000; text-align:center;">1.)</td><td style="border:0.18mm solid #000; padding:0.35mm 0.6mm;">Sichtprüfung</td><td style="border:0.18mm solid #000; text-align:center;">Ergebnis</td><td style="border:0.18mm solid #000; padding:0.25mm 0.6mm;">Bemerkung<br/><span style="font-weight:400; font-size:4.4pt;">Nur bei Abweichung/Einschränkung ausfüllen</span></td></tr>
@@ -61,7 +61,7 @@
                     </div>
                     <style>
                         #wrapwrap table td, #wrapwrap table th { box-sizing:border-box; }
-                        #wrapwrap table:nth-of-type(2) td, #wrapwrap table:nth-of-type(2) th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
+                        #wrapwrap table.sab-production-test-grid td, #wrapwrap table.sab-production-test-grid th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
                         #wrapwrap td.n { text-align:left; }
                     </style>
                 </div>
@@ -80,7 +80,7 @@
         <field name="margin_bottom">0</field>
         <field name="margin_left">0</field>
         <field name="margin_right">0</field>
-        <field name="dpi">90</field>
+        <field name="dpi">77</field>
     </record>
 
     <record id="action_report_sab_production_test_studio" model="ir.actions.report">
@@ -114,7 +114,7 @@
                             <tr style="height:4.35mm;"><td style="padding:0;">Auftragsnr./Komission:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Verteiler:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
                         </table>
-                        <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
+                        <table class="sab-production-test-grid" style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
                             <colgroup><col style="width:10.6mm;"/><col style="width:74.1mm;"/><col style="width:26.5mm;"/><col style="width:63.5mm;"/></colgroup>
                             <tr style="height:8.7mm;"><th colspan="2" style="border:0.18mm solid #000; padding:0.4mm 0.6mm; text-align:left; vertical-align:top;">Durchgeführte Prüfungen</th><th colspan="2" style="border:0.18mm solid #000; padding:0.4mm 0.6mm; text-align:left; vertical-align:top;">Legende<br/><span style="font-weight:400; font-size:4.7pt;">iO - in Ordnung | niO - nicht in Ordnung | nr - nicht relevant</span></th></tr>
                             <tr style="height:8.7mm; font-weight:700;"><td style="border:0.18mm solid #000; text-align:center;">1.)</td><td style="border:0.18mm solid #000; padding:0.35mm 0.6mm;">Sichtprüfung</td><td style="border:0.18mm solid #000; text-align:center;">Ergebnis</td><td style="border:0.18mm solid #000; padding:0.25mm 0.6mm;">Bemerkung<br/><span style="font-weight:400; font-size:4.4pt;">Nur bei Abweichung/Einschränkung ausfüllen</span></td></tr>
@@ -160,7 +160,7 @@
                     </div>
                     <style>
                         #wrapwrap table td, #wrapwrap table th { box-sizing:border-box; }
-                        #wrapwrap table:nth-of-type(2) td, #wrapwrap table:nth-of-type(2) th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
+                        #wrapwrap table.sab-production-test-grid td, #wrapwrap table.sab-production-test-grid th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
                         #wrapwrap td.n { text-align:left; }
                     </style>
                 </div>

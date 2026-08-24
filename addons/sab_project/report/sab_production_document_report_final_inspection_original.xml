@@ -15,7 +15,7 @@
                             <tr style="height:4.35mm;"><td style="padding:0;">Auftragsnr./Komission:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Verteiler:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
                         </table>
-                        <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
+                        <table class="sab-final-inspection-grid" style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
                             <colgroup><col style="width:10.6mm;"/><col style="width:74.1mm;"/><col style="width:26.5mm;"/><col style="width:63.5mm;"/></colgroup>
                             <tr style="height:8.7mm;"><th colspan="4" style="border:0.18mm solid #000; padding:0.4mm 0.6mm; text-align:left; vertical-align:top;">Durchgeführte Kontrollen</th></tr>
                             <tr style="height:8.7mm; font-weight:700;"><td style="text-align:center;">1.)</td><td>Mechanische Kontrolle</td><td>Prüfer<br/>(Kürzel)</td><td>Bemerkung<br/><span style="font-weight:400; font-size:4.4pt;">Nur bei Abweichung/Einschränkung ausfüllen</span></td></tr>
@@ -47,7 +47,7 @@
                         <div style="position:absolute; left:0; right:0; bottom:0; border-top:0.18mm solid #777; padding-top:1mm; font-size:4.5pt; display:flex; justify-content:space-between;"><span>SP_PRF-PR_D3</span><span>Copyright © 2018 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
                     </div>
                     <style>
-                        #wrapwrap table:nth-of-type(2) td, #wrapwrap table:nth-of-type(2) th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
+                        #wrapwrap table.sab-final-inspection-grid td, #wrapwrap table.sab-final-inspection-grid th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
                     </style>
                 </div>
             </t>
@@ -65,7 +65,7 @@
         <field name="margin_bottom">0</field>
         <field name="margin_left">0</field>
         <field name="margin_right">0</field>
-        <field name="dpi">90</field>
+        <field name="dpi">77</field>
     </record>
 
     <record id="action_report_sab_final_inspection_studio" model="ir.actions.report">
@@ -99,7 +99,7 @@
                             <tr style="height:4.35mm;"><td style="padding:0;">Auftragsnr./Komission:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
                             <tr style="height:4.35mm;"><td style="padding:0;">Verteiler:</td><td colspan="2" style="border:0.18mm solid #000; padding:0.25mm 0.6mm;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
                         </table>
-                        <table style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
+                        <table class="sab-final-inspection-grid" style="border-collapse:collapse; table-layout:fixed; width:174.7mm; font-size:6.2pt; line-height:1.0;">
                             <colgroup><col style="width:10.6mm;"/><col style="width:74.1mm;"/><col style="width:26.5mm;"/><col style="width:63.5mm;"/></colgroup>
                             <tr style="height:8.7mm;"><th colspan="4" style="border:0.18mm solid #000; padding:0.4mm 0.6mm; text-align:left; vertical-align:top;">Durchgeführte Kontrollen</th></tr>
                             <tr style="height:8.7mm; font-weight:700;"><td style="text-align:center;">1.)</td><td>Mechanische Kontrolle</td><td>Prüfer<br/>(Kürzel)</td><td>Bemerkung<br/><span style="font-weight:400; font-size:4.4pt;">Nur bei Abweichung/Einschränkung ausfüllen</span></td></tr>
@@ -131,7 +131,7 @@
                         <div style="position:absolute; left:0; right:0; bottom:0; border-top:0.18mm solid #777; padding-top:1mm; font-size:4.5pt; display:flex; justify-content:space-between;"><span>SP_PRF-PR_D3</span><span>Copyright © 2018 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
                     </div>
                     <style>
-                        #wrapwrap table:nth-of-type(2) td, #wrapwrap table:nth-of-type(2) th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
+                        #wrapwrap table.sab-final-inspection-grid td, #wrapwrap table.sab-final-inspection-grid th { border:0.18mm solid #000; padding:0.25mm 0.55mm; vertical-align:middle; overflow-wrap:break-word; }
                     </style>
                 </div>
         </div>

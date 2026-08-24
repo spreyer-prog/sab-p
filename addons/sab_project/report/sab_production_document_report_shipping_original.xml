@@ -29,7 +29,7 @@
         <field name="margin_bottom">0</field>
         <field name="margin_left">0</field>
         <field name="margin_right">0</field>
-        <field name="dpi">90</field>
+        <field name="dpi">77</field>
     </record>
 
     <record id="action_report_sab_shipping_sheet_studio" model="ir.actions.report">
