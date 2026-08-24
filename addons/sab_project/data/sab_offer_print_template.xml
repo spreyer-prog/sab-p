@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="sab_offer_print_template_default" model="sab.offer.print.template">
+        <field name="name">SAB-P Angebot nach Originalvorlage</field>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="paper_format">a4</field>
+        <field name="orientation">portrait</field>
+        <field name="margin_top_mm">10</field>
+        <field name="margin_bottom_mm">12</field>
+        <field name="margin_left_mm">12</field>
+        <field name="margin_right_mm">12</field>
+        <field name="binding_days">30</field>
+        <field name="footer_manager_name">Sascha Preyer</field>
+        <field name="scope_html" type="html">
+            <p>Die Leistung umfasst ausschließlich die Lieferung der spezifischen Anlage. Dem Angebot gegebenenfalls beigefügte Zeichnungsunterlagen stellen eine Prinziplösung dar und werden bei Auftragsbearbeitung, falls erforderlich, konkretisiert.</p>
+        </field>
+        <field name="reservations_html" type="html">
+            <p>Dieses Angebot und die Vertragserfüllung stehen unter dem Vorbehalt, dass die erforderlichen Genehmigungen erteilt werden und keine sonstigen rechtlichen oder tatsächlichen Hindernisse entgegenstehen.</p>
+        </field>
+        <field name="conditions_html" type="html">
+            <p>In Ergänzung der vorstehenden Regelungen gelten die in dieser Vorlage hinterlegten Allgemeinen Verkaufsbedingungen der SAB-P GmbH.</p>
+            <p>Einkaufsbedingungen oder sonstige kundenseitige Geschäftsbedingungen gelten nur, soweit wir sie schriftlich bestätigen.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_receipt_assignment_list_list" model="ir.ui.view">
+        <field name="name">sab.receipt.assignment.list.list</field>
+        <field name="model">sab.receipt.assignment.list</field>
+        <field name="arch" type="xml">
+            <list string="Kommissionierungs- und Projektzuordnungslisten" create="0" delete="0">
+                <field name="name"/>
+                <field name="picking_id"/>
+                <field name="partner_id"/>
+                <field name="purchase_order_ids" widget="many2many_tags"/>
+                <field name="generated_at"/>
+                <field name="printer_name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_receipt_assignment_list_form" model="ir.ui.view">
+        <field name="name">sab.receipt.assignment.list.form</field>
+        <field name="model">sab.receipt.assignment.list</field>
+        <field name="arch" type="xml">
+            <form string="Kommissionierungs- und Projektzuordnungsliste" create="0" delete="0">
+                <header>
+                    <button name="action_print" type="object" string="Drucken" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group col="4">
+                        <field name="name"/>
+                        <field name="picking_id"/>
+                        <field name="partner_id"/>
+                        <field name="purchase_order_ids" widget="many2many_tags"/>
+                        <field name="generated_at"/>
+                        <field name="printer_name"/>
+                    </group>
+                    <field name="line_ids" nolabel="1">
+                        <list create="0" delete="0">
+                            <field name="product_id"/>
+                            <field name="supplier_article_number" optional="show"/>
+                            <field name="project_id"/>
+                            <field name="source_cabinet_bom_id"/>
+                            <field name="procurement_bom_id" optional="show"/>
+                            <field name="quantity_received" sum="Geliefert"/>
+                            <field name="quantity_project" sum="Projektmenge"/>
+                            <field name="quantity_free_stock" sum="Freier Lagerbestand"/>
+                            <field name="uom_id"/>
+                            <field name="destination_location_id"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_receipt_assignment_lists" model="ir.actions.act_window">
+        <field name="name">Projektzuordnungslisten</field>
+        <field name="res_model">sab.receipt.assignment.list</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem id="menu_sab_receipt_assignment_lists"
+              name="Projektzuordnungslisten"
+              parent="sab_stock_root_menu"
+              action="action_sab_receipt_assignment_lists"
+              sequence="40"
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,project.group_project_manager"/>
+
+    <record id="view_sab_standard_receipt_form_assignment_list" model="ir.ui.view">
+        <field name="name">stock.picking.sab.receipt.assignment.list</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="priority">560</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_receipt_assignment_lists"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-tasks"
+                        invisible="not sab_is_suite_receipt or not sab_receipt_assignment_list_count">
+                    <field name="sab_receipt_assignment_list_count" widget="statinfo" string="Projektzuordnung"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

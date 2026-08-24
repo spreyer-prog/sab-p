@@ -1,22 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- A26.xxxx auch in der normalen Odoo-Projektliste sichtbar machen. -->
+    <record id="sab_standard_project_list_inherit" model="ir.ui.view">
+        <field name="name">project.project.list.sab.reference</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="sab_project_reference" string="Projekt-Nr." readonly="1"/>
+            </field>
+        </field>
+    </record>
+
     <record id="sab_project_overview_list" model="ir.ui.view">
         <field name="name">project.project.list.sab.overview</field>
         <field name="model">project.project</field>
+        <field name="priority">100</field>
         <field name="arch" type="xml">
             <list string="SAB-P Projektübersicht"
                   decoration-success="sab_status == 'won'"
                   decoration-danger="sab_status == 'lost'"
                   decoration-info="sab_status == 'customer_awarded'"
                   default_order="sab_project_reference desc">
-                <field name="sab_project_reference" string="Projekt-Nr."/>
-                <field name="sab_request_date" string="Datum"/>
+                <field name="sab_project_reference" string="Projekt-Nr." readonly="1"/>
+                <field name="sab_request_date" string="Datum" optional="show"/>
                 <field name="sab_status"
                        string="Status"
                        widget="badge"
+                       optional="show"
                        decoration-success="sab_status == 'won'"
                        decoration-danger="sab_status == 'lost'"
                        decoration-info="sab_status == 'customer_awarded'"/>
+                <field name="sab_procurement_state" string="Materialstatus" widget="badge" optional="show"/>
+                <field name="sab_material_missing_percent" string="Material fehlt (%)" optional="show"/>
                 <field name="name" string="Projekt"/>
                 <field name="sab_commission" string="Kommission" optional="show"/>
                 <field name="sab_offer_identifier" string="Angebotskennzeichen" optional="hide"/>
@@ -24,10 +41,22 @@
                 <field name="partner_id" string="Kunde"/>
                 <field name="user_id" string="Bearbeiter"/>
                 <field name="sab_follow_up_date" string="Wiedervorlage" optional="hide"/>
-                <field name="sab_offer_amount" string="Gesamtangebot" sum="Gesamt"/>
-                <field name="sab_inquiry_type_id" string="Art der Anfrage"/>
-                <field name="sab_technology_id" string="Technik"/>
-                <field name="sab_service_type_id" string="Leistungsart"/>
+                <field name="sab_offer_amount" string="Gesamtangebot" sum="Gesamt" optional="show"/>
+                <field name="sab_switchboard_count" string="Verteiler" optional="show"/>
+                <field name="sab_purchase_order_count" string="Bestellungen" optional="show"/>
+                <button name="action_view_sab_switchboards"
+                        type="object"
+                        string="Verteiler öffnen"
+                        icon="fa-th-large"
+                        invisible="sab_switchboard_count == 0"/>
+                <button name="action_view_sab_purchase_orders"
+                        type="object"
+                        string="Bestellungen öffnen"
+                        icon="fa-shopping-cart"
+                        invisible="sab_purchase_order_count == 0"/>
+                <field name="sab_inquiry_type_id" string="Art der Anfrage" optional="show"/>
+                <field name="sab_technology_id" string="Technik" optional="show"/>
+                <field name="sab_service_type_id" string="Leistungsart" optional="show"/>
             </list>
         </field>
     </record>
@@ -36,11 +65,9 @@
         <field name="name">SAB-P Projektübersicht</field>
         <field name="res_model">project.project</field>
         <field name="view_mode">list,form</field>
-        <field name="views" eval="[(ref('sab_project_overview_list'), 'list'), (False, 'form')]"/>
+        <field name="view_id" ref="sab_project_overview_list"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Neues SAB-P Projekt anlegen
-            </p>
+            <p class="o_view_nocontent_smiling_face">Neues SAB-P Projekt anlegen</p>
         </field>
     </record>
 

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_sab_supplier_tree" model="ir.ui.view">
+        <field name="name">sab.supplier.tree</field>
+        <field name="model">sab.supplier</field>
+        <field name="arch" type="xml">
+            <list string="Lieferanten">
+                <header><button name="%(action_sab_supplier_import)d" type="action" string="Lieferanten importieren" class="btn-primary" display="always"/></header>
+                <field name="supplier_number"/>
+                <field name="name"/>
+                <field name="partner_id" optional="show"/>
+                <field name="datanorm_identifier"/>
+                <field name="datanorm_price_as_purchase_price" optional="show"/>
+                <field name="website"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_supplier_form" model="ir.ui.view">
+        <field name="name">sab.supplier.form</field>
+        <field name="model">sab.supplier</field>
+        <field name="arch" type="xml">
+            <form string="Lieferant">
+                <header>
+                    <button name="%(action_sab_supplier_price_import)d" type="action" string="Preis-/Rabattliste importieren" class="btn-primary" context="{'default_supplier_id': id}"/>
+                </header>
+                <sheet>
+                    <group string="Stammdaten" col="4">
+                        <field name="supplier_number"/>
+                        <field name="active"/>
+                        <field name="name" colspan="4"/>
+                        <field name="partner_id"/>
+                        <field name="website"/>
+                    </group>
+                    <group string="DATANORM" col="4">
+                        <field name="datanorm_identifier"/>
+                        <field name="datanorm_price_as_purchase_price"/>
+                    </group>
+                    <notebook>
+                        <page string="Notizen"><field name="note"/></page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_supplier" model="ir.actions.act_window">
+        <field name="name">Lieferanten</field>
+        <field name="res_model">sab.supplier</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="sab_supplier_menu" name="Lieferanten" parent="sab_calculation_root_menu" action="action_sab_supplier" sequence="40"/>
+
+</odoo>

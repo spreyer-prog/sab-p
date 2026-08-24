@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_standard_purchase_order_form_mandatory_approval" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.form.mandatory.approval</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">540</field>
+        <field name="arch" type="xml">
+            <button id="bid_confirm" position="attributes">
+                <attribute name="invisible">state != 'sent' or sab_is_suite_order</attribute>
+            </button>
+            <button id="draft_confirm" position="attributes">
+                <attribute name="invisible">state != 'draft' or sab_is_suite_order</attribute>
+            </button>
+            <button name="button_approve" position="attributes">
+                <attribute name="invisible">state != 'to approve' or sab_is_suite_order</attribute>
+            </button>
+            <button name="button_draft" position="attributes">
+                <attribute name="invisible">state != 'cancel' or sab_is_suite_order</attribute>
+            </button>
+            <button name="button_cancel" position="attributes">
+                <attribute name="invisible">state not in ('draft', 'to approve', 'sent', 'purchase') or locked or sab_is_suite_order</attribute>
+            </button>
+            <xpath expr="(//button[@name='action_rfq_send'])[1]" position="attributes">
+                <attribute name="invisible">state != 'draft' or sab_is_suite_order</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_rfq_send'])[2]" position="attributes">
+                <attribute name="invisible">state != 'sent' or sab_is_suite_order</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_rfq_send'])[3]" position="attributes">
+                <attribute name="invisible">state != 'purchase' or sab_is_suite_order</attribute>
+            </xpath>
+            <xpath expr="//form/header" position="inside">
+                <button name="button_confirm"
+                        type="object"
+                        string="Zur Bestellfreigabe vorlegen"
+                        class="oe_highlight"
+                        invisible="not sab_is_suite_order or state not in ('draft','sent')"
+                        groups="sab_project.group_sab_purchasing"/>
+                <button name="button_approve"
+                        type="object"
+                        string="Bestellung freigeben"
+                        class="oe_highlight"
+                        invisible="not sab_is_suite_order or state != 'to approve'"
+                        groups="sab_project.group_sab_purchase_approver"/>
+                <button name="action_rfq_send"
+                        type="object"
+                        string="Bestellung per E-Mail senden"
+                        context="{'send_rfq': False}"
+                        invisible="not sab_is_suite_order or state != 'purchase'"
+                        groups="sab_project.group_sab_purchasing"/>
+                <button name="button_cancel"
+                        type="object"
+                        string="SAB-P-Bestellung stornieren"
+                        invisible="not sab_is_suite_order or state not in ('draft','sent','to approve','purchase') or locked"
+                        groups="sab_project.group_sab_purchasing"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

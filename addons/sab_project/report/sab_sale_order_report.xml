@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sab_report_saleorder_document" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//table[hasclass('o_main_table')]" position="attributes">
+            <attribute name="t-if">not doc.sab_calculation_line_ids</attribute>
+        </xpath>
+        <xpath expr="//table[hasclass('o_main_table')]" position="after">
+            <t t-if="doc.sab_project_id"
+               t-set="sab_output_release"
+               t-value="doc._sab_check_offer_output_release()"/>
+            <table t-if="doc.sab_calculation_line_ids"
+                   class="o_has_total_table table o_main_table table-borderless">
+                <thead style="display: table-row-group">
+                    <tr>
+                        <th class="text-start" style="width: 11%;">LV / Pos.</th>
+                        <th class="text-start">Beschreibung</th>
+                        <th class="text-end text-nowrap" style="width: 10%;">Menge</th>
+                        <th class="text-end text-nowrap" style="width: 15%;">Einzelpreis</th>
+                        <th class="text-end text-nowrap" style="width: 15%;">Gesamtpreis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="sab_pos" t-value="0"/>
+                    <t t-foreach="doc.sab_calculation_line_ids.sorted(key=lambda l: (l.sequence, l.id))" t-as="line">
+                        <t t-if="line.line_type == 'cabinet'">
+                            <tr class="sab-structure-spacer sab-cabinet-spacer" aria-hidden="true">
+                                <td colspan="5" style="height: 18px; min-height: 18px; padding: 0; border: 0; line-height: 18px;">&#160;</td>
+                            </tr>
+                            <tr class="fw-bold border-top border-bottom">
+                                <td></td>
+                                <td class="text-center"><span t-out="line.description"/></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-end text-nowrap">
+                                    <span t-out="line.cabinet_total"
+                                          t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-elif="line.line_type == 'section'">
+                            <tr class="sab-structure-spacer sab-component-spacer sab-component-spacer-before" aria-hidden="true">
+                                <td colspan="5" style="height: 16px; min-height: 16px; padding: 0; border: 0; line-height: 16px;">&#160;</td>
+                            </tr>
+                            <t t-set="sab_pos" t-value="sab_pos + 1"/>
+                            <tr class="fw-bold border-top">
+                                <td class="text-start">
+                                    <span t-out="line.lv_position or line.schematic_reference or sab_pos"/>
+                                </td>
+                                <td class="text-start"
+                                    t-att-style="'padding-left: 8px;' if line.parent_cabinet_id else ''">
+                                    <span t-out="line.description"/>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/>
+                                </td>
+                                <td></td>
+                                <td class="text-end text-nowrap">
+                                    <span t-out="line.section_total"
+                                          t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-elif="line.line_type == 'info'">
+                            <tr class="fst-italic">
+                                <td></td>
+                                <td colspan="4" class="text-start">
+                                    <span t-out="line.description"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-elif="line.line_type == 'item'">
+                            <t t-set="sab_pos" t-value="sab_pos + 1"/>
+                            <tr>
+                                <td class="text-start">
+                                    <span t-if="line.parent_section_id">↳ </span>
+                                    <span t-if="not line.parent_section_id"
+                                          t-out="line.lv_position or line.schematic_reference or (('NTG ' + str(sab_pos)) if line.is_ntg else sab_pos)"/>
+                                </td>
+                                <td class="text-start"
+                                    t-att-style="'padding-left: 16px;' if line.parent_section_id and line.parent_cabinet_id else ('padding-left: 8px;' if line.parent_section_id else '')">
+                                    <span t-out="line.description or (line.calculation_item_id and (line.calculation_item_id.quotation_text or line.calculation_item_id.name)) or (line.odoo_product_id and line.odoo_product_id.display_name) or ''"/>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <span t-out="line.quantity" t-options="{'widget': 'float', 'precision': 2}"/>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <span t-out="line.unit_recommended_net_price"
+                                          t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <span t-out="line.recommended_net_price"
+                                          t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-elif="line.line_type == 'section_end'">
+                            <tr class="sab-structure-spacer sab-component-spacer sab-component-spacer-after" aria-hidden="true">
+                                <td colspan="5" style="height: 16px; min-height: 16px; padding: 0; border: 0; line-height: 16px;">&#160;</td>
+                            </tr>
+                        </t>
+                        <t t-elif="line.line_type == 'cabinet_end'">
+                            <tr class="sab-structure-spacer sab-cabinet-spacer" aria-hidden="true">
+                                <td colspan="5" style="height: 18px; min-height: 18px; padding: 0; border: 0; line-height: 18px;">&#160;</td>
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </table>
+        </xpath>
+        <xpath expr="//div[@name='so_total_summary']" position="attributes">
+            <attribute name="t-if">not doc.sab_calculation_line_ids</attribute>
+        </xpath>
+        <xpath expr="//div[@name='so_total_summary']" position="after">
+            <div t-if="doc.sab_calculation_line_ids" class="clearfix" name="sab_total_summary">
+                <div class="row mt-2">
+                    <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
+                        <table class="o_total_table table table-borderless">
+                            <tr>
+                                <td class="text-start">Nettobetrag</td>
+                                <td class="text-end">
+                                    <span t-out="doc.sab_offer_subtotal"
+                                          t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/>
+                                </td>
+                            </tr>
+                            <tr t-if="doc.sab_object_discount_percent">
+                                <td>Objektnachlass <span t-out="doc.sab_object_discount_percent"/> %</td>
+                                <td class="text-end">- <span t-out="doc.sab_object_discount_amount" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                            <tr t-if="doc.sab_transport_cost">
+                                <td>Transport</td>
+                                <td class="text-end"><span t-out="doc.sab_transport_cost" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                            <tr>
+                                <td>Netto-Angebotssumme</td>
+                                <td class="text-end"><span t-out="doc.sab_offer_net_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                            <tr>
+                                <td>Umsatzsteuer <span t-out="doc.sab_vat_rate"/> %</td>
+                                <td class="text-end"><span t-out="doc.sab_offer_vat_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                            <tr class="fw-bold border-top">
+                                <td>Brutto-Angebotssumme</td>
+                                <td class="text-end"><span t-out="doc.sab_offer_gross_total" t-options="{'widget': 'monetary', 'display_currency': doc.currency_id}"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

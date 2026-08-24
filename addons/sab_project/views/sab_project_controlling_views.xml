@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_project_controlling_list" model="ir.ui.view">
+        <field name="name">sab.project.controlling.list</field>
+        <field name="model">sab.project.controlling</field>
+        <field name="arch" type="xml">
+            <list string="Nachkalkulation">
+                <field name="project_id"/>
+                <field name="result_status"/>
+                <field name="calculated_hours"/>
+                <field name="actual_hours"/>
+                <field name="hours_variance"/>
+                <field name="hours_variance_percent"/>
+                <field name="actual_labor_cost"/>
+                <field name="material_issue_cost"/>
+                <field name="actual_direct_cost"/>
+                <field name="offer_amount"/>
+                <field name="contribution_margin"/>
+                <field name="contribution_margin_percent"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_project_controlling_form" model="ir.ui.view">
+        <field name="name">sab.project.controlling.form</field>
+        <field name="model">sab.project.controlling</field>
+        <field name="arch" type="xml">
+            <form string="SAB-P Nachkalkulation">
+                <sheet>
+                    <group string="Projekt" col="4">
+                        <field name="project_id"/>
+                        <field name="result_status" readonly="1"/>
+                        <field name="contribution_margin_percent" readonly="1"/>
+                    </group>
+                    <group string="Zeit" col="4">
+                        <field name="calculated_hours" readonly="1"/>
+                        <field name="actual_hours" readonly="1"/>
+                        <field name="hours_variance" readonly="1"/>
+                        <field name="hours_variance_percent" readonly="1"/>
+                    </group>
+                    <group string="Kosten / Ergebnis" col="4">
+                        <field name="actual_labor_cost" readonly="1"/>
+                        <field name="material_issue_cost" readonly="1"/>
+                        <field name="actual_direct_cost" readonly="1"/>
+                        <field name="offer_amount" readonly="1"/>
+                        <field name="contribution_margin" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sab_project_controlling_pivot" model="ir.ui.view">
+        <field name="name">sab.project.controlling.pivot</field>
+        <field name="model">sab.project.controlling</field>
+        <field name="arch" type="xml">
+            <pivot string="Projektcontrolling">
+                <field name="project_id" type="row"/>
+                <field name="offer_amount" type="measure"/>
+                <field name="actual_direct_cost" type="measure"/>
+                <field name="contribution_margin" type="measure"/>
+                <field name="actual_hours" type="measure"/>
+                <field name="calculated_hours" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_sab_project_controlling_graph" model="ir.ui.view">
+        <field name="name">sab.project.controlling.graph</field>
+        <field name="model">sab.project.controlling</field>
+        <field name="arch" type="xml">
+            <graph string="Projektcontrolling" type="bar">
+                <field name="project_id"/>
+                <field name="offer_amount" type="measure"/>
+                <field name="actual_direct_cost" type="measure"/>
+                <field name="contribution_margin" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_sab_project_controlling" model="ir.actions.act_window">
+        <field name="name">Nachkalkulation</field>
+        <field name="res_model">sab.project.controlling</field>
+        <field name="view_mode">list,pivot,graph,form</field>
+    </record>
+
+    <menuitem id="sab_project_controlling_menu" name="Nachkalkulation" parent="sab_calculation_root_menu" action="action_sab_project_controlling" sequence="150"/>
+</odoo>

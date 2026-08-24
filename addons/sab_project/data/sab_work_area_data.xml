@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="sab_work_area_mechanical_fabrication" model="sab.work.area"><field name="name">Mechanische Fertigung</field><field name="code">mechanical_fabrication</field><field name="sequence">10</field></record>
+    <record id="sab_work_area_mechanical_assembly" model="sab.work.area"><field name="name">Mechanischer Aufbau</field><field name="code">mechanical_assembly</field><field name="sequence">20</field></record>
+    <record id="sab_work_area_device_assembly" model="sab.work.area"><field name="name">Bestückung Geräte</field><field name="code">device_assembly</field><field name="sequence">30</field></record>
+    <record id="sab_work_area_terminal_assembly" model="sab.work.area"><field name="name">Bestückung Klemmen</field><field name="code">terminal_assembly</field><field name="sequence">40</field></record>
+    <record id="sab_work_area_wiring_preparation" model="sab.work.area"><field name="name">Vorbereitung Verdrahtung</field><field name="code">wiring_preparation</field><field name="sequence">50</field></record>
+    <record id="sab_work_area_electrical" model="sab.work.area"><field name="name">Elektrische Verdrahtung</field><field name="code">electrical</field><field name="sequence">60</field></record>
+    <record id="sab_work_area_testing" model="sab.work.area"><field name="name">Prüfung</field><field name="code">testing</field><field name="sequence">70</field></record>
+    <record id="sab_work_area_final_inspection" model="sab.work.area"><field name="name">Endkontrolle</field><field name="code">final_inspection</field><field name="sequence">80</field></record>
+    <record id="sab_work_area_service" model="sab.work.area"><field name="name">Service / Montage</field><field name="code">service</field><field name="sequence">90</field></record>
+</odoo>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_template_form_inherit" model="ir.ui.view">
+        <field name="name">sale.order.template.form.sab</field>
+        <field name="model">sale.order.template</field>
+        <field name="inherit_id" ref="sale_management.sale_order_template_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook[@name='main_book']" position="inside">
+                <page string="SAB-P Kalkulation" name="sab_template_calculation">
+                    <group string="Material und Zeit" col="4">
+                        <field name="sab_material_factor"/>
+                        <field name="sab_aux_material_factor"/>
+                        <field name="sab_hourly_rate"/>
+                        <field name="sab_time_factor"/>
+                        <field name="sab_difficulty_factor"/>
+                        <field name="sab_planning_surcharge_factor"/>
+                    </group>
+                    <group string="Kaufmännische Faktoren" col="4">
+                        <field name="sab_packaging_factor"/>
+                        <field name="sab_skonto_factor"/>
+                        <field name="sab_margin_factor"/>
+                        <field name="sab_rebate_factor"/>
+                        <field name="sab_vat_rate"/>
+                        <field name="sab_additional_order_factor"/>
+                    </group>
+                    <group string="Excel-Sonderfaktoren" col="4">
+                        <field name="sab_hw_metal_factor"/>
+                        <field name="sab_trade_factor_1"/>
+                        <field name="sab_trade_factor_2"/>
+                        <field name="sab_trade_factor_3"/>
+                        <field name="sab_trade_factor_4"/>
+                        <field name="sab_trade_factor_5"/>
+                        <field name="sab_trade_factor_6"/>
+                        <field name="sab_terminal_deduction"/>
+                        <field name="sab_wage_unit"/>
+                        <field name="sab_planning_hours"/>
+                        <field name="sab_assembly_correction"/>
+                    </group>
+                </page>
+                <page string="SAB-P Angebotsbedingungen" name="sab_template_terms">
+                    <group string="Preis und Lieferung" col="4">
+                        <field name="sab_object_discount_percent"/>
+                        <field name="sab_transport_cost"/>
+                        <field name="sab_delivery_time_text"/>
+                        <field name="sab_payment_text"/>
+                    </group>
+                    <group string="Texte" col="1">
+                        <field name="sab_service_description"/>
+                        <field name="sab_documentation_text"/>
+                        <field name="sab_transport_text"/>
+                        <field name="sab_reservations_text"/>
+                        <field name="sab_additional_terms_text"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

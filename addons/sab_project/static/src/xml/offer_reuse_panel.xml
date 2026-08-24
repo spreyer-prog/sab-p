@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sab_project.OfferReusePanel" owl="1">
+        <aside t-if="hasProject" class="o_sab_offer_reuse_aside o-aside w-print-100">
+            <div class="o_sab_reuse_header">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <div class="fw-bold">Projektpositionen</div>
+                        <div class="small text-muted" t-esc="state.payload.project or 'SAB-P Projekt'"/>
+                    </div>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            title="Liste aktualisieren"
+                            t-on-click="refresh"
+                            t-att-disabled="state.loading or state.busy">
+                        <i class="fa fa-refresh"/>
+                    </button>
+                </div>
+                <div class="input-group input-group-sm mt-2">
+                    <span class="input-group-text"><i class="fa fa-search"/></span>
+                    <input type="search"
+                           class="form-control"
+                           placeholder="LV, Bauteil oder Angebot suchen ..."
+                           t-att-value="state.search"
+                           t-on-input="onSearchInput"/>
+                </div>
+            </div>
+
+            <div class="o_sab_reuse_tabs nav nav-pills nav-fill" role="tablist">
+                <button type="button"
+                        t-att-class="'nav-link ' + (state.activeTab == 'lv' ? 'active' : '')"
+                        t-on-click="() => this.setTab('lv')">
+                    LV <span class="badge rounded-pill text-bg-light" t-esc="state.payload.lv_positions.length"/>
+                </button>
+                <button type="button"
+                        t-att-class="'nav-link ' + (state.activeTab == 'project' ? 'active' : '')"
+                        t-on-click="() => this.setTab('project')">
+                    Bauteile <span class="badge rounded-pill text-bg-light" t-esc="state.payload.project_components.length"/>
+                </button>
+                <button type="button"
+                        t-att-class="'nav-link ' + (state.activeTab == 'library' ? 'active' : '')"
+                        t-on-click="() => this.setTab('library')">
+                    Datenbank <span class="badge rounded-pill text-bg-light" t-esc="state.payload.library_components.length"/>
+                </button>
+            </div>
+
+            <div class="o_sab_reuse_body">
+                <div t-if="state.loading" class="text-center text-muted py-5">
+                    <i class="fa fa-spinner fa-spin me-2"/>Liste wird geladen ...
+                </div>
+
+                <t t-elif="state.activeTab == 'lv'">
+                    <div class="small text-muted mb-2">
+                        Position anklicken oder in die Kalkulation ziehen. Die festgeschriebene LV-/NTG-Nummer wird automatisch übernommen.
+                    </div>
+                    <div t-if="!filteredLvPositions.length" class="alert alert-light py-2 mb-0">
+                        Keine passende LV-/NTG-Position vorhanden.
+                    </div>
+                    <div t-else="" class="o_sab_reuse_list">
+                        <article t-foreach="filteredLvPositions"
+                                 t-as="item"
+                                 t-key="item.id"
+                                 class="o_sab_reuse_card"
+                                 t-att-draggable="canEdit ? 'true' : 'false'"
+                                 data-kind="lv"
+                                 t-att-data-id="item.id"
+                                 t-on-dragstart="onDragStart">
+                            <div class="d-flex justify-content-between gap-2">
+                                <div class="min-w-0">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span t-att-class="'badge ' + (item.is_ntg ? 'text-bg-warning' : 'text-bg-primary')"
+                                              t-esc="item.position"/>
+                                        <span class="small text-muted" t-esc="item.source_type"/>
+                                    </div>
+                                    <div class="fw-semibold text-truncate mt-1" t-att-title="item.source_name" t-esc="item.source_name"/>
+                                    <div t-if="item.first_offer" class="small text-muted">Erstmals: <t t-esc="item.first_offer"/></div>
+                                </div>
+                                <button type="button"
+                                        class="btn btn-sm btn-primary align-self-center"
+                                        title="Position übernehmen"
+                                        t-att-disabled="!canEdit"
+                                        t-on-click="() => this.addEntry('lv', item.id)">
+                                    <i class="fa fa-plus"/>
+                                </button>
+                            </div>
+                        </article>
+                    </div>
+                </t>
+
+                <t t-elif="state.activeTab == 'project'">
+                    <div class="small text-muted mb-2">
+                        Komplette Bauteile werden mit allen Kalkulationspositionen übernommen. Dasselbe Bauteil wird projektweit nur einmal angezeigt; darunter stehen alle Angebote, in denen es verwendet wird.
+                    </div>
+
+                    <div t-if="filteredCurrentComponents.length" class="mb-3">
+                        <div class="o_sab_reuse_group_title">Im aktuellen Angebot vorhanden</div>
+                        <div class="o_sab_reuse_list">
+                            <article t-foreach="filteredCurrentComponents"
+                                     t-as="item"
+                                     t-key="item.id"
+                                     class="o_sab_reuse_card o_sab_reuse_card_current"
+                                     t-att-draggable="canEdit ? 'true' : 'false'"
+                                     data-kind="project_component"
+                                     t-att-data-id="item.id"
+                                     t-on-dragstart="onDragStart">
+                                <t t-call="sab_project.OfferReuseProjectComponentCard"/>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div t-if="filteredPreviousComponents.length">
+                        <div class="o_sab_reuse_group_title">Weitere Projektbauteile</div>
+                        <div class="o_sab_reuse_list">
+                            <article t-foreach="filteredPreviousComponents"
+                                     t-as="item"
+                                     t-key="item.id"
+                                     class="o_sab_reuse_card"
+                                     t-att-draggable="canEdit ? 'true' : 'false'"
+                                     data-kind="project_component"
+                                     t-att-data-id="item.id"
+                                     t-on-dragstart="onDragStart">
+                                <t t-call="sab_project.OfferReuseProjectComponentCard"/>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div t-if="!filteredCurrentComponents.length and !filteredPreviousComponents.length"
+                         class="alert alert-light py-2 mb-0">
+                        Keine passenden freigegebenen Bauteile im Projekt vorhanden.
+                    </div>
+                </t>
+
+                <t t-elif="state.activeTab == 'library'">
+                    <div class="small text-muted mb-2">
+                        Kalkulationsbauteile sind projektunabhängig. LV-/NTG-Nummern werden beim Einfügen aus dem aktuellen Projekt neu zugeordnet.
+                    </div>
+                    <div t-if="!filteredLibraryComponents.length" class="alert alert-light py-2 mb-0">
+                        Noch keine Kalkulationsbauteile gespeichert.
+                    </div>
+                    <div t-else="" class="o_sab_reuse_list">
+                        <article t-foreach="filteredLibraryComponents"
+                                 t-as="item"
+                                 t-key="item.id"
+                                 class="o_sab_reuse_card"
+                                 t-att-draggable="canEdit ? 'true' : 'false'"
+                                 data-kind="library_component"
+                                 t-att-data-id="item.id"
+                                 t-on-dragstart="onDragStart">
+                            <div class="d-flex justify-content-between gap-2">
+                                <div class="min-w-0">
+                                    <div class="fw-semibold text-truncate" t-att-title="item.name" t-esc="item.name"/>
+                                    <div class="small text-muted"><t t-esc="item.line_count"/> Position(en)</div>
+                                    <div t-if="item.source_project" class="small text-muted text-truncate">
+                                        Quelle: <t t-esc="item.source_project"/><t t-if="item.source_offer"> / <t t-esc="item.source_offer"/></t>
+                                    </div>
+                                </div>
+                                <button type="button"
+                                        class="btn btn-sm btn-primary align-self-center"
+                                        title="Komplettes Kalkulationsbauteil übernehmen"
+                                        t-att-disabled="!canEdit"
+                                        t-on-click="() => this.addEntry('library_component', item.id)">
+                                    <i class="fa fa-plus"/>
+                                </button>
+                            </div>
+                        </article>
+                    </div>
+                </t>
+            </div>
+
+            <div class="o_sab_reuse_drop_zone"
+                 t-att-class="'o_sab_reuse_drop_zone ' + (!canEdit ? 'o_sab_reuse_drop_disabled' : '')"
+                 t-on-dragover="onPanelDragOver"
+                 t-on-dragleave="onPanelDragLeave"
+                 t-on-drop="onPanelDrop">
+                <i class="fa fa-level-down me-2"/>
+                <t t-if="canEdit">Hier ablegen oder direkt in die Kalkulation ziehen</t>
+                <t t-else="">Übernahme nur im nicht freigegebenen Angebotsentwurf möglich</t>
+            </div>
+        </aside>
+    </t>
+
+    <t t-name="sab_project.OfferReuseProjectComponentCard" owl="1">
+        <div class="d-flex justify-content-between gap-2">
+            <div class="min-w-0 flex-grow-1">
+                <div class="d-flex align-items-center gap-1">
+                    <span class="fw-semibold text-truncate" t-att-title="item.name" t-esc="item.name"/>
+                    <span t-if="item.is_current" class="badge text-bg-info">aktuell</span>
+                </div>
+                <div class="small text-muted"><t t-esc="item.line_count"/> Position(en)</div>
+                <div t-if="item.positions" class="small mt-1">
+                    <span class="text-muted">LV:</span> <span t-esc="item.positions"/>
+                </div>
+                <div t-if="item.offers_text" class="small text-muted text-wrap mt-1">
+                    Angebote: <t t-esc="item.offers_text"/>
+                </div>
+                <div class="small text-muted">Summe: <t t-esc="formatAmount(item.total)"/></div>
+                <div t-if="item.saved_template_id" class="small text-success mt-1">
+                    <i class="fa fa-database me-1"/>Gespeichert als <t t-esc="item.saved_template_name"/>
+                </div>
+            </div>
+            <div class="d-flex flex-column gap-1">
+                <button type="button"
+                        class="btn btn-sm btn-primary"
+                        title="Komplettes Bauteil übernehmen"
+                        t-att-disabled="!canEdit"
+                        t-on-click="() => this.addEntry('project_component', item.id)">
+                    <i class="fa fa-plus"/>
+                </button>
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        t-att-title="item.saved_template_id ? 'Kalkulationsbauteil aktualisieren' : 'Ohne LV-Nummer in Kalkulationsdatenbank speichern'"
+                        t-att-disabled="state.busy"
+                        t-on-click="() => this.saveComponent(item.id)">
+                    <i class="fa fa-database"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_calculation_component_template_list" model="ir.ui.view">
+        <field name="name">sab.calculation.component.template.list</field>
+        <field name="model">sab.calculation.component.template</field>
+        <field name="arch" type="xml">
+            <list string="Kalkulationsbauteile" default_order="name">
+                <field name="name"/>
+                <field name="line_count" string="Positionen"/>
+                <field name="source_project_id" optional="show"/>
+                <field name="source_order_id" optional="show"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_calculation_component_template_form" model="ir.ui.view">
+        <field name="name">sab.calculation.component.template.form</field>
+        <field name="model">sab.calculation.component.template</field>
+        <field name="arch" type="xml">
+            <form string="Kalkulationsbauteil">
+                <sheet>
+                    <group string="Kalkulationsbauteil" col="4">
+                        <field name="name" colspan="3"/>
+                        <field name="active"/>
+                        <field name="line_count" readonly="1"/>
+                        <field name="source_project_id" readonly="1"/>
+                        <field name="source_order_id" readonly="1"/>
+                        <field name="source_section_line_id" readonly="1" invisible="not source_section_line_id"/>
+                    </group>
+                    <separator string="Positionen – bewusst ohne LV-/NTG-Zuordnung"/>
+                    <field name="line_ids" nolabel="1">
+                        <list editable="bottom" default_order="sequence">
+                            <field name="sequence" widget="handle" string="Pos."/>
+                            <field name="calculation_item_id" string="Kalkulationsartikel"/>
+                            <field name="odoo_product_id" string="Produkt"/>
+                            <field name="quantity"/>
+                            <field name="description" string="Angebotstext" optional="show"/>
+                            <field name="note" optional="show"/>
+                        </list>
+                    </field>
+                    <group string="Interne Hinweise">
+                        <field name="note" placeholder="Hinweise zum wiederverwendbaren Bauteil ..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_calculation_component_template" model="ir.actions.act_window">
+        <field name="name">Kalkulationsbauteile</field>
+        <field name="res_model">sab.calculation.component.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_calculation_component_template_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_sab_calculation_component_template_form')})]"/>
+    </record>
+
+    <menuitem id="sab_calculation_component_template_menu"
+              name="Kalkulationsbauteile"
+              parent="sab_calculation_root_menu"
+              action="action_sab_calculation_component_template"
+              sequence="20"/>
+</odoo>

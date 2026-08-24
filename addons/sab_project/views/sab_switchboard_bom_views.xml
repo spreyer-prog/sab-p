@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_project_bom_list_switchboard" model="ir.ui.view">
+        <field name="name">sab.project.bom.list.switchboard</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_id']" position="after">
+                <field name="bom_scope"/>
+                <field name="cabinet_line_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sab_project_bom_form_switchboard" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.switchboard</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_id']" position="after">
+                <field name="bom_scope" readonly="1"/>
+                <field name="cabinet_line_id" readonly="1" invisible="bom_scope != 'cabinet'"/>
+                <field name="scope_key" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='product_id']" position="after">
+                <field name="odoo_product_id" string="Odoo-Produkt" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

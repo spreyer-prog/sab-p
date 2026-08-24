@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_production_order_list" model="ir.ui.view">
+        <field name="name">sab.production.order.list</field>
+        <field name="model">sab.production.order</field>
+        <field name="arch" type="xml">
+            <list string="Fertigungsaufträge">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="order_id"/>
+                <field name="state"/>
+                <field name="progress_percent"/>
+                <field name="responsible_user_id"/>
+                <field name="planned_start" optional="show"/>
+                <field name="started_at" optional="show"/>
+                <field name="finished_at" optional="hide"/>
+                <field name="delivery_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_production_order_form" model="ir.ui.view">
+        <field name="name">sab.production.order.form</field>
+        <field name="model">sab.production.order</field>
+        <field name="arch" type="xml">
+            <form string="SAB-P Fertigungsauftrag">
+                <header>
+                    <button name="action_start" type="object" string="Fertigung starten" class="btn-primary" invisible="state != 'planned'"/>
+                    <button name="action_mark_done" type="object" string="Fertigungsauftrag abschließen" class="btn-primary" invisible="state not in ('planned', 'in_progress')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="planned,in_progress,done"/>
+                </header>
+                <sheet>
+                    <group col="4">
+                        <field name="name" readonly="1"/>
+                        <field name="project_id" readonly="1"/>
+                        <field name="order_id" readonly="1"/>
+                        <field name="bom_id" readonly="1"/>
+                        <field name="responsible_user_id" readonly="state == 'done'"/>
+                        <field name="planned_start" readonly="state == 'done'"/>
+                        <field name="started_at" readonly="1"/>
+                        <field name="finished_at" readonly="1"/>
+                        <field name="delivery_date" readonly="1"/>
+                        <field name="progress_percent" readonly="1"/>
+                    </group>
+
+                    <field name="step_ids" nolabel="1" readonly="state == 'done'">
+                        <list default_order="sequence">
+                            <field name="sequence" widget="handle" string="Reihenfolge"/>
+                            <field name="name"/>
+                            <field name="work_area_id"/>
+                            <field name="state"/>
+                            <field name="responsible_employee_id" domain="[('active', '=', True), ('mobile_access', '=', True), ('user_id', '!=', False), ('work_area_ids', 'in', work_area_id)]"/>
+                            <field name="responsible_user_id" column_invisible="True"/>
+                            <field name="started_at" readonly="1" optional="show"/>
+                            <field name="paused_at" readonly="1" optional="hide"/>
+                            <field name="finished_at" readonly="1" optional="show"/>
+                            <field name="checked_by_id" optional="show"/>
+                            <field name="note" optional="show"/>
+                            <button name="action_start" type="object" string="Start / Fortsetzen" invisible="state not in ('pending', 'paused')"/>
+                            <button name="action_pause" type="object" string="Pause" invisible="state != 'in_progress'"/>
+                            <button name="action_done" type="object" string="Fertig" invisible="state not in ('pending', 'in_progress', 'paused')"/>
+                            <button name="action_skip" type="object" string="Entfällt" invisible="state in ('done', 'skipped')"/>
+                        </list>
+                    </field>
+
+                    <group><field name="note" readonly="state == 'done'"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_production_order" model="ir.actions.act_window">
+        <field name="name">Fertigungsaufträge</field>
+        <field name="res_model">sab.production.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="sab_production_order_menu" name="Fertigungsaufträge" parent="sab_technical_root_menu" action="action_sab_production_order" sequence="10" groups="project.group_project_manager"/>
+</odoo>

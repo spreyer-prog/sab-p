@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_project_form_procurement_visibility" model="ir.ui.view">
+        <field name="name">project.project.form.procurement.visibility</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_project_form_procurement_detail"/>
+        <field name="priority">250</field>
+        <field name="arch" type="xml">
+            <page name="sab_material_procurement" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </page>
+        </field>
+    </record>
+
+    <record id="sab_project_overview_procurement_visibility" model="ir.ui.view">
+        <field name="name">project.project.list.procurement.visibility</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_overview_material_action"/>
+        <field name="priority">250</field>
+        <field name="arch" type="xml">
+            <field name="sab_procurement_state" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </field>
+            <field name="sab_material_missing_percent" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </field>
+            <field name="sab_material_available_percent" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+                <attribute name="widget">progressbar</attribute>
+                <attribute name="invisible">sab_status != 'won'</attribute>
+            </field>
+            <field name="sab_material_procured_percent" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+                <attribute name="widget">progressbar</attribute>
+                <attribute name="invisible">sab_status != 'won'</attribute>
+            </field>
+            <field name="sab_material_requirement_count" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </field>
+            <field name="sab_switchboard_count" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </field>
+            <field name="sab_purchase_order_count" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </field>
+            <button name="action_view_sab_material_requirements" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </button>
+            <button name="action_view_sab_switchboards" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </button>
+            <button name="action_view_sab_purchase_orders" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager</attribute>
+            </button>
+        </field>
+    </record>
+</odoo>

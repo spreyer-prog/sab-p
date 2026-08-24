@@ -43,9 +43,6 @@ class ProjectProject(models.Model):
         store=True,
     )
 
-    # Der Bearbeiter ist das Odoo-Standardfeld user_id.
-    # Beim Anlegen wird der aktuell eingeloggte Benutzer erzwungen,
-    # sofern kein anderer Bearbeiter ausdrücklich angegeben wurde.
     sab_created_by_id = fields.Many2one(
         comodel_name="res.users",
         string="Angelegt von",
@@ -145,23 +142,19 @@ class ProjectProject(models.Model):
     sab_follow_up_date = fields.Date(
         string="Datum Wiedervorlage",
     )
-    sab_notes = fields.Html(
-        string="Notiz",
-    )
-    sab_project_description = fields.Html(
-        string="Projektbeschreibung",
-    )
-    sab_site_address = fields.Char(
-        string="Baustelle / Lieferort",
-    )
-    sab_internal_reference = fields.Char(
-        string="Interne Referenz",
-    )
+    sab_notes = fields.Html(string="Notiz")
+    sab_project_description = fields.Html(string="Projektbeschreibung")
+    sab_site_address = fields.Char(string="Baustelle / Lieferort")
+    sab_internal_reference = fields.Char(string="Interne Referenz")
 
     sab_sale_order_ids = fields.One2many(
         comodel_name="sale.order",
         inverse_name="sab_project_id",
         string="Angebote",
+    )
+    sab_sale_order_count = fields.Integer(
+        string="Anzahl Angebote",
+        compute="_compute_sab_sale_order_count",
     )
 
     @api.depends("sab_delivery_date")
@@ -172,6 +165,11 @@ class ProjectProject(models.Model):
                 if project.sab_delivery_date
                 else 0
             )
+
+    @api.depends("sab_sale_order_ids")
+    def _compute_sab_sale_order_count(self):
+        for project in self:
+            project.sab_sale_order_count = len(project.sab_sale_order_ids)
 
     @api.depends(
         "sab_sale_order_ids.state",
@@ -230,8 +228,6 @@ class ProjectProject(models.Model):
         settings = self._sab_get_numbering_settings()
         start_number = settings["project_start_number"]
 
-        # Atomare Vergabe über PostgreSQL. Auch bei parallelem Speichern
-        # können zwei Benutzer niemals dieselbe laufende Nummer erhalten.
         self.env.cr.execute(
             """
             INSERT INTO sab_project_year_counter
@@ -255,10 +251,24 @@ class ProjectProject(models.Model):
             f"{settings['project_separator']}{running_part}"
         )
 
+    def _sab_ensure_project_reference(self):
+        """Assign a SAB-P number to legacy/existing projects on first SAB-P use."""
+        for project in self:
+            if not project.sab_project_reference:
+                project.write({
+                    "sab_project_reference": project._sab_allocate_project_reference(),
+                    "sab_next_offer_number": project.sab_next_offer_number or 1,
+                })
+        return True
+
+    def action_assign_sab_project_reference(self):
+        self.ensure_one()
+        self._sab_ensure_project_reference()
+        return True
+
     def _sab_allocate_offer_reference(self):
         self.ensure_one()
-        if not self.sab_project_reference:
-            raise UserError(_("Für das Projekt wurde noch keine Projektnummer vergeben."))
+        self._sab_ensure_project_reference()
 
         self.env.cr.execute(
             """
@@ -283,6 +293,47 @@ class ProjectProject(models.Model):
             f"{self.sab_project_reference}"
             f"{settings['offer_separator']}{offer_part}"
         )
+
+    def action_create_sab_quotation(self):
+        self.ensure_one()
+        if not self.partner_id:
+            raise UserError(_("Bitte zuerst einen Kunden im Projekt hinterlegen."))
+        self._sab_ensure_project_reference()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Neues SAB-P Angebot"),
+            "res_model": "sale.order",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_sab_project_id": self.id,
+                "default_partner_id": self.partner_id.id,
+                "default_user_id": self.user_id.id or self.env.user.id,
+                "default_client_order_ref": self.sab_customer_order_reference or False,
+                "default_note": False,
+            },
+        }
+
+    def action_view_sab_quotations(self):
+        self.ensure_one()
+        action = {
+            "type": "ir.actions.act_window",
+            "name": _("Angebote %s") % (self.sab_project_reference or self.name),
+            "res_model": "sale.order",
+            "view_mode": "list,form",
+            "domain": [("sab_project_id", "=", self.id)],
+            "context": {
+                "default_sab_project_id": self.id,
+                "default_partner_id": self.partner_id.id or False,
+                "default_user_id": self.user_id.id or self.env.user.id,
+            },
+        }
+        if self.sab_sale_order_count == 1:
+            action.update({
+                "view_mode": "form",
+                "res_id": self.sab_sale_order_ids.id,
+            })
+        return action
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -318,6 +369,4 @@ class ProjectProject(models.Model):
         super()._compute_display_name()
         for project in self:
             if project.sab_project_reference:
-                project.display_name = (
-                    f"{project.sab_project_reference} – {project.name}"
-                )
+                project.display_name = f"{project.sab_project_reference} – {project.name}"

@@ -25,7 +25,6 @@ class ResConfigSettings(models.TransientModel):
         string="Trennzeichen Projekt",
         default=".",
         config_parameter="sab_project.project_separator",
-        help="Trennzeichen zwischen Jahr und laufender Projektnummer.",
     )
     sab_project_digits = fields.Integer(
         string="Stellen Projektnummer",
@@ -38,7 +37,6 @@ class ResConfigSettings(models.TransientModel):
         default=1,
         config_parameter="sab_project.project_start_number",
         required=True,
-        help="Wird nur verwendet, wenn für ein Jahr erstmals eine Nummer vergeben wird.",
     )
     sab_offer_separator = fields.Char(
         string="Trennzeichen Angebot",
@@ -50,6 +48,86 @@ class ResConfigSettings(models.TransientModel):
         default=2,
         config_parameter="sab_project.offer_digits",
         required=True,
+    )
+    sab_default_pdf_printer = fields.Char(
+        string="Standard-PDF-Drucker",
+        default="PDF-Drucker",
+        config_parameter="sab_project.default_pdf_printer",
+        help="Rückfall, wenn in einer einzelnen Druckvorlage kein Drucker hinterlegt ist.",
+    )
+    sab_receipt_assignment_printer = fields.Char(
+        string="Drucker Projektzuordnungsliste",
+        config_parameter="sab_project.receipt_assignment_printer",
+        help="Leer = Standard-PDF-Drucker.",
+    )
+
+    # ---------------------------------------------------------
+    # Kalkulationskonstanten
+    # ---------------------------------------------------------
+
+    sab_material_factor = fields.Float(
+        string="Materialfaktor",
+        default=1.0,
+        config_parameter="sab_project.material_factor",
+    )
+    sab_aux_material_factor = fields.Float(
+        string="Hilfsmaterialfaktor",
+        default=1.15,
+        config_parameter="sab_project.aux_material_factor",
+    )
+    sab_hourly_rate = fields.Float(
+        string="Kalkulatorischer Stundenlohn",
+        default=80.0,
+        config_parameter="sab_project.hourly_rate",
+    )
+    sab_time_factor = fields.Float(
+        string="Zeitfaktor",
+        default=1.25,
+        config_parameter="sab_project.time_factor",
+    )
+    sab_difficulty_factor = fields.Float(
+        string="Schwierigkeitsfaktor",
+        default=1.0,
+        config_parameter="sab_project.difficulty_factor",
+    )
+    sab_planning_surcharge_factor = fields.Float(
+        string="Planungszuschlag",
+        default=1.15,
+        config_parameter="sab_project.planning_surcharge_factor",
+    )
+    sab_packaging_factor = fields.Float(
+        string="Verpackung / Transport Faktor",
+        default=1.03,
+        config_parameter="sab_project.packaging_factor",
+    )
+    sab_skonto_factor = fields.Float(
+        string="Skontofaktor",
+        default=1.03,
+        config_parameter="sab_project.skonto_factor",
+    )
+    sab_margin_factor = fields.Float(
+        string="Margenfaktor",
+        default=1.25,
+        config_parameter="sab_project.margin_factor",
+    )
+    sab_rebate_factor = fields.Float(
+        string="Rabattfaktor",
+        default=1.125,
+        config_parameter="sab_project.rebate_factor",
+    )
+    sab_calculation_change_code = fields.Char(
+        string="Freigabecode Kalkulationsänderung",
+        default="1111",
+        config_parameter="sab_project.calculation_change_code",
+        help=(
+            "Bedienfreigabe für Änderungen an zentralen Kalkulationsparametern. "
+            "Der Code ersetzt keine Benutzerberechtigungen."
+        ),
+    )
+    sab_calculation_change_code_confirm = fields.Char(
+        string="Freigabecode bestätigen",
+        copy=False,
+        help="Bei Änderungen an Kalkulationsparametern den aktuell gültigen Freigabecode eingeben.",
     )
 
     @api.constrains(
@@ -67,13 +145,21 @@ class ResConfigSettings(models.TransientModel):
             if len(settings.sab_project_prefix) > 5:
                 raise ValidationError(_("Das Präfix darf höchstens 5 Zeichen lang sein."))
             if len(settings.sab_project_separator or "") > 3:
-                raise ValidationError(_("Das Projekt-Trennzeichen darf höchstens 3 Zeichen lang sein."))
+                raise ValidationError(
+                    _("Das Projekt-Trennzeichen darf höchstens 3 Zeichen lang sein.")
+                )
             if len(settings.sab_offer_separator or "") > 3:
-                raise ValidationError(_("Das Angebots-Trennzeichen darf höchstens 3 Zeichen lang sein."))
+                raise ValidationError(
+                    _("Das Angebots-Trennzeichen darf höchstens 3 Zeichen lang sein.")
+                )
             if not 1 <= settings.sab_project_digits <= 8:
-                raise ValidationError(_("Die Projektnummer muss zwischen 1 und 8 Stellen haben."))
+                raise ValidationError(
+                    _("Die Projektnummer muss zwischen 1 und 8 Stellen haben.")
+                )
             if not 1 <= settings.sab_offer_digits <= 5:
-                raise ValidationError(_("Die Angebotsnummer muss zwischen 1 und 5 Stellen haben."))
+                raise ValidationError(
+                    _("Die Angebotsnummer muss zwischen 1 und 5 Stellen haben.")
+                )
             if settings.sab_project_start_number < 0:
                 raise ValidationError(_("Die Startnummer darf nicht negativ sein."))
             max_project_number = (10 ** settings.sab_project_digits) - 1
@@ -81,3 +167,97 @@ class ResConfigSettings(models.TransientModel):
                 raise ValidationError(
                     _("Die Startnummer passt nicht in die gewählte Stellenzahl.")
                 )
+
+    @api.constrains(
+        "sab_material_factor",
+        "sab_aux_material_factor",
+        "sab_hourly_rate",
+        "sab_time_factor",
+        "sab_difficulty_factor",
+        "sab_planning_surcharge_factor",
+        "sab_packaging_factor",
+        "sab_skonto_factor",
+        "sab_margin_factor",
+        "sab_rebate_factor",
+    )
+    def _check_sab_calculation_settings(self):
+        for settings in self:
+            values = {
+                "Materialfaktor": settings.sab_material_factor,
+                "Hilfsmaterialfaktor": settings.sab_aux_material_factor,
+                "Stundenlohn": settings.sab_hourly_rate,
+                "Zeitfaktor": settings.sab_time_factor,
+                "Schwierigkeitsfaktor": settings.sab_difficulty_factor,
+                "Planungszuschlag": settings.sab_planning_surcharge_factor,
+                "Verpackung / Transport": settings.sab_packaging_factor,
+                "Skonto": settings.sab_skonto_factor,
+                "Marge": settings.sab_margin_factor,
+                "Rabatt": settings.sab_rebate_factor,
+            }
+            for label, value in values.items():
+                if value < 0:
+                    raise ValidationError(_("%s darf nicht negativ sein.") % label)
+
+    @api.model
+    def _sab_protected_calculation_parameters(self):
+        return {
+            "sab_material_factor": ("sab_project.material_factor", "Materialfaktor", "1.0"),
+            "sab_aux_material_factor": ("sab_project.aux_material_factor", "Hilfsmaterialfaktor", "1.15"),
+            "sab_hourly_rate": ("sab_project.hourly_rate", "Kalkulatorischer Stundenlohn", "80.0"),
+            "sab_time_factor": ("sab_project.time_factor", "Zeitfaktor", "1.25"),
+            "sab_difficulty_factor": ("sab_project.difficulty_factor", "Schwierigkeitsfaktor", "1.0"),
+            "sab_planning_surcharge_factor": ("sab_project.planning_surcharge_factor", "Planungszuschlag", "1.15"),
+            "sab_packaging_factor": ("sab_project.packaging_factor", "Verpackung / Transport Faktor", "1.03"),
+            "sab_skonto_factor": ("sab_project.skonto_factor", "Skontofaktor", "1.03"),
+            "sab_margin_factor": ("sab_project.margin_factor", "Margenfaktor", "1.25"),
+            "sab_rebate_factor": ("sab_project.rebate_factor", "Rabattfaktor", "1.125"),
+        }
+
+    def set_values(self):
+        self.ensure_one()
+        params = self.env["ir.config_parameter"].sudo()
+        protected = self._sab_protected_calculation_parameters()
+        changes = []
+
+        for field_name, (parameter_key, label, default) in protected.items():
+            old_raw = params.get_param(parameter_key, default)
+            old_value = float(old_raw or 0.0)
+            new_value = float(self[field_name] or 0.0)
+            if abs(old_value - new_value) > 1e-9:
+                changes.append((parameter_key, label, old_value, new_value))
+
+        old_code = params.get_param("sab_project.calculation_change_code", "1111") or "1111"
+        new_code = self.sab_calculation_change_code or ""
+        code_changed = new_code != old_code
+
+        if changes or code_changed:
+            if (self.sab_calculation_change_code_confirm or "") != old_code:
+                raise ValidationError(
+                    _("Der Freigabecode für die Änderung der Kalkulationsparameter ist nicht korrekt.")
+                )
+
+        result = super().set_values()
+
+        Log = self.env["sab.calculation.change.log"].sudo()
+        for parameter_key, label, old_value, new_value in changes:
+            Log.create({
+                "parameter_key": parameter_key,
+                "parameter_label": label,
+                "old_value": str(old_value),
+                "new_value": str(new_value),
+                "changed_by_id": self.env.user.id,
+                "note": "Änderung über SAB-P Einstellungen mit Freigabecode.",
+            })
+
+        if code_changed:
+            Log.create({
+                "parameter_key": "sab_project.calculation_change_code",
+                "parameter_label": "Freigabecode Kalkulationsänderung",
+                "old_value": "****",
+                "new_value": "****",
+                "changed_by_id": self.env.user.id,
+                "note": "Freigabecode wurde geändert; Codewerte werden nicht protokolliert.",
+            })
+
+        self.sab_calculation_change_code_confirm = False
+        return result

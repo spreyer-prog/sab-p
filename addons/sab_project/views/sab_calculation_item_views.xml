@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_calculation_item_tree" model="ir.ui.view">
+        <field name="name">sab.calculation.item.tree</field><field name="model">sab.calculation.item</field>
+        <field name="arch" type="xml"><list string="Kalkulationsartikel"><field name="calculation_number"/><field name="name"/><field name="quotation_text"/><field name="status"/><field name="mechanical_factor"/><field name="wiring_factor"/><field name="testing_factor"/><field name="space_factor"/><field name="purchase_total"/></list></field>
+    </record>
+    <record id="view_sab_calculation_item_form" model="ir.ui.view">
+        <field name="name">sab.calculation.item.form</field><field name="model">sab.calculation.item</field>
+        <field name="arch" type="xml"><form string="Kalkulationsartikel" class="o_sab_calculation_item_form"><sheet class="o_sab_calculation_item_sheet">
+            <group string="Stammdaten" col="4"><field name="calculation_number" readonly="1"/><field name="status"/><field name="name" colspan="4"/><field name="quotation_text" colspan="4"/></group>
+            <div class="o_sab_product_positions"><separator string="Produktpositionen"/><field name="product_line_ids" nolabel="1"><list editable="bottom" default_order="sequence" class="o_sab_product_positions_list">
+                <field name="sequence" string="Pos." widget="handle"/>
+                <field name="position_type" string="Positionstyp"/>
+                <field name="odoo_product_id" string="Produkt"/>
+                <field name="quantity" string="Menge"/>
+                <field name="unit" string="Einheit"/>
+                <field name="fixed_quantity" string="Festmenge"/>
+                <field name="selected_supplier_product_id" string="Verwendeter Lieferantenartikel" readonly="1" optional="show"/>
+                <field name="unit_purchase_price" string="EK Preis je Einheit" readonly="1" optional="show"/>
+                <field name="purchase_total" string="EK gesamt" readonly="1" optional="show"/>
+                <field name="alternative_odoo_product_ids" string="Alternativprodukte" widget="many2many_tags" optional="show"/>
+                <field name="optional" string="Optional" optional="show"/>
+                <field name="note" string="Bemerkung" optional="show"/>
+            </list></field></div>
+            <group string="Kalkulationsfaktoren" col="4"><field name="mechanical_factor"/><field name="wiring_factor"/><field name="testing_factor"/><field name="space_factor"/></group>
+            <group string="Berechnete Werte" col="4"><field name="space_units" readonly="1"/><field name="mechanical_time_minutes" readonly="1"/><field name="wiring_time_minutes" readonly="1"/><field name="testing_time_minutes" readonly="1"/><field name="total_time_minutes" readonly="1"/><field name="purchase_total" string="Material-EK normal" readonly="1"/><field name="auxiliary_purchase_total" string="Hilfsmaterial-EK" readonly="1"/><field name="optional_purchase_total" readonly="1"/></group>
+            <notebook><page string="Suchbegriffe"><group col="4"><field name="search_term_01"/><field name="search_term_02"/><field name="search_term_03"/><field name="search_term_04"/><field name="search_term_05"/><field name="search_term_06"/><field name="search_term_07"/><field name="search_term_08"/><field name="search_term_09"/><field name="search_term_10"/><field name="search_term_11"/><field name="search_term_12"/><field name="search_term_13"/><field name="search_term_14"/><field name="search_term_15"/><field name="search_term_16"/><field name="search_term_17"/><field name="search_term_18"/><field name="search_term_19"/><field name="search_term_20"/></group></page><page string="Notizen"><field name="notes" placeholder="Interne Hinweise zur Kalkulation ..."/></page><page string="Importinformation"><group><field name="legacy_source_sheet" readonly="1"/><field name="legacy_source_row" readonly="1"/><field name="legacy_import_key" readonly="1"/></group></page></notebook>
+        </sheet></form></field>
+    </record>
+    <record id="action_sab_calculation_item" model="ir.actions.act_window"><field name="name">Kalkulationsartikel</field><field name="res_model">sab.calculation.item</field><field name="view_mode">list,form</field></record>
+    <menuitem id="sab_calculation_item_menu" name="Kalkulationsartikel" parent="sab_calculation_root_menu" action="action_sab_calculation_item" sequence="10"/>
+</odoo>

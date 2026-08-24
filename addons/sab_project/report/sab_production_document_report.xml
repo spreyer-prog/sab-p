@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_sab_production_documents" model="ir.actions.report">
+        <field name="name">Fertigungsblätter</field>
+        <field name="model">sab.production.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_production_document</field>
+        <field name="report_file">sab_project.report_sab_production_document</field>
+        <!-- Dieser technische Rueckfallbericht darf nicht im normalen
+             Drucken-Menue erscheinen. Ein Bericht auf mehreren Datensaetzen
+             kann nur ein Papierformat besitzen und wuerde dadurch die
+             individuellen Druckprofile der Fertigungsblaetter umgehen. -->
+        <field name="binding_model_id" eval="False"/>
+    </record>
+
+    <template id="report_sab_production_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <t t-if="doc.document_type == 'nameplate'">
+                            <h2>Typenschild</h2>
+                            <table class="table table-bordered" style="font-size:14px;">
+                                <tbody>
+                                    <tr><td><strong>Typenbezeichnung</strong></td><td><span t-out="doc.type_designation or ''"/></td><td><strong>Auftrag-Nr.</strong></td><td><span t-out="doc.project_reference or ''"/></td></tr>
+                                    <tr><td><strong>Verteilung</strong></td><td colspan="3"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                                    <tr><td>Baujahr</td><td><span t-out="doc.construction_year"/></td><td>DIN EN</td><td><span t-out="doc.standard_family or ''"/> - <span t-out="doc.standard_part or ''"/></td></tr>
+                                    <tr><td>Bemessungsspannung</td><td><span t-out="doc.rated_voltage"/> V</td><td>Bemessungsstrom</td><td><span t-out="doc.rated_current"/> A</td></tr>
+                                    <tr><td>Frequenz</td><td><span t-out="doc.frequency"/> Hz</td><td>Sammelschiene</td><td><span t-out="doc.busbar_current"/> A</td></tr>
+                                    <tr><td>Schutzklasse</td><td><span t-out="doc.protection_class or ''"/></td><td>IP-Schutzart</td><td><span t-out="doc.ip_rating or ''"/></td></tr>
+                                </tbody>
+                            </table>
+                            <p><strong>Achtung!</strong> Durchsicht der Schaltgeräte-Kombinationen nach dem Transport und vor Inbetriebnahme erforderlich. Prüfung gem. DIN VDE 0100-600.</p>
+                        </t>
+
+                        <t t-elif="doc.document_type in ('production_test','final_inspection')">
+                            <h2>Prüfprotokoll der Fertigung</h2>
+                            <table class="table table-sm table-bordered">
+                                <tbody>
+                                    <tr><td><strong>Kunde</strong></td><td><span t-out="doc.customer_name or ''"/></td></tr>
+                                    <tr><td><strong>Auftragsnr./Kommission</strong></td><td><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
+                                    <tr><td><strong>Verteiler</strong></td><td><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-sm table-bordered" style="font-size:11px;">
+                                <thead><tr><th>Nr.</th><th>Durchgeführte Prüfung</th><th>Ergebnis</th><th>Bemerkung</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1.0</td><td>Schranktyp bzw. mechanische Schäden</td><td></td><td></td></tr>
+                                    <tr><td>1.1</td><td>Verschlusssystem</td><td></td><td></td></tr>
+                                    <tr><td>1.2</td><td>Beflanschung bzw. M-Verschraubungen</td><td></td><td></td></tr>
+                                    <tr><td>1.3</td><td>Gerätebeschriftungen / Bezeichnungsschilder</td><td></td><td></td></tr>
+                                    <tr><td>1.4</td><td>Leitungsfarben Hauptstromkreise</td><td></td><td></td></tr>
+                                    <tr><td>1.5</td><td>Leitungsfarben Steuerstromkreise</td><td></td><td></td></tr>
+                                    <tr><td>1.6</td><td>PE-Leiter, Leitungsfarben, Führung</td><td></td><td></td></tr>
+                                    <tr><td>1.7</td><td>Gerätebestückung entspr. Zeichnung / Stückliste</td><td></td><td></td></tr>
+                                    <tr><td>2.0</td><td>Betätigungselemente</td><td></td><td></td></tr>
+                                    <tr><td>2.1</td><td>Türkupplungen</td><td></td><td></td></tr>
+                                    <tr><td>2.2</td><td>Schraubverbindungen/Geräteeinbau (Stichproben)</td><td></td><td></td></tr>
+                                    <tr><td>2.3</td><td>Leitungsführung / Befestigung</td><td></td><td></td></tr>
+                                    <tr><td>3.0</td><td>Hauptstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr>
+                                    <tr><td>3.1</td><td>Steuerstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr>
+                                    <tr><td>3.2</td><td>Ein-/Ausgänge mit PG überprüft</td><td></td><td></td></tr>
+                                    <tr><td>3.3</td><td>Leuchtmelder</td><td></td><td></td></tr>
+                                    <tr><td>3.4</td><td>Einhaltung der Isolationswiderstände</td><td></td><td></td></tr>
+                                    <tr><td>6.0</td><td>Anlage gereinigt</td><td></td><td></td></tr>
+                                    <tr><td>6.1</td><td>Schaltpläne, Bedienungsanleitungen beigefügt</td><td></td><td></td></tr>
+                                    <tr><td>6.2</td><td>Versandbereitschaft</td><td></td><td></td></tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-sm table-bordered">
+                                <tbody>
+                                    <tr><td>Prüfspannung Vtest</td><td><span t-out="doc.test_voltage"/> V</td><td>Ergebnis Riso</td><td><span t-out="doc.insulation_resistance"/> MΩ</td></tr>
+                                    <tr><td>Ergebnis Rpe</td><td><span t-out="doc.protective_conductor_resistance"/> Ω</td><td>Prüfer</td><td><span t-out="doc.inspector_name or ''"/></td></tr>
+                                    <tr><td>Prüfdatum</td><td><span t-out="doc.inspection_date or ''"/></td><td colspan="2"></td></tr>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <t t-elif="doc.document_type == 'run_card'">
+                            <h2>Laufkarte</h2>
+                            <table class="table table-sm table-bordered">
+                                <tbody>
+                                    <tr><td><strong>Auftrag</strong></td><td><span t-out="doc.project_reference or ''"/></td><td><strong>Liefertermin</strong></td><td><span t-out="doc.delivery_date or ''"/></td></tr>
+                                    <tr><td><strong>Projekt</strong></td><td colspan="3"><span t-out="doc.project_name or ''"/></td></tr>
+                                    <tr><td><strong>Kunde</strong></td><td colspan="3"><span t-out="doc.customer_name or ''"/></td></tr>
+                                    <tr><td><strong>Bauteil</strong></td><td colspan="3"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                                </tbody>
+                            </table>
+                            <p>Diese Laufkarte ist vollständig und wahrheitsgemäß auszufüllen.</p>
+                            <table class="table table-sm table-bordered">
+                                <thead><tr><th>Abteilung / Tätigkeit</th><th>Mitarbeiter</th><th>fertig</th><th>gepr.</th><th>Bemerkung</th></tr></thead>
+                                <tbody>
+                                    <tr><td colspan="5"><strong>Mechanische Fertigung</strong></td></tr>
+                                    <tr><td>Mechanischer Aufbau</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td>Bestückung Geräte</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td>Bestückung Klemmen</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td>Endkontrolle</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td colspan="5"><strong>Elektrische Fertigung</strong></td></tr>
+                                    <tr><td>Vorbereitung Verdrahtung</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td>Verdrahtung</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td>Endkontrolle</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td colspan="5"><strong>Prüfung</strong></td></tr>
+                                    <tr><td>Mechanische Prüfung</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td>Elektrische Prüfung</td><td></td><td></td><td></td><td></td></tr>
+                                    <tr><td>Meldung Versandfertig</td><td></td><td></td><td></td><td></td></tr>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <t t-elif="doc.document_type == 'missing_parts'">
+                            <h2>Bestellung Fehlteile</h2>
+                            <h3><span t-out="doc.project_reference or ''"/> – <span t-out="doc.project_name or ''"/></h3>
+                            <p><strong>Verteiler:</strong> <span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></p>
+                            <table class="table table-sm table-bordered">
+                                <thead><tr><th>Verteiler</th><th>Artikelnummer / Artikeltext</th><th>Bemerkung</th><th>Erledigt / Datum</th></tr></thead>
+                                <tbody>
+                                    <t t-foreach="range(18)" t-as="i"><tr><td style="height:24px;"></td><td></td><td></td><td></td></tr></t>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <t t-elif="doc.document_type == 'shipping_sheet'">
+                            <div style="text-align:center; margin-top:80px; font-size:32px; line-height:1.8; border:2px solid #000; padding:40px;">
+                                <div><strong><span t-out="doc.project_reference or ''"/></strong></div>
+                                <div><span t-out="doc.customer_name or ''"/></div>
+                                <div><span t-out="doc.project_name or ''"/></div>
+                                <div><strong><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></strong></div>
+                            </div>
+                        </t>
+
+                        <t t-elif="doc.document_type == 'add_pack'">
+                            <div style="border:2px solid #000; padding:35px; margin-top:50px;">
+                                <h1 style="text-align:center;">Beipackzettel</h1>
+                                <h3 style="text-align:center;"><span t-out="doc.customer_name or ''"/></h3>
+                                <h3 style="text-align:center;"><span t-out="doc.project_reference or ''"/> – <span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></h3>
+                                <h2 style="text-align:center; margin-top:35px;">Achtung! Bitte beachten.</h2>
+                                <p>Die Dokumentation befindet sich in der Schaltplantasche oder separat gepackt hinter der Türe / den Abdeckungen.</p>
+                                <p>Anschlussschrauben für Trenner sind in den unbestückten Sicherungskammern beigelegt. Ansonsten befinden sie sich im Beipack.</p>
+                                <p>Weiteres Zubehör, wie z. B. Sicherungshalter, Befestigungswinkel usw. befindet sich hinter den Abdeckungen bzw. im Beipack.</p>
+                            </div>
+                        </t>
+
+                        <t t-elif="doc.document_type == 'info_sheet'">
+                            <h2>Infoschild / Prüfhinweis</h2>
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr><td><strong>Auftrag</strong></td><td><span t-out="doc.project_reference or ''"/></td><td><strong>Verteiler</strong></td><td><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                                    <tr><td><strong>Prüfung</strong></td><td>Geprüft</td><td>Name</td><td><span t-out="doc.inspector_name or ''"/></td></tr>
+                                    <tr><td>Datum</td><td><span t-out="doc.inspection_date or ''"/></td><td>Nächster Wartungstermin</td><td><span t-out="doc.next_maintenance_date or ''"/></td></tr>
+                                </tbody>
+                            </table>
+                            <h3>Information zum Überspannungsschutz</h3>
+                            <p>Bei Isolationsmessungen bitte die Schutzmodule abziehen bzw. abklemmen.</p>
+                            <p><strong>System contains overvoltage protection devices. Please remove or disconnect the protectors during isolation tests.</strong></p>
+                            <p>Wartung und Prüfung von ortsfesten Anlagen nach DGUV Vorschrift 3 und DIN VDE 0100.</p>
+                        </t>
+
+                        <t t-else="">
+                            <h2><span t-out="doc.name"/></h2>
+                            <table class="table table-sm table-bordered">
+                                <tbody>
+                                    <tr><td><strong>Auftrag</strong></td><td><span t-out="doc.project_reference or ''"/></td><td><strong>Projekt</strong></td><td><span t-out="doc.project_name or ''"/></td></tr>
+                                    <tr><td><strong>Kunde</strong></td><td><span t-out="doc.customer_name or ''"/></td><td><strong>Verteiler</strong></td><td><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                                    <tr><td><strong>Dokumentart</strong></td><td><span t-out="doc.document_type"/></td><td><strong>Bearbeiter</strong></td><td><span t-out="doc.responsible_name or ''"/></td></tr>
+                                </tbody>
+                            </table>
+                            <p t-if="doc.note"><strong>Bemerkung:</strong> <span t-out="doc.note"/></p>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- wkhtmltopdf must receive an explicit HTTP content type. The regular
+         HTML5 charset marker is not sufficient on every Odoo.sh image and
+         otherwise UTF-8 text can be decoded as Latin-1. -->
+    <template id="report_sab_utf8_head" inherit_id="web.report_layout" priority="99">
+        <xpath expr="//head" position="inside">
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        </xpath>
+    </template>
+
+    <!-- Bootstrap begrenzt <main class="container"> sonst auf eine feste
+         Bildschirmbreite. Dieser Reset gibt millimetergenauen Vorlagen die
+         gesamte vom jeweiligen Papierformat bereitgestellte Fläche. -->
+    <template id="report_sab_studio_pdf_reset">
+        <style>
+            html, body, #wrapwrap, main.container {
+                width: 100% !important;
+                max-width: none !important;
+                min-width: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        </style>
+    </template>
+</odoo>

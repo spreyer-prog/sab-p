@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_procurement_dashboard_kanban" model="ir.ui.view">
+        <field name="name">sab.project.bom.procurement.dashboard.kanban</field>
+        <field name="model">sab.project.bom</field>
+        <field name="arch" type="xml">
+            <kanban string="Beschaffungs-Dashboard"
+                    create="0"
+                    delete="0"
+                    default_group_by="purchase_release_state">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="order_id"/>
+                <field name="purchase_release_state"/>
+                <field name="purchase_requirement_count"/>
+                <field name="sab_material_available_percent"/>
+                <field name="sab_material_missing_percent"/>
+                <field name="sab_expected_delivery_date"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="min-w-0">
+                                <field name="project_id" class="fw-bold fs-5 text-truncate"/>
+                                <field name="name" class="text-muted text-truncate"/>
+                            </div>
+                            <span t-if="record.purchase_release_state.raw_value == 'released'"
+                                  class="badge text-bg-success">Beschaffung freigegeben</span>
+                            <span t-else="" class="badge text-bg-warning">Neu im Einkauf</span>
+                        </div>
+                        <div class="mt-3">
+                            <div class="small text-muted">Materialpositionen</div>
+                            <div class="fw-semibold"><field name="purchase_requirement_count"/></div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="small text-muted">Physisch vorhanden / reserviert</div>
+                            <field name="sab_material_available_percent" widget="progressbar"/>
+                        </div>
+                        <div class="small mt-2">
+                            Fehlbestand: <field name="sab_material_missing_percent"/> %
+                        </div>
+                        <div t-if="record.sab_expected_delivery_date.raw_value" class="small text-muted mt-1">
+                            Spätester Liefertermin: <field name="sab_expected_delivery_date"/>
+                        </div>
+                        <footer class="mt-3 gap-2">
+                            <button name="action_open_procurement_workspace"
+                                    type="object"
+                                    class="btn btn-primary btn-sm">
+                                Einkaufsbearbeitung
+                            </button>
+                            <button t-if="record.purchase_release_state.raw_value != 'released'"
+                                    name="action_release_for_purchase"
+                                    type="object"
+                                    class="btn btn-outline-primary btn-sm"
+                                    groups="sab_project.group_sab_purchase_approver">
+                                Zur Beschaffung freigeben
+                            </button>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_sab_procurement_dashboard_list" model="ir.ui.view">
+        <field name="name">sab.project.bom.procurement.dashboard.list</field>
+        <field name="model">sab.project.bom</field>
+        <field name="arch" type="xml">
+            <list string="Beschaffungs-Dashboard"
+                  create="0"
+                  delete="0"
+                  decoration-warning="purchase_release_state == 'not_released'"
+                  decoration-success="purchase_release_state == 'released'">
+                <field name="project_id"/>
+                <field name="name" string="Gesamtstückliste"/>
+                <field name="order_id" string="Auftrag"/>
+                <field name="purchase_release_state" string="Beschaffungsstatus" widget="badge"/>
+                <field name="purchase_requirement_count" string="Materialpositionen"/>
+                <field name="sab_material_available_percent" string="Material vorhanden (%)" widget="progressbar"/>
+                <field name="sab_material_missing_percent" string="Fehlbestand (%)"/>
+                <field name="sab_expected_delivery_date" string="Spätester Liefertermin" optional="show"/>
+                <button name="action_open_procurement_workspace"
+                        type="object"
+                        string="Bearbeiten"
+                        class="btn-primary"/>
+                <button name="action_release_for_purchase"
+                        type="object"
+                        string="Zur Beschaffung freigeben"
+                        invisible="purchase_release_state == 'released'"
+                        groups="sab_project.group_sab_purchase_approver"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_procurement_dashboard_search" model="ir.ui.view">
+        <field name="name">sab.project.bom.procurement.dashboard.search</field>
+        <field name="model">sab.project.bom</field>
+        <field name="arch" type="xml">
+            <search string="Beschaffungs-Dashboard">
+                <field name="project_id"/>
+                <field name="name"/>
+                <field name="order_id"/>
+                <separator/>
+                <filter name="new_for_purchasing"
+                        string="Neu im Einkauf"
+                        domain="[('purchase_release_state','=','not_released')]"/>
+                <filter name="purchase_released"
+                        string="Zur Beschaffung freigegeben"
+                        domain="[('purchase_release_state','=','released')]"/>
+                <group>
+                    <filter name="group_release_state"
+                            string="Beschaffungsstatus"
+                            context="{'group_by':'purchase_release_state'}"/>
+                    <filter name="group_project"
+                            string="Projekt"
+                            context="{'group_by':'project_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sab_procurement_dashboard" model="ir.actions.act_window">
+        <field name="name">Beschaffungs-Dashboard</field>
+        <field name="res_model">sab.project.bom</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_sab_procurement_dashboard_search"/>
+        <field name="domain">[('state','=','released'),('bom_scope','=','total')]</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sab_procurement_dashboard_kanban')}), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_procurement_dashboard_list')})]"/>
+    </record>
+
+    <record id="action_sab_procurement_new_boms" model="ir.actions.act_window">
+        <field name="name">Neue freigegebene Stücklisten</field>
+        <field name="res_model">sab.project.bom</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_sab_procurement_dashboard_search"/>
+        <field name="domain">[('state','=','released'),('bom_scope','=','total'),('purchase_release_state','=','not_released')]</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sab_procurement_dashboard_kanban')}), (0, 0, {'view_mode': 'list', 'view_id': ref('view_sab_procurement_dashboard_list')})]"/>
+    </record>
+
+    <record id="sab_stock_root_menu" model="ir.ui.menu">
+        <field name="name">Einkauf / Lager</field>
+    </record>
+
+    <menuitem id="sab_procurement_new_boms_menu"
+              name="Neue Stücklisten"
+              parent="sab_stock_root_menu"
+              action="action_sab_procurement_new_boms"
+              sequence="5"
+              groups="sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager"/>
+
+    <menuitem id="sab_procurement_dashboard_menu"
+              name="Beschaffungs-Dashboard"
+              parent="sab_stock_root_menu"
+              action="action_sab_procurement_dashboard"
+              sequence="6"
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager"/>
+
+    <record id="view_sab_project_bom_form_procurement_workspace" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.procurement.workspace</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_purchase_release"/>
+        <field name="priority">260</field>
+        <field name="arch" type="xml">
+            <button name="action_release" position="attributes">
+                <attribute name="groups">project.group_project_manager</attribute>
+            </button>
+            <xpath expr="//form/header" position="inside">
+                <button name="action_open_procurement_workspace"
+                        type="object"
+                        string="Einkaufsbereich öffnen"
+                        class="btn-primary"
+                        invisible="state != 'released' or bom_scope != 'total'"
+                        groups="sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver,project.group_project_manager"/>
+            </xpath>
+            <field name="line_ids" position="after">
+                <notebook invisible="state != 'released' or bom_scope != 'total'">
+                    <page string="Einkaufsbearbeitung" name="sab_bom_procurement_workspace">
+                        <field name="purchase_requirement_ids" nolabel="1">
+                            <list create="0"
+                                  delete="0"
+                                  editable="bottom"
+                                  default_order="sequence,id"
+                                  decoration-success="stock_status in ('in_stock','received')"
+                                  decoration-warning="stock_status in ('partial','ordered','partial_received')"
+                                  decoration-danger="stock_status == 'missing'">
+                                <header>
+                                    <button name="action_create_purchase_orders"
+                                            type="object"
+                                            string="Bestellung aus Auswahl erzeugen"
+                                            class="btn-primary"
+                                            groups="sab_project.group_sab_purchasing"/>
+                                    <button name="action_reset_order_quantity_to_suggestion"
+                                            type="object"
+                                            string="Bestellmenge auf Vorschlag setzen"
+                                            groups="sab_project.group_sab_purchasing"/>
+                                </header>
+                                <field name="company_currency_id" column_invisible="1"/>
+                                <field name="manufacturer_name" string="Hersteller" readonly="1"/>
+                                <field name="odoo_product_id" string="Produkt" readonly="1"/>
+                                <field name="quantity" string="Bedarf" readonly="1"/>
+                                <field name="unit" readonly="1"/>
+                                <field name="warehouse_on_hand" string="Lagerbestand" readonly="1"/>
+                                <field name="warehouse_stock_value" string="Lagerwert" readonly="1" optional="show"/>
+                                <field name="project_reserved_quantity" string="Für Projekt reserviert" readonly="1"/>
+                                <field name="shortage_quantity" string="Fehlbestand" readonly="1"/>
+                                <field name="suggested_order_quantity" string="Vorschlag" readonly="1"/>
+                                <field name="quantity_to_order"
+                                       string="Jetzt bestellen"
+                                       groups="sab_project.group_sab_purchasing"/>
+                                <field name="supplier_id" string="Lieferant" readonly="1"/>
+                                <field name="stock_status" string="Status" widget="badge" readonly="1"/>
+                                <field name="purchase_order_id" string="Bestellung" readonly="1"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_list_workspace" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.list.workspace</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_list"/>
+        <field name="priority">260</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list/header" position="inside">
+                <button name="action_reset_order_quantity_to_suggestion"
+                        type="object"
+                        string="Bestellmenge auf Vorschlag setzen"
+                        groups="sab_project.group_sab_purchasing"/>
+            </xpath>
+            <xpath expr="//list" position="inside">
+                <field name="company_currency_id" column_invisible="1"/>
+            </xpath>
+            <field name="warehouse_on_hand" position="after">
+                <field name="warehouse_stock_value" string="Lagerwert" optional="show"/>
+                <field name="warehouse_unit_value" string="Lager-EK" optional="hide"/>
+            </field>
+            <field name="suggested_order_quantity" position="after">
+                <field name="quantity_to_order"
+                       string="Jetzt bestellen"
+                       optional="show"
+                       groups="sab_project.group_sab_purchasing"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_form_workspace" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.form.workspace</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_form"/>
+        <field name="priority">260</field>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <field name="company_currency_id" invisible="1"/>
+            </xpath>
+            <field name="warehouse_on_hand" position="after">
+                <field name="warehouse_stock_value" readonly="1"/>
+                <field name="warehouse_unit_value" readonly="1"/>
+            </field>
+            <field name="suggested_order_quantity" position="after">
+                <field name="quantity_to_order" groups="sab_project.group_sab_purchasing"/>
+            </field>
+        </field>
+    </record>
+</odoo>

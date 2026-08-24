@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_sab_purchase_order" model="mail.template">
+        <field name="name">SAB-P Lieferantenbestellung</field>
+        <field name="model_id" ref="model_sab_purchase_order"/>
+        <field name="subject">Bestellung {{ object.name }}</field>
+        <field name="email_to">{{ object.partner_id.email or '' }}</field>
+        <field name="body_html" type="html">
+            <div>
+                <p>Guten Tag <t t-out="object.partner_id.name or object.supplier_id.name"/>,</p>
+                <p>anbei erhalten Sie unsere Bestellung <strong><t t-out="object.name"/></strong>.</p>
+                <p>
+                    Bitte bestätigen Sie uns die Bestellung mit Ihrem Liefertermin unter Angabe unserer Bestellnummer.
+                </p>
+                <p>Vielen Dank.</p>
+                <p>Mit freundlichen Grüßen<br/>SAB-P GmbH</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+</odoo>

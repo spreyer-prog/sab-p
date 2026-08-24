@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_purchase_order_procurement_package"
+              inherit_id="sab_project.report_sab_purchase_order">
+        <xpath expr="//table[hasclass('o_main_table')]/tbody/t/tr/td[1]"
+               position="inside">
+            <t t-if="line.procurement_bom_id and line.procurement_bom_id.bom_scope == 'procurement'">
+                <br/>
+                <small>
+                    <strong>Materialanforderung:</strong>
+                    <span t-out="line.procurement_bom_id.procurement_reference or line.procurement_bom_id.name"/>
+                </small>
+            </t>
+            <t t-if="line.source_cabinet_bom_id">
+                <br/>
+                <small>
+                    <strong>Verteiler:</strong>
+                    <span t-out="line.source_cabinet_bom_id.cabinet_line_id.description or line.source_cabinet_bom_id.name"/>
+                </small>
+            </t>
+        </xpath>
+    </template>
+</odoo>

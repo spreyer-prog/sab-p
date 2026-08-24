@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_add_pack_original"
+              inherit_id="sab_project.report_sab_production_document"
+              priority="2170">
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'add_pack'&quot;]" position="replace">
+            <t t-elif="doc.document_type == 'add_pack'" t-translation="off">
+                <!-- Blatet Beipack.pdf: A4 mit 90° Rotation = A4 Querformat. -->
+                <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; overflow:hidden; font-family:Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:29.9mm; top:25.2mm; width:236.9mm; height:159.1mm; border:0.35mm solid #000; box-sizing:border-box; text-align:center; overflow:hidden; padding:10mm 13mm;">
+                        <div style="font-size:15pt; font-weight:700; text-decoration:underline; line-height:1;">Beipackzettel</div>
+                        <div style="font-size:9.4pt; font-weight:700; margin-top:4.7mm;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="font-size:8.7pt; margin-top:1.2mm;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="font-size:8.7pt; margin-top:0.8mm;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="font-size:13pt; font-weight:700; margin-top:5.5mm;">Achtung! Bitte beachten.</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.5mm;">Die Dokumentation befindet sich in der Schaltplantasche<br/>oder separat gepackt hinter der Türe / den Abdeckungen.</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.0mm;">Anschlußschrauben für Trenner sind in den unbestückten<br/>Sicherungskammern beigelegt. (Ansonsten im Beipack)</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.0mm;">Weiteres Zubehör, wie z. B. Sicherungshalter,<br/>Befestigungswinkel usw. befinden sich hinter<br/>den Abdeckungen bzw. im Beipack.</div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
+    <record id="paperformat_sab_add_pack_studio" model="report.paperformat">
+        <field name="name">SAB-P Beipackzettel 297 x 210 mm</field>
+        <field name="format">custom</field>
+        <field name="page_width">210</field>
+        <field name="page_height">297</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="dpi">77</field>
+    </record>
+
+    <record id="action_report_sab_add_pack_studio" model="ir.actions.report">
+        <field name="name">SAB-P Beipackzettel (Studio)</field>
+        <field name="model">sab.production.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_add_pack_studio</field>
+        <field name="report_file">sab_project.report_sab_add_pack_studio</field>
+        <field name="paperformat_id" ref="paperformat_sab_add_pack_studio"/>
+        <field name="print_report_name">object._sab_pdf_filename()</field>
+    </record>
+
+    <template id="report_sab_add_pack_studio">
+        <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="sab_project.report_sab_add_pack_studio_page"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_sab_add_pack_studio_page">
+        <div class="page" name="sab_add_pack_studio_page" t-translation="off" style="margin:0; padding:0;">
+                <!-- Blatet Beipack.pdf: A4 mit 90° Rotation = A4 Querformat. -->
+                <div style="position:relative; width:297mm; height:210mm; margin:0; padding:0; overflow:hidden; font-family:Arial,Helvetica,sans-serif; color:#000; box-sizing:border-box;">
+                    <div style="position:absolute; left:29.9mm; top:25.2mm; width:236.9mm; height:159.1mm; border:0.35mm solid #000; box-sizing:border-box; text-align:center; overflow:hidden; padding:10mm 13mm;">
+                        <div style="font-size:15pt; font-weight:700; text-decoration:underline; line-height:1;">Beipackzettel</div>
+                        <div style="font-size:9.4pt; font-weight:700; margin-top:4.7mm;"><span t-out="doc.customer_name or ''"/></div>
+                        <div style="font-size:8.7pt; margin-top:1.2mm;"><span t-out="doc.project_reference or ''"/></div>
+                        <div style="font-size:8.7pt; margin-top:0.8mm;"><span t-out="doc.project_name or ''"/></div>
+                        <div style="font-size:13pt; font-weight:700; margin-top:5.5mm;">Achtung! Bitte beachten.</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.5mm;">Die Dokumentation befindet sich in der Schaltplantasche<br/>oder separat gepackt hinter der Türe / den Abdeckungen.</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.0mm;">Anschlußschrauben für Trenner sind in den unbestückten<br/>Sicherungskammern beigelegt. (Ansonsten im Beipack)</div>
+                        <div style="font-size:8.2pt; font-weight:700; line-height:1.15; margin-top:5.0mm;">Weiteres Zubehör, wie z. B. Sicherungshalter,<br/>Befestigungswinkel usw. befinden sich hinter<br/>den Abdeckungen bzw. im Beipack.</div>
+                    </div>
+                </div>
+        </div>
+    </template>
+
+</odoo>
