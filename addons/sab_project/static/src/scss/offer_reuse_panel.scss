@@ -1,5 +1,8 @@
-// Only SAB-P quotations have the o_sab_reuse_active flag.
-// Preserve sale.order chatter data but remove the visual pane for calculations.
+// Scope this layout to forms that actually contain the SAB-P project reuse panel.
+// The OWL widget's o_sab_reuse_active JS flag is not guaranteed to be set
+// when Odoo mounts its chatter. :has() keeps the layout in sync with the
+// visible project panel without affecting unrelated Odoo sales forms.
+.o_form_view:has(.o_sab_offer_reuse_aside),
 .o_form_view.o_sab_reuse_active {
     .o-mail-Form-chatter,
     .o-mail-ChatterContainer {
@@ -161,6 +164,7 @@
 }
 
 @media (max-width: 1099.98px) {
+    .o_form_view:has(.o_sab_offer_reuse_aside) .o_form_renderer,
     .o_form_view.o_sab_reuse_active .o_form_renderer {
         display: flex;
         flex-flow: column nowrap;
