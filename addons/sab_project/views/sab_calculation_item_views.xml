@@ -23,6 +23,14 @@
                 <field name="note" string="Bemerkung" optional="show"/>
             </list></field></div>
             <group string="Kalkulationsfaktoren" col="4"><field name="mechanical_factor"/><field name="wiring_factor"/><field name="testing_factor"/><field name="space_factor"/></group>
+            <group string="Excel-Referenzwerte (keine automatische EK- oder VK-Berechnung)" col="4">
+                <field name="legacy_list_price" readonly="1"/>
+                <field name="legacy_packaging_unit" readonly="1"/>
+                <field name="legacy_discount_factor" readonly="1"/>
+                <field name="legacy_time_minutes" readonly="1"/>
+                <field name="legacy_auxiliary_material" readonly="1"/>
+                <field name="legacy_sales_price" readonly="1"/>
+            </group>
             <group string="Berechnete Werte" col="4"><field name="space_units" readonly="1"/><field name="mechanical_time_minutes" readonly="1"/><field name="wiring_time_minutes" readonly="1"/><field name="testing_time_minutes" readonly="1"/><field name="total_time_minutes" readonly="1"/><field name="purchase_total" string="Material-EK normal" readonly="1"/><field name="auxiliary_purchase_total" string="Hilfsmaterial-EK" readonly="1"/><field name="optional_purchase_total" readonly="1"/></group>
             <notebook><page string="Suchbegriffe"><group col="4"><field name="search_term_01"/><field name="search_term_02"/><field name="search_term_03"/><field name="search_term_04"/><field name="search_term_05"/><field name="search_term_06"/><field name="search_term_07"/><field name="search_term_08"/><field name="search_term_09"/><field name="search_term_10"/><field name="search_term_11"/><field name="search_term_12"/><field name="search_term_13"/><field name="search_term_14"/><field name="search_term_15"/><field name="search_term_16"/><field name="search_term_17"/><field name="search_term_18"/><field name="search_term_19"/><field name="search_term_20"/></group></page><page string="Notizen"><field name="notes" placeholder="Interne Hinweise zur Kalkulation ..."/></page><page string="Importinformation"><group><field name="legacy_source_sheet" readonly="1"/><field name="legacy_source_row" readonly="1"/><field name="legacy_import_key" readonly="1"/></group></page></notebook>
         </sheet></form></field>
