@@ -31,6 +31,16 @@ class SabCalculationItem(models.Model):
     legacy_list_price = fields.Float(string="Excel-Materiallistenpreis", digits=(16, 2), copy=False)
     legacy_packaging_unit = fields.Float(string="Excel-Verpackungseinheit", digits=(16, 4), copy=False)
     legacy_discount_factor = fields.Float(string="Excel-Rabattfaktor", digits=(16, 6), copy=False)
+    # 0,35 bedeutet einen Rabatt von 65 %, nicht 35 %.
+    # Ein fehlender Rabattfaktor wird als 1,00 (kein Rabatt) importiert.
+    legacy_discount_percent = fields.Float(
+        string="Excel-Rabatt (%)", compute="_compute_legacy_net_purchase", store=True,
+        digits=(16, 2),
+    )
+    legacy_net_purchase_unit = fields.Float(
+        string="Excel-Netto-EK pro Stück", compute="_compute_legacy_net_purchase",
+        store=True, digits=(16, 4),
+    )
     legacy_time_minutes = fields.Float(string="Excel-Zeit (min)", digits=(16, 2), copy=False)
     legacy_auxiliary_material = fields.Float(string="Excel-Hilfsmaterial", digits=(16, 2), copy=False)
     legacy_sales_price = fields.Float(string="Excel-VK (Referenz)", digits=(16, 2), copy=False)
@@ -55,6 +65,16 @@ class SabCalculationItem(models.Model):
     search_term_17 = fields.Char(string="Suchbegriff 17", index=True); search_term_18 = fields.Char(string="Suchbegriff 18", index=True)
     search_term_19 = fields.Char(string="Suchbegriff 19", index=True); search_term_20 = fields.Char(string="Suchbegriff 20", index=True)
     notes = fields.Text(string="Interne Hinweise")
+
+    @api.depends("legacy_list_price", "legacy_packaging_unit", "legacy_discount_factor")
+    def _compute_legacy_net_purchase(self):
+        for record in self:
+            factor = record.legacy_discount_factor
+            package = record.legacy_packaging_unit or 1.0
+            record.legacy_discount_percent = (1.0 - factor) * 100.0
+            record.legacy_net_purchase_unit = (
+                (record.legacy_list_price or 0.0) * factor / package
+            )
 
     @api.depends(
         "product_line_ids.quantity",
