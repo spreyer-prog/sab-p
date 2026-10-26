@@ -41,7 +41,7 @@ class SabOfferCalculationLine(models.Model):
     testing_time_minutes = fields.Float(compute="_compute_totals", store=True)
     total_time_minutes = fields.Float(compute="_compute_totals", store=True)
     total_hours = fields.Float(compute="_compute_totals", store=True)
-    space_units = fields.Float(compute="_compute_totals", store=True)
+    space_units = fields.Float(compute="_compute_totals", store=True, recursive=True)
     recommended_net_price = fields.Monetary(string="Verkaufspreis netto", currency_field="currency_id", compute="_compute_price", store=True)
     unit_recommended_net_price = fields.Monetary(string="VK je Einheit", currency_field="currency_id", compute="_compute_price", store=True)
     currency_id = fields.Many2one(related="order_id.currency_id", readonly=True, store=True)
