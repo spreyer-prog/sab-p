@@ -26,6 +26,14 @@ class SabCalculationItem(models.Model):
     legacy_import_key = fields.Char(string="Import-Schlüssel", copy=False, index=True, readonly=True)
     legacy_source_sheet = fields.Char(string="Import-Tabellenblatt", copy=False, readonly=True)
     legacy_source_row = fields.Integer(string="Import-Zeile", copy=False, readonly=True)
+    # Imported Excel references are NOT the live supplier EK or calculated selling price.
+    # Keeping them separate avoids corrupting purchasing, quotations and BOM snapshots.
+    legacy_list_price = fields.Float(string="Excel-Materiallistenpreis", digits=(16, 2), copy=False)
+    legacy_packaging_unit = fields.Float(string="Excel-Verpackungseinheit", digits=(16, 4), copy=False)
+    legacy_discount_factor = fields.Float(string="Excel-Rabattfaktor", digits=(16, 6), copy=False)
+    legacy_time_minutes = fields.Float(string="Excel-Zeit (min)", digits=(16, 2), copy=False)
+    legacy_auxiliary_material = fields.Float(string="Excel-Hilfsmaterial", digits=(16, 2), copy=False)
+    legacy_sales_price = fields.Float(string="Excel-VK (Referenz)", digits=(16, 2), copy=False)
     space_units = fields.Float(string="Berechnete Platzeinheiten", compute="_compute_product_values", store=True)
     mechanical_time_minutes = fields.Float(string="Berechnete Mechanikzeit in Minuten", compute="_compute_product_values", store=True)
     wiring_time_minutes = fields.Float(string="Berechnete Verdrahtungszeit in Minuten", compute="_compute_product_values", store=True)
