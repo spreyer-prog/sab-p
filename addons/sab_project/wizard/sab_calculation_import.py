@@ -61,6 +61,11 @@ class SabCalculationImport(models.TransientModel):
         readonly=True,
     )
 
+    updated_count = fields.Integer(
+        string="Vorhandene Referenzwerte aktualisiert",
+        readonly=True,
+    )
+
     # ---------------------------------------------------------
     # Datei
     # ---------------------------------------------------------
@@ -224,7 +229,13 @@ class SabCalculationImport(models.TransientModel):
                     "D": sheet.cell_value(row_index, 3),
                     "E": sheet.cell_value(row_index, 4),
                     "F": sheet.cell_value(row_index, 5),
+                    "H": sheet.cell_value(row_index, 7) if sheet.ncols > 7 else None,
+                    "I": sheet.cell_value(row_index, 8) if sheet.ncols > 8 else None,
+                    "J": sheet.cell_value(row_index, 9) if sheet.ncols > 9 else None,
+                    "K": sheet.cell_value(row_index, 10) if sheet.ncols > 10 else None,
+                    "L": sheet.cell_value(row_index, 11) if sheet.ncols > 11 else None,
                     "R": sheet.cell_value(row_index, 17),
+                    "S": sheet.cell_value(row_index, 18) if sheet.ncols > 18 else None,
                     "AQ": (
                         sheet.cell_value(row_index, 42)
                         if sheet.ncols > 42
@@ -278,7 +289,13 @@ class SabCalculationImport(models.TransientModel):
                     "D": worksheet.cell(row_number, 4).value,
                     "E": worksheet.cell(row_number, 5).value,
                     "F": worksheet.cell(row_number, 6).value,
+                    "H": worksheet.cell(row_number, 8).value,
+                    "I": worksheet.cell(row_number, 9).value,
+                    "J": worksheet.cell(row_number, 10).value,
+                    "K": worksheet.cell(row_number, 11).value,
+                    "L": worksheet.cell(row_number, 12).value,
                     "R": worksheet.cell(row_number, 18).value,
+                    "S": worksheet.cell(row_number, 19).value,
                     "AQ": worksheet.cell(row_number, 43).value,
                 })
 
@@ -342,6 +359,15 @@ class SabCalculationImport(models.TransientModel):
             "E  = Verdrahtungsfaktor %",
             "F  = Prüffaktor %",
             "AQ = Platzfaktor (Dezimalwert)",
+            "H  = Excel-Materiallistenpreis (KEIN EK)",
+            "I  = Verpackungseinheit",
+            "J  = Rabattfaktor (z. B. 0,35)",
+            "K  = Excel-Zeit in Minuten",
+            "L  = Excel-Hilfsmaterial",
+            "S  = Excel-VK als Referenz (KEIN Material-EK)",
+            "",
+            "Die importierten Referenzwerte ändern keine bestehenden Produktzuordnungen,",
+            "Lieferanten-Einkaufspreise, Angebots-Snapshots oder Preisformeln.",
             "",
             "NICHT importiert werden:",
             "AJ = fertige Mechanikminuten",
@@ -369,6 +395,7 @@ class SabCalculationImport(models.TransientModel):
             "imported_count": 0,
             "skipped_count": 0,
             "duplicate_count": 0,
+            "updated_count": 0,
         })
 
         return self._reopen_wizard()
@@ -392,6 +419,7 @@ class SabCalculationImport(models.TransientModel):
         imported_count = 0
         skipped_count = 0
         duplicate_count = 0
+        updated_count = 0
 
         keys_seen_in_file = set()
 
@@ -451,11 +479,32 @@ class SabCalculationImport(models.TransientModel):
                     limit=1,
                 )
 
+                # Reference values from Excel. These do NOT replace active EK/VK.
+                excel_reference_values = {
+                    "legacy_list_price": self._number_or_none(row.get("H")) or 0.0,
+                    "legacy_packaging_unit": self._number_or_none(row.get("I")) or 0.0,
+                    "legacy_discount_factor": self._number_or_none(row.get("J")) or 0.0,
+                    "legacy_time_minutes": self._number_or_none(row.get("K")) or 0.0,
+                    "legacy_auxiliary_material": self._number_or_none(row.get("L")) or 0.0,
+                    "legacy_sales_price": self._number_or_none(row.get("S")) or 0.0,
+                }
+
                 if existing:
-                    duplicate_count += 1
+                    # Enrich existing shells, never erase manually assigned lines.
+                    to_update = {
+                        field_name: value
+                        for field_name, value in excel_reference_values.items()
+                        if existing[field_name] != value
+                    }
+                    if to_update:
+                        existing.write(to_update)
+                        updated_count += 1
+                    else:
+                        duplicate_count += 1
                     continue
 
                 calculation_model.create({
+                    **excel_reference_values,
                     "name": description,
                     "quotation_text": description,
                     "mechanical_factor": mechanical_factor,
@@ -473,6 +522,7 @@ class SabCalculationImport(models.TransientModel):
             "Import abgeschlossen.",
             "",
             f"Neu importiert: {imported_count}",
+            f"Vorhandene Referenzwerte aktualisiert: {updated_count}",
             f"Dubletten übersprungen: {duplicate_count}",
             f"Sonstige Zeilen übersprungen: {skipped_count}",
             "",
@@ -482,6 +532,8 @@ class SabCalculationImport(models.TransientModel):
             "Keine fertigen Minutenwerte wurden importiert.",
             "Keine berechneten Platzeinheiten wurden importiert.",
             "Keine DATANORM-Artikel wurden zugeordnet.",
+            "Excel-Listenpreis, VE, Rabattfaktor, Zeit, Hilfsmaterial und VK",
+            "wurden nur als Referenz gespeichert, nicht als Live-EK/VK berechnet.",
             "Die 20 Suchbegriffe bleiben zur späteren Pflege frei.",
         ]
 
@@ -490,6 +542,7 @@ class SabCalculationImport(models.TransientModel):
             "imported_count": imported_count,
             "skipped_count": skipped_count,
             "duplicate_count": duplicate_count,
+            "updated_count": updated_count,
             "workbook_info": "\n".join(result_text),
         })
 
@@ -510,6 +563,7 @@ class SabCalculationImport(models.TransientModel):
             "imported_count": 0,
             "skipped_count": 0,
             "duplicate_count": 0,
+            "updated_count": 0,
         })
 
         return self._reopen_wizard()
