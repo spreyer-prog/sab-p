@@ -30,7 +30,7 @@ class SabCalculationItem(models.Model):
     # Keeping them separate avoids corrupting purchasing, quotations and BOM snapshots.
     legacy_list_price = fields.Float(string="Excel-Materiallistenpreis", digits=(16, 2), copy=False)
     legacy_packaging_unit = fields.Float(string="Excel-Verpackungseinheit", digits=(16, 4), copy=False)
-    legacy_discount_factor = fields.Float(string="Excel-Rabattfaktor", digits=(16, 6), copy=False)
+    legacy_discount_factor = fields.Float(string="Excel-Rabattfaktor", digits=(16, 6), default=1.0, copy=False)
     # 0,35 bedeutet einen Rabatt von 65 %, nicht 35 %.
     # Ein fehlender Rabattfaktor wird als 1,00 (kein Rabatt) importiert.
     legacy_discount_percent = fields.Float(
