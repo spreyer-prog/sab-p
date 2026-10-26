@@ -62,6 +62,10 @@
                             name="duplicate_count"
                             readonly="1"
                         />
+                        <field
+                            name="updated_count"
+                            readonly="1"
+                        />
 
                         <field
                             name="skipped_count"
