@@ -49,7 +49,7 @@
             <xpath expr="//field[@name='order_line']/list" position="attributes">
                 <attribute name="delete">1</attribute>
             </xpath>
-            <xpath expr="//notebook" position="inside">
+            <xpath expr="//notebook/page[@name='order_lines']" position="before">
                 <page string="SAB-P Kalkulation" name="sab_calculation">
                     <group string="Kalkulationspositionen" col="1">
                         <field name="sab_calculation_line_ids"
@@ -102,6 +102,8 @@
                         <field name="sab_offer_gross_total" string="Brutto-Angebotssumme" readonly="1"/>
                     </group>
                 </page>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
                 <page string="Kalkulationsfaktoren" name="sab_calculation_factors">
                     <group string="Material und Zeit" col="4">
                         <field name="sab_material_factor" readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'"/>
