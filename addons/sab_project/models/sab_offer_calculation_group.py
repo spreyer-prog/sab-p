@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class SabOfferCalculationGroup(models.Model):
@@ -55,3 +56,56 @@ class SaleOrder(models.Model):
             order.sab_offer_net_total = net_total
             order.sab_offer_vat_total = vat_total
             order.sab_offer_gross_total = net_total + vat_total
+
+
+class SaleOrderCalculationWorkspaces(models.Model):
+    _inherit = "sale.order"
+
+    # This is a filtered view of the SAME records, not an additional cost table.
+    # The canonical sab_calculation_line_ids remains the sole source for prices,
+    # snapshots, customer lines, reports, LV validation and release protection.
+    sab_material_calculation_line_ids = fields.One2many(
+        comodel_name="sab.offer.calculation.line",
+        inverse_name="order_id",
+        string="Materialkalkulation",
+        domain=[
+            ("line_type", "=", "item"),
+            ("calculation_item_id", "=", False),
+            ("odoo_product_id", "!=", False),
+        ],
+        copy=False,
+        help="Direkte Produktpositionen desselben Angebots; keine doppelte Summierung.",
+    )
+
+    def action_sab_create_suboffer(self):
+        """Create an empty project quotation with the source commercial snapshot.
+
+        Unlike action_create_sab_revision, no calculation/customer/group lines
+        are copied. No source record or central customer parameter is written.
+        Copying the header preserves the stored customer-specific factors rather
+        than silently taking today's global default values.
+        """
+        self.ensure_one()
+        if not self.sab_project_id:
+            raise ValidationError("Ein Unterangebot benötigt ein SAB-P Projekt.")
+        new_order = self.copy({
+            "state": "draft",
+            "order_line": [],
+            "sab_calculation_line_ids": [],
+            "sab_material_calculation_line_ids": [],
+            "sab_calculation_group_ids": [],
+            "sab_revision_of_id": False,
+            "sab_revision_reason": False,
+            "sab_offer_release_state": "draft",
+            "sab_offer_released_at": False,
+            "sab_offer_released_by_id": False,
+            "origin": self.sab_offer_reference or self.name,
+        })
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Neues Unterangebot",
+            "res_model": "sale.order",
+            "res_id": new_order.id,
+            "view_mode": "form",
+            "target": "current",
+        }

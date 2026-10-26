@@ -27,6 +27,7 @@
             </xpath>
             <xpath expr="//page[@name='sab_calculation']//field[@name='schematic_reference']" position="attributes">
                 <attribute name="invisible">line_type in ('info', 'section_end', 'cabinet', 'cabinet_end')</attribute>
+                <attribute name="column_invisible">parent.sab_calculation_source != 'schematic'</attribute>
             </xpath>
             <xpath expr="//page[@name='sab_calculation']//field[@name='description']" position="attributes">
                 <attribute name="invisible">line_type in ('section_end', 'cabinet_end')</attribute>
@@ -36,6 +37,51 @@
             </xpath>
             <xpath expr="//page[@name='sab_calculation']//field[@name='space_units']" position="attributes">
                 <attribute name="invisible">line_type not in ('item', 'cabinet')</attribute>
+            </xpath>
+            <!-- Visibility only: keep product links and schematic references stored. -->
+            <xpath expr="//page[@name='sab_calculation']//field[@name='odoo_product_id']" position="attributes">
+                <attribute name="column_invisible">parent.sab_calculation_source == 'lv'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_sab_revision']" position="attributes">
+                <attribute name="string">Angebot kopieren / bearbeiten</attribute>
+                <attribute name="help">Bearbeitbare Kopie mit den vorhandenen Positionen und gespeicherten Faktoren erstellen. Das ursprüngliche Angebot bleibt unverändert.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_sab_revision']" position="after">
+                <button name="action_sab_create_suboffer"
+                        type="object"
+                        string="Neues Angebot erstellen"
+                        help="Leeres Unterangebot im selben Projekt mit neuem Angebotskennzeichen erstellen. Kunde und gespeicherte Faktoren werden übernommen, Positionen nicht."
+                        class="btn-secondary"
+                        invisible="not sab_project_id"/>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']" position="after">
+                <page name="sab_material_calculation" string="Materialkalkulation" invisible="not sab_project_id">
+                    <div class="text-muted mb-2">
+                        Direkte Produktpositionen dieses Angebots. Jede Position wird nur einmal in der Angebotssumme berücksichtigt.
+                        <span invisible="sab_calculation_source != 'lv'">Die erforderliche LV-Zuordnung erfolgt weiterhin im Reiter SAB-P Kalkulation.</span>
+                    </div>
+                    <field name="sab_material_calculation_line_ids"
+                           nolabel="1"
+                           context="{'default_line_type': 'item', 'default_calculation_item_id': False}"
+                           readonly="state not in ('draft', 'sent') or sab_offer_release_state == 'released'">
+                        <list editable="bottom" delete="1" default_order="sequence">
+                            <control>
+                                <create string="Produkt hinzufügen" context="{'default_line_type': 'item', 'default_calculation_item_id': False}"/>
+                            </control>
+                            <field name="order_id" column_invisible="1"/>
+                            <field name="line_type" column_invisible="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="sequence" widget="handle" string="Pos."/>
+                            <field name="odoo_product_id" string="Produkt" required="1" options="{'no_create': True}"/>
+                            <field name="quantity" string="Menge"/>
+                            <field name="description" string="Angebotstext"/>
+                            <field name="material_purchase_total" string="Material-EK gesamt" readonly="1" optional="show"/>
+                            <field name="unit_recommended_net_price" string="VK je Einheit" readonly="1"/>
+                            <field name="recommended_net_price" string="VK gesamt" readonly="1"/>
+                            <field name="note" string="Bemerkung" optional="show"/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>

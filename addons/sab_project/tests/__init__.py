@@ -47,3 +47,4 @@ from . import test_standard_purchase_approver_edit_security
 from . import test_procurement_supplier_grouping_flow
 from . import test_standard_purchase_bridge_release_expectation
 from . import test_system_admin_full_sab_access
+from . import test_offer_workspaces
