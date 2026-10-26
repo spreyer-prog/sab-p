@@ -483,7 +483,11 @@ class SabCalculationImport(models.TransientModel):
                 excel_reference_values = {
                     "legacy_list_price": self._number_or_none(row.get("H")) or 0.0,
                     "legacy_packaging_unit": self._number_or_none(row.get("I")) or 0.0,
-                    "legacy_discount_factor": self._number_or_none(row.get("J")) or 0.0,
+                    "legacy_discount_factor": (
+                        self._number_or_none(row.get("J"))
+                        if self._number_or_none(row.get("J")) is not None
+                        else 1.0
+                    ),
                     "legacy_time_minutes": self._number_or_none(row.get("K")) or 0.0,
                     "legacy_auxiliary_material": self._number_or_none(row.get("L")) or 0.0,
                     "legacy_sales_price": self._number_or_none(row.get("S")) or 0.0,
