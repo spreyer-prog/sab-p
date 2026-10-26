@@ -1,5 +1,6 @@
 from . import test_numbering
 from . import test_calculation_core
+from . import test_calculation_import_references
 from . import test_datanorm_import
 from . import test_customer_import
 from . import test_supplier_import
