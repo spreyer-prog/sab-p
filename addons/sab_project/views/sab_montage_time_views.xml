@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_calculation_item_montage_time" model="ir.ui.view">
+        <field name="name">sab.calculation.item.montage.time</field>
+        <field name="model">sab.calculation.item</field>
+        <field name="inherit_id" ref="sab_project.view_sab_calculation_item_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_sab_product_positions')]" position="before">
+                <field name="montage_time_allocation_missing" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="not montage_time_allocation_missing">
+                    Montage-Aufteilung prüfen: Mechanik, Verdrahtung und Prüfung ergeben nicht 100 %.
+                    Der Minutenwert bleibt erhalten; es wird keine Aufteilung erfunden.
+                    Bei Excel-Hilfspositionen muss zuerst die Zuordnung zum Hauptartikel geklärt werden.
+                </div>
+                <group string="Montagezeit" col="4">
+                    <field name="legacy_time_minutes" string="Montagezeit je Artikel (min)" readonly="0"/>
+                    <div class="text-muted" colspan="2">
+                        Beim Speichern wird die Montagezeit als eigene Produktposition hinterlegt.
+                        Abrechnung erst im Angebot: Minuten / 60 × gespeicherter Stundensatz.
+                        Bei 94,95 €/h sind das 1,5825 €/min vor Angebotszuschlägen.
+                    </div>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='product_line_ids']/list/field[@name='sequence']" position="before">
+                <field name="is_auto_montage_time" column_invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='product_line_ids']/list/field[@name='odoo_product_id']" position="attributes">
+                <attribute name="readonly">is_auto_montage_time</attribute>
+            </xpath>
+            <xpath expr="//field[@name='product_line_ids']/list/field[@name='quantity']" position="attributes">
+                <attribute name="readonly">is_auto_montage_time</attribute>
+            </xpath>
+            <xpath expr="//field[@name='product_line_ids']/list/field[@name='unit']" position="attributes">
+                <attribute name="readonly">is_auto_montage_time</attribute>
+            </xpath>
+            <xpath expr="//field[@name='product_line_ids']/list/field[@name='unit_purchase_price']" position="attributes">
+                <attribute name="invisible">is_auto_montage_time</attribute>
+            </xpath>
+            <xpath expr="//field[@name='product_line_ids']/list/field[@name='purchase_total']" position="attributes">
+                <attribute name="invisible">is_auto_montage_time</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -110,3 +110,4 @@ from . import sab_production_report_format_router
 from . import sab_receipt_assignment_list
 from . import sab_receipt_line_delete_fix
 from . import sab_offer_print_template
+from . import sab_montage_time
