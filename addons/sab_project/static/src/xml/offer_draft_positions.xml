@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="sab_project.OfferDraftPositions" t-inherit="sab_project.OfferReusePanel" t-inherit-mode="extension">
+        <xpath expr="//t[@t-elif=&quot;state.activeTab == 'lv'&quot;]/div[1]" position="replace">
+            <div class="small text-muted mb-2">
+                Gespeicherte LV-/NTG-Positionen können bereits im Entwurf übernommen werden.
+                Die Versandfreigabe schreibt die Zuordnung fest.
+            </div>
+        </xpath>
+        <xpath expr="//article[@data-kind='lv']//div[@t-if='item.first_offer']" position="after">
+            <div><span class="badge text-bg-light" t-esc="item.position_status or 'Festgeschrieben'"/></div>
+        </xpath>
+    </t>
+</templates>

@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.102.0",
+    "version": "19.0.5.103.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -27,7 +27,7 @@
         "views/sab_employee_mobile_views.xml", "views/sab_employee_feedback_views.xml", "views/sab_customer_status_views.xml",
         "views/sab_customer_portal_templates.xml", "wizard/sab_calculation_import_views.xml", "wizard/sab_datanorm_import_views.xml",
         "wizard/sab_customer_import_views.xml", "data/sab_montage_time.xml", "views/sab_montage_time_views.xml",
-        "views/sab_offer_unit_rounding_views.xml"
+        "views/sab_offer_unit_rounding_views.xml", "views/sab_offer_draft_positions_views.xml"
     ],
     "assets": {
         "web.assets_backend": [
@@ -35,10 +35,12 @@
             "sab_project/static/src/scss/offer_reuse_panel.scss",
             "sab_project/static/src/js/datanorm_progress.js",
             "sab_project/static/src/js/offer_reuse_panel.js",
+            "sab_project/static/src/js/offer_draft_positions.js",
             "sab_project/static/src/js/production_multi_print.js",
             "sab_project/static/src/js/suite_action_router.js",
             "sab_project/static/src/xml/datanorm_progress.xml",
             "sab_project/static/src/xml/offer_reuse_panel.xml",
+            "sab_project/static/src/xml/offer_draft_positions.xml",
             "sab_project/static/src/xml/production_multi_print.xml",
             "sab_project/static/src/xml/suite_action_router.xml",
         ]

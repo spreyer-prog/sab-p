@@ -56,7 +56,10 @@ class TestSabProjectLvMapping(TransactionCase):
                 "quantity": 1.0,
             }
         )
-        self.assertFalse(draft_line.lv_position)
+        # Saved draft positions are reusable, but not immutable project mappings.
+        self.assertEqual(draft_line.lv_position, "01.01.03")
+        self.assertFalse(draft_line.lv_position_locked)
+        self.assertFalse(self.env["sab.project.lv.mapping"].search(mapping_domain))
 
         first.action_sab_release_offer()
         mapping = self.env["sab.project.lv.mapping"].search(mapping_domain)
