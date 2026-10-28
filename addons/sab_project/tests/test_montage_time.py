@@ -99,7 +99,13 @@ class TestSabMontageTime(TransactionCase):
     def test_existing_margin_applies_once_to_time_and_material(self):
         order = self._quote(self._item(60), quantity=2, margin=1.15)
         line = order.sab_calculation_line_ids
-        self.assertAlmostEqual(line.recommended_net_price, (10 + 94.95) * 2 * 1.15)
+        self.assertAlmostEqual(line.material_purchase_total, 20.0)
+        self.assertAlmostEqual(line.total_hours, 2.0)
+        # Monetary fields round at assignment using the quotation currency.
+        # 241.385 must be compared with 241.39 for a currency rounded to cents;
+        # keep full precision for minutes/rates and round only the final amount.
+        expected_price = order.currency_id.round((10 + 94.95) * 2 * 1.15)
+        self.assertAlmostEqual(line.recommended_net_price, expected_price)
         self.assertAlmostEqual(order.sab_offer_subtotal, line.recommended_net_price)
 
     def test_existing_offer_is_not_repriced_when_master_time_or_settings_change(self):
