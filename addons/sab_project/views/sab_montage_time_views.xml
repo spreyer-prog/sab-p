@@ -12,14 +12,27 @@
                     Der Minutenwert bleibt erhalten; es wird keine Aufteilung erfunden.
                     Bei Excel-Hilfspositionen muss zuerst die Zuordnung zum Hauptartikel geklärt werden.
                 </div>
-                <group string="Montagezeit" col="4">
-                    <field name="legacy_time_minutes" string="Montagezeit je Artikel (min)" readonly="0"/>
-                    <div class="text-muted" colspan="2">
+                <!-- Keep the numeric editor independent of the long help text.
+                     In an inner group the hint previously squeezed it to zero width. -->
+                <separator string="Montagezeit"/>
+                <div name="sab_montage_time_entry" class="mb-3" style="min-width: 0;">
+                    <label for="sab_montage_minutes_input" string="Montagezeit je Artikel"/>
+                    <div name="sab_montage_time_input_row" class="d-flex flex-wrap align-items-center gap-2 my-2">
+                        <field name="legacy_time_minutes"
+                               id="sab_montage_minutes_input"
+                               string="Montagezeit je Artikel (min)"
+                               readonly="0"
+                               placeholder="Minuten eingeben"
+                               class="border rounded px-2 py-1"
+                               style="width: 12rem; min-width: 12rem; max-width: 12rem; flex: 0 0 12rem;"/>
+                        <span class="text-muted">Minuten</span>
+                    </div>
+                    <div name="sab_montage_time_help" class="text-muted" style="white-space: normal; overflow-wrap: anywhere;">
                         Beim Speichern wird die Montagezeit als eigene Produktposition hinterlegt.
                         Abrechnung erst im Angebot: Minuten / 60 × gespeicherter Stundensatz.
                         Bei 94,95 €/h sind das 1,5825 €/min vor Angebotszuschlägen.
                     </div>
-                </group>
+                </div>
             </xpath>
             <xpath expr="//field[@name='product_line_ids']/list/field[@name='sequence']" position="before">
                 <field name="is_auto_montage_time" column_invisible="1"/>
