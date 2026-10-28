@@ -92,8 +92,13 @@ class TestSabMontageTime(TransactionCase):
     def test_fractional_minutes_are_not_rounded_to_158_per_minute(self):
         order = self._quote(self._item(0.125, with_material=False), quantity=480)
         line = order.sab_calculation_line_ids
+        self.assertAlmostEqual(line.unit_total_minutes, 0.125)
         self.assertAlmostEqual(line.total_time_minutes, 60)
-        self.assertAlmostEqual(line.recommended_net_price, 94.95)
+        self.assertAlmostEqual(order.sab_labor_cost, 94.95)
+        # Full precision in time/cost; the customer buys 480 rounded-price units.
+        expected_unit = order.currency_id.round(0.125 / 60.0 * 94.95)
+        self.assertAlmostEqual(line.unit_recommended_net_price, expected_unit)
+        self.assertAlmostEqual(line.recommended_net_price, order.currency_id.round(expected_unit * 480))
         self.assertFalse(line.component_snapshot_ids)
 
     def test_existing_margin_applies_once_to_time_and_material(self):
@@ -101,10 +106,11 @@ class TestSabMontageTime(TransactionCase):
         line = order.sab_calculation_line_ids
         self.assertAlmostEqual(line.material_purchase_total, 20.0)
         self.assertAlmostEqual(line.total_hours, 2.0)
-        # Monetary fields round at assignment using the quotation currency.
-        # 241.385 must be compared with 241.39 for a currency rounded to cents;
-        # keep full precision for minutes/rates and round only the final amount.
-        expected_price = order.currency_id.round((10 + 94.95) * 2 * 1.15)
+        # Unit-first selling price: 120.69 per unit, then quantity 2 = 241.38.
+        # Minutes and hourly cost retain full precision before that price is rounded.
+        expected_unit = order.currency_id.round((10 + 94.95) * 1.15)
+        expected_price = order.currency_id.round(expected_unit * 2)
+        self.assertAlmostEqual(line.unit_recommended_net_price, expected_unit)
         self.assertAlmostEqual(line.recommended_net_price, expected_price)
         self.assertAlmostEqual(order.sab_offer_subtotal, line.recommended_net_price)
 
