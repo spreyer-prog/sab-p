@@ -288,3 +288,98 @@ class TestMaterialControl(TransactionCase):
         cabinets[0].action_release()
         req.invalidate_recordset()
         self.assertEqual(req.project_reserved_quantity,9)
+
+    def test_30_empty_lv_survives_flush_and_purchasing_quantity_edit(self):
+        order = self.order()
+        cabinets = self.cabinets(order)
+        cabinets[0].line_ids.sab_lv_position = ''
+        cabinets[1].line_ids.sab_lv_position = False
+        package = self.package(order, cabinets)
+        rows = cabinets.mapped('line_ids') | package.line_ids
+        rows.flush_recordset()
+        rows.invalidate_recordset()
+        self.assertFalse(any(rows.mapped('sab_lv_position')))
+        wizard = self.edit(package.sab_material_group_ids)
+        edit = wizard.line_ids.filtered(lambda line: line.cabinet_bom_id == cabinets[0])
+        edit.quantity = 9
+        self.apply(wizard)
+        copied = package.line_ids.filtered(lambda line: line.source_cabinet_bom_id == cabinets[0])
+        self.assertEqual(copied.source_cabinet_line_id, cabinets[0].line_ids)
+        self.assertEqual((copied.quantity, cabinets[0].line_ids.quantity), (9, 9))
+        self.assertEqual(cabinets[1].line_ids.quantity, 6)
+        self.assertFalse(any(rows.mapped('sab_lv_position')))
+        self.assertEqual(package.sab_material_calculated_ek, 120)
+        self.assertEqual(package.sab_material_current_ek, 150)
+        self.assertEqual(len(package.sab_material_change_ids), 1)
+
+    def test_31_empty_lv_allows_price_only_revision_without_technical_recheck(self):
+        order = self.order()
+        cabinets = self.cabinets(order)
+        cabinets[0].line_ids.sab_lv_position = ''
+        package = self.package(order, cabinets)
+        wizard = self.edit(package.sab_material_group_ids)
+        edit = wizard.line_ids.filtered(lambda line: line.cabinet_bom_id == cabinets[0])
+        edit.unit_purchase_price = 12
+        self.apply(wizard)
+        copied = package.line_ids.filtered(lambda line: line.source_cabinet_bom_id == cabinets[0])
+        self.assertEqual(copied.unit_purchase_price, 12)
+        self.assertEqual(cabinets[0].line_ids.unit_purchase_price, 12)
+        self.assertFalse(package.sab_material_recheck_required)
+        self.assertEqual(package.sab_material_calculated_ek, 120)
+        self.assertEqual(package.sab_material_current_ek, 132)
+
+    def test_32_genuine_preexisting_source_differences_still_block_revision(self):
+        order = self.order()
+        cabinets = self.cabinets(order)
+        package = self.package(order, cabinets)
+        copied = package.line_ids.filtered(lambda line: line.source_cabinet_bom_id == cabinets[0])
+        cases = (('quantity', 7.0), ('unit', 'm'), ('optional', True),
+                 ('unit_purchase_price', 11.0), ('sab_lv_position', 'DIFFERENT-LV'))
+        for field, value in cases:
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValidationError, 'Abweichendes Feld'), self.env.cr.savepoint():
+                    # Test-only corruption: simulate a real divergence *before*
+                    # the dialog opens. Production CRUD guards stay unchanged.
+                    copied.flush_recordset()
+                    self.env.cr.execute(
+                        'UPDATE sab_project_bom_line SET ' + field + ' = %s WHERE id = %s',
+                        [value, copied.id])
+                    copied.invalidate_recordset([field])
+                    copied.modified([field])
+                    wizard = self.edit(package.sab_material_group_ids)
+                    edit = wizard.line_ids.filtered(lambda line: line.cabinet_bom_id == cabinets[0])
+                    edit.quantity = 9
+                    self.apply(wizard)
+                copied.invalidate_recordset()
+                self.assertEqual(cabinets[0].line_ids.quantity, 6)
+                self.assertEqual(copied.quantity, 6)
+                self.assertFalse(package.sab_material_change_ids)
+                self.assertEqual(package.sab_material_revision, 0)
+
+    def test_33_existing_lv_and_ntg_are_preserved_during_purchasing_edit(self):
+        order = self.order()
+        cabinets = self.cabinets(order)
+        cabinets[0].line_ids.sab_lv_position = '1.1.1'
+        cabinets[1].line_ids.sab_lv_position = 'NTG 2'
+        package = self.package(order, cabinets)
+        wizard = self.edit(package.sab_material_group_ids)
+        wizard.line_ids.filtered(lambda line: line.cabinet_bom_id == cabinets[0]).quantity = 9
+        self.apply(wizard)
+        for cabinet, code in zip(cabinets, ('1.1.1', 'NTG 2')):
+            copied = package.line_ids.filtered(lambda line: line.source_cabinet_bom_id == cabinet)
+            self.assertEqual(cabinet.line_ids.sab_lv_position, code)
+            self.assertEqual(copied.sab_lv_position, code)
+        self.assertEqual(package.sab_material_group_ids.quantity, 15)
+
+    def test_34_noop_with_empty_lv_keeps_frozen_material_and_history(self):
+        order = self.order()
+        cabinets = self.cabinets(order)
+        cabinets[0].line_ids.sab_lv_position = ''
+        package = self.package(order, cabinets)
+        before = package._sab_material_rows()
+        source_before = [cabinet._sab_material_rows() for cabinet in cabinets]
+        self.apply(self.edit(package.sab_material_group_ids))
+        self.assertEqual(package._sab_material_rows(), before)
+        self.assertEqual([cabinet._sab_material_rows() for cabinet in cabinets], source_before)
+        self.assertEqual(package.sab_material_revision, 0)
+        self.assertFalse(package.sab_material_change_ids)

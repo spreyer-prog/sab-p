@@ -200,8 +200,19 @@ class MaterialEdit(models.TransientModel):
                         or source.bom_id not in cabinets or source.bom_id.state != 'released'):
                     raise ValidationError(_('Die verbindliche Einzelstücklistenzuordnung ist ungültig.'))
                 for key in ('quantity', 'unit', 'optional', 'unit_purchase_price', 'sab_lv_position'):
-                    if source[key] != old_line[key]:
-                        raise ValidationError(_('Einzel- und Gesamtstückliste weichen bereits voneinander ab. Bitte vor der Änderung klären.'))
+                    source_value, package_value = source[key], old_line[key]
+                    if key == 'sab_lv_position':
+                        # The optional Char can be '' in a generated cabinet row
+                        # and False/NULL in its package copy. Both mean no LV.
+                        # Normalize for comparison only: never rewrite history,
+                        # invent an LV, or relax quantity/price consistency.
+                        source_value = source_value or ''
+                        package_value = package_value or ''
+                    if source_value != package_value:
+                        raise ValidationError(_(
+                            'Einzel- und Gesamtstückliste weichen bereits voneinander ab. '
+                            'Abweichendes Feld: %s. Bitte vor der Änderung klären.'
+                        ) % source._fields[key].string)
         before_rows = package._sab_material_rows()
         old_total = package.sab_material_current_ek
         affected = self.env['sab.project.bom']
