@@ -56,3 +56,4 @@ from . import test_offer_live_preview
 from . import test_project_price_binding
 from . import test_offer_position_dialog
 from . import test_bom_cabinet_first
+from . import test_bom_material_control
