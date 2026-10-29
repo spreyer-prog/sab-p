@@ -375,13 +375,26 @@ class SaleOrderProjectPriceBinding(models.Model):
             # New rows added in the same call use the new factors on their first save.
             lines._sab_bind_project_prices()
         bound = lines.filtered("sab_project_price_bound")
-        if bound and {"sab_project_id", "partner_id", "company_id", "currency_id"}.intersection(vals):
+        if bound and {"sab_project_id", "partner_id", "company_id", "currency_id", "pricelist_id"}.intersection(vals):
             for order in self:
                 if not order.sab_calculation_line_ids.filtered("sab_project_price_bound"):
                     continue
                 for field in ("sab_project_id", "company_id", "currency_id"):
                     if field in vals and (vals[field] or False) != (order[field].id or False):
                         raise ValidationError("Projekt, Firma und Währung dürfen nach der Preisbindung nicht geändert werden.")
+                if "pricelist_id" in vals:
+                    # Odoo derives currency_id from the pricelist. A currency
+                    # switch must be rejected before the computed field changes,
+                    # even when the caller does not pass currency_id explicitly.
+                    pricelist = self.env["product.pricelist"].browse(
+                        vals["pricelist_id"] or False
+                    ).exists()
+                    target_currency = pricelist.currency_id or order.company_id.currency_id
+                    if target_currency != order.currency_id:
+                        raise ValidationError(
+                            "Eine Preisliste mit anderer Währung darf bei gebundenen "
+                            "Projektpreisen nicht gewählt werden."
+                        )
                 if "partner_id" in vals:
                     partner = self.env["res.partner"].browse(vals["partner_id"]).exists()
                     if partner.commercial_partner_id != order.partner_id.commercial_partner_id:

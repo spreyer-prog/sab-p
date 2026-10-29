@@ -8,6 +8,25 @@ class TestSabProjectPriceBinding(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # currency_id is computed from the pricelist/company in Odoo 19.
+        # Use explicit pricelists, never assume a requested currency_id survived
+        # dependency recomputation in a USD- or EUR-based test database.
+        cls.eur = cls.env.ref('base.EUR')
+        cls.usd = cls.env.ref('base.USD')
+        (cls.eur | cls.usd).write({'active': True})
+        Pricelist = cls.env['product.pricelist']
+        cls.eur_pricelist = Pricelist.create({
+            'name': 'Binding tests EUR', 'currency_id': cls.eur.id,
+            'company_id': cls.env.company.id,
+        })
+        cls.usd_pricelist = Pricelist.create({
+            'name': 'Binding tests USD', 'currency_id': cls.usd.id,
+            'company_id': cls.env.company.id,
+        })
+        cls.other_eur_pricelist = Pricelist.create({
+            'name': 'Binding tests EUR alternative', 'currency_id': cls.eur.id,
+            'company_id': cls.env.company.id,
+        })
         cls.customer = cls.env['res.partner'].create({'name': 'Binding test customer'})
         cls.project = cls.env['project.project'].create({'name': 'Binding test project', 'partner_id': cls.customer.id})
         cls.item = cls.env['sab.calculation.item'].create({
@@ -26,9 +45,14 @@ class TestSabProjectPriceBinding(TransactionCase):
     def order(self, **overrides):
         values = dict(self.factors, partner_id=self.customer.id,
                       sab_project_id=self.project.id, sab_calculation_source='lv',
-                      currency_id=self.env.ref('base.EUR').id)
+                      company_id=self.env.company.id, pricelist_id=self.eur_pricelist.id)
         values.update(overrides)
-        return self.env['sale.order'].create(values)
+        order = self.env['sale.order'].create(values)
+        expected_pricelist = self.env['product.pricelist'].browse(values['pricelist_id'])
+        self.assertEqual(order.pricelist_id, expected_pricelist)
+        self.assertEqual(order.currency_id, expected_pricelist.currency_id,
+                         'The currency test requires the actual currency, not only an input value.')
+        return order
 
     def line(self, order, code='1.1.1', item=None, quantity=1):
         return self.env['sab.offer.calculation.line'].create({
@@ -94,9 +118,17 @@ class TestSabProjectPriceBinding(TransactionCase):
         self.assertEqual(target.unit_recommended_net_price, 161.12)
 
     def test_currency_mismatch_is_not_silent_conversion(self):
-        self.line(self.order())
+        source_order = self.order()
+        source = self.line(source_order)
+        target_order = self.order(pricelist_id=self.usd_pricelist.id)
+        self.assertEqual(source_order.currency_id, self.eur)
+        self.assertEqual(target_order.currency_id, self.usd)
+        self.assertNotEqual(source_order.currency_id, target_order.currency_id)
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
-            self.line(self.order(currency_id=self.env.ref('base.USD').id))
+            self.line(target_order)
+        self.assertFalse(target_order.sab_calculation_line_ids)
+        self.assertEqual(source.sab_project_price_currency_id, self.eur)
+        self.assertEqual(source.unit_recommended_net_price, 80.56)
 
     def test_copy_and_suboffer_keep_price_after_master_change(self):
         order = self.order(); source = self.line(order, quantity=3)
@@ -153,12 +185,73 @@ class TestSabProjectPriceBinding(TransactionCase):
         self.assertEqual(target.unit_recommended_net_price, 80.56)
 
     def test_bound_scope_cannot_be_changed(self):
-        order = self.order(); self.line(order)
+        order = self.order(); line = self.line(order)
+        self.assertEqual(order.currency_id, self.eur)
+        self.assertEqual(line.sab_project_price_currency_id, self.eur)
         other = self.env['res.partner'].create({'name': 'Scope change customer'})
+        with self.subTest(field='partner_id'):
+            with self.assertRaises(ValidationError), self.env.cr.savepoint():
+                order.partner_id = other
+        with self.subTest(field='currency_id'):
+            with self.assertRaises(ValidationError), self.env.cr.savepoint():
+                order.currency_id = self.usd
+        self.assertEqual(order.partner_id, self.customer)
+        self.assertEqual(order.currency_id, self.eur)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+
+    def test_bound_order_rejects_foreign_currency_pricelist(self):
+        order = self.order(); line = self.line(order)
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
-            order.partner_id = other
+            order.write({'pricelist_id': self.usd_pricelist.id})
+        self.assertEqual(order.pricelist_id, self.eur_pricelist)
+        self.assertEqual(order.currency_id, self.eur)
+        self.assertEqual(line.sab_project_price_currency_id, self.eur)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+
+    def test_same_currency_pricelist_does_not_reprice_bound_position(self):
+        order = self.order(); line = self.line(order, quantity=3)
+        order.write({'pricelist_id': self.other_eur_pricelist.id})
+        self.assertEqual(order.pricelist_id, self.other_eur_pricelist)
+        self.assertEqual(order.currency_id, self.eur)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+        self.assertEqual(line.recommended_net_price, 241.68)
+        self.assertEqual(order.order_line.filtered('sab_generated_from_calculation').price_unit, 80.56)
+
+    def test_unbound_order_can_change_pricelist_currency(self):
+        order = self.order()
+        self.assertFalse(order.sab_calculation_line_ids)
+        order.write({'pricelist_id': self.usd_pricelist.id})
+        self.assertEqual(order.currency_id, self.usd)
+        self.assertEqual(order.pricelist_id, self.usd_pricelist)
+
+    def test_bound_order_cannot_clear_pricelist_to_different_company_currency(self):
+        # Work on both EUR- and USD-based company databases without changing
+        # company settings. Clearing a pricelist uses the company currency.
+        foreign = (self.usd_pricelist if self.env.company.currency_id != self.usd
+                   else self.eur_pricelist)
+        order = self.order(pricelist_id=foreign.id); line = self.line(order)
+        original_currency = order.currency_id
+        self.assertNotEqual(original_currency, order.company_id.currency_id)
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
-            order.currency_id = self.env.ref('base.USD')
+            order.write({'pricelist_id': False})
+        self.assertEqual(order.pricelist_id, foreign)
+        self.assertEqual(order.currency_id, original_currency)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+
+    def test_same_currency_write_is_not_a_scope_change(self):
+        order = self.order(); line = self.line(order)
+        order.write({'currency_id': self.eur.id, 'pricelist_id': self.eur_pricelist.id})
+        self.assertEqual(order.currency_id, self.eur)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+
+    def test_bulk_pricelist_change_checks_each_bound_order(self):
+        bound_order = self.order(); line = self.line(bound_order)
+        empty_order = self.order()
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            (empty_order | bound_order).write({'pricelist_id': self.usd_pricelist.id})
+        self.assertEqual(empty_order.currency_id, self.eur)
+        self.assertEqual(bound_order.currency_id, self.eur)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
 
     def test_bound_direct_article_cannot_be_silently_replaced(self):
         line = self.line(self.order())
