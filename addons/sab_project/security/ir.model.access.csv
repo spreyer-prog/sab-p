@@ -6,3 +6,78 @@ access_sab_technology_user,sab.technology user,model_sab_technology,base.group_u
 access_sab_technology_manager,sab.technology manager,model_sab_technology,project.group_project_manager,1,1,1,1
 access_sab_service_type_user,sab.service.type user,model_sab_service_type,base.group_user,1,0,0,0
 access_sab_service_type_manager,sab.service.type manager,model_sab_service_type,project.group_project_manager,1,1,1,1
+access_sab_work_area_user,sab.work.area user,model_sab_work_area,base.group_user,1,0,0,0
+access_sab_work_area_manager,sab.work.area manager,model_sab_work_area,project.group_project_manager,1,1,1,1
+access_sab_employee_profile_employee_read,sab.employee.profile employee read,model_sab_employee_profile,sab_project.group_sab_employee,1,0,0,0
+access_sab_employee_profile_manager,sab.employee.profile manager,model_sab_employee_profile,project.group_project_manager,1,1,1,1
+access_sab_employee_profile_hr_read,sab.employee.profile hr read,model_sab_employee_profile,sab_project.group_sab_confidential_hr,1,0,0,0
+access_sab_employee_confidential_note_hr,sab.employee.confidential.note hr,model_sab_employee_confidential_note,sab_project.group_sab_confidential_hr,1,1,1,1
+access_sab_calculation_item_user,sab.calculation.item user,model_sab_calculation_item,base.group_user,1,1,1,0
+access_sab_calculation_item_line_user,sab.calculation.item.line user,model_sab_calculation_item_line,base.group_user,1,1,1,1
+access_sab_calculation_component_template_user,sab.calculation.component.template user,model_sab_calculation_component_template,base.group_user,1,1,1,0
+access_sab_calculation_component_template_line_user,sab.calculation.component.template.line user,model_sab_calculation_component_template_line,base.group_user,1,1,1,1
+access_sab_manufacturer_user,sab.manufacturer user,model_sab_manufacturer,base.group_user,1,1,1,1
+access_sab_product_user,sab.product user,model_sab_product,base.group_user,1,1,1,1
+access_sab_product_component_user,sab.product.component user,model_sab_product_component,base.group_user,1,1,1,1
+access_sab_supplier_user,sab.supplier user,model_sab_supplier,base.group_user,1,1,1,1
+access_sab_supplier_product_user,sab.supplier.product user,model_sab_supplier_product,base.group_user,1,1,1,1
+access_sab_datanorm_surcharge_user,sab.datanorm.surcharge user,model_sab_datanorm_surcharge,base.group_user,1,1,1,1
+access_sab_offer_calculation_group_user,sab.offer.calculation.group user,model_sab_offer_calculation_group,base.group_user,1,1,1,1
+access_sab_project_lv_mapping_user,sab.project.lv.mapping user,model_sab_project_lv_mapping,base.group_user,1,1,1,0
+access_sab_offer_calculation_line_user,sab.offer.calculation.line user,model_sab_offer_calculation_line,base.group_user,1,1,1,1
+access_sab_offer_calculation_component_user,sab.offer.calculation.component user,model_sab_offer_calculation_component,base.group_user,1,1,1,1
+access_sab_project_bom_user,sab.project.bom user,model_sab_project_bom,base.group_user,1,1,1,1
+access_sab_project_bom_line_user,sab.project.bom.line user,model_sab_project_bom_line,base.group_user,1,1,1,1
+access_sab_production_order_employee,sab.production.order employee,model_sab_production_order,sab_project.group_sab_employee,1,0,0,0
+access_sab_production_order_manager,sab.production.order manager,model_sab_production_order,project.group_project_manager,1,1,1,1
+access_sab_production_document_manager,sab.production.document manager,model_sab_production_document,project.group_project_manager,1,1,1,1
+access_sab_production_step_employee,sab.production.step employee,model_sab_production_step,sab_project.group_sab_employee,1,1,0,0
+access_sab_production_step_manager,sab.production.step manager,model_sab_production_step,project.group_project_manager,1,1,1,1
+access_sab_purchase_requirement_user,sab.purchase.requirement user,model_sab_purchase_requirement,base.group_user,1,0,0,0
+access_sab_purchase_requirement_system,sab.purchase.requirement system,model_sab_purchase_requirement,base.group_system,1,1,1,1
+access_purchase_order_system_admin,purchase.order system admin,purchase.model_purchase_order,base.group_system,1,1,1,1
+access_purchase_order_line_system_admin,purchase.order.line system admin,purchase.model_purchase_order_line,base.group_system,1,1,1,1
+access_sab_stock_movement_user,sab.stock.movement user,model_sab_stock_movement,base.group_user,1,0,0,0
+access_sab_purchase_order_user_read,sab.purchase.order user read,model_sab_purchase_order,base.group_user,1,0,0,0
+access_sab_purchase_order_line_user_read,sab.purchase.order.line user read,model_sab_purchase_order_line,base.group_user,1,0,0,0
+access_sab_purchase_order_manager,sab.purchase.order manager,model_sab_purchase_order,project.group_project_manager,1,0,0,0
+access_sab_purchase_order_line_manager,sab.purchase.order.line manager,model_sab_purchase_order_line,project.group_project_manager,1,0,0,0
+access_sab_purchase_order_purchasing,sab.purchase.order purchasing,model_sab_purchase_order,sab_project.group_sab_purchasing,1,1,1,1
+access_sab_purchase_order_line_purchasing,sab.purchase.order.line purchasing,model_sab_purchase_order_line,sab_project.group_sab_purchasing,1,1,1,1
+access_sab_purchase_order_warehouse,sab.purchase.order warehouse,model_sab_purchase_order,sab_project.group_sab_warehouse,1,1,0,0
+access_sab_purchase_order_line_warehouse,sab.purchase.order.line warehouse,model_sab_purchase_order_line,sab_project.group_sab_warehouse,1,1,0,0
+access_sab_purchase_order_approver,sab.purchase.order approver,model_sab_purchase_order,sab_project.group_sab_purchase_approver,1,1,0,0
+access_sab_purchase_order_line_approver,sab.purchase.order.line approver,model_sab_purchase_order_line,sab_project.group_sab_purchase_approver,1,0,0,0
+access_sab_project_bom_approver,sab.project.bom approver,model_sab_project_bom,sab_project.group_sab_purchase_approver,1,1,0,0
+access_sab_purchase_requirement_approver,sab.purchase.requirement approver,model_sab_purchase_requirement,sab_project.group_sab_purchase_approver,1,1,1,0
+access_sab_stock_movement_approver,sab.stock.movement approver,model_sab_stock_movement,sab_project.group_sab_purchase_approver,1,0,1,0
+access_sab_purchase_requirement_manager,sab.purchase.requirement manager,model_sab_purchase_requirement,project.group_project_manager,1,0,0,0
+access_sab_stock_movement_manager,sab.stock.movement manager,model_sab_stock_movement,project.group_project_manager,1,0,0,0
+access_sab_purchase_requirement_purchasing,sab.purchase.requirement purchasing,model_sab_purchase_requirement,sab_project.group_sab_purchasing,1,1,1,1
+access_sab_stock_movement_purchasing,sab.stock.movement purchasing,model_sab_stock_movement,sab_project.group_sab_purchasing,1,0,1,0
+access_sab_purchase_requirement_warehouse,sab.purchase.requirement warehouse,model_sab_purchase_requirement,sab_project.group_sab_warehouse,1,1,0,0
+access_sab_stock_movement_warehouse,sab.stock.movement warehouse,model_sab_stock_movement,sab_project.group_sab_warehouse,1,0,1,0
+access_sab_project_document_user,sab.project.document user,model_sab_project_document,base.group_user,1,1,1,1
+access_sab_time_entry_employee,sab.time.entry employee,model_sab_time_entry,sab_project.group_sab_employee,1,1,1,0
+access_sab_time_entry_manager,sab.time.entry manager,model_sab_time_entry,project.group_project_manager,1,1,1,1
+access_sab_project_controlling_user,sab.project.controlling user,model_sab_project_controlling,base.group_user,1,1,1,1
+access_sab_employee_feedback_employee,sab.employee.feedback employee,model_sab_employee_feedback,sab_project.group_sab_employee,1,1,1,0
+access_sab_employee_feedback_manager,sab.employee.feedback manager,model_sab_employee_feedback,project.group_project_manager,1,1,1,1
+access_sab_customer_project_status_user,sab.customer.project.status user,model_sab_customer_project_status,base.group_user,1,1,1,1
+access_sab_calculation_change_log_user,sab.calculation.change.log user,model_sab_calculation_change_log,base.group_user,1,0,0,0
+access_sab_calculation_import,sab.calculation.import,model_sab_calculation_import,base.group_user,1,1,1,1
+access_sab_datanorm_import,sab.datanorm.import,model_sab_datanorm_import,base.group_user,1,1,1,1
+access_sab_customer_import_manager,sab.customer.import manager,model_sab_customer_import,project.group_project_manager,1,1,1,1
+access_sab_supplier_import_manager,sab.supplier.import manager,model_sab_supplier_import,project.group_project_manager,1,1,1,1
+access_sab_supplier_price_import_manager,sab.supplier.price.import manager,model_sab_supplier_price_import,project.group_project_manager,1,1,1,1
+access_sab_procurement_package_wizard_manager,sab.procurement.package.wizard manager,model_sab_procurement_package_wizard,project.group_project_manager,1,1,1,1
+access_sab_procurement_extra_line_wizard_purchasing,sab.procurement.extra.line.wizard purchasing,model_sab_procurement_extra_line_wizard,sab_project.group_sab_purchasing,1,1,1,1
+access_sab_procurement_extra_line_wizard_manager,sab.procurement.extra.line.wizard manager,model_sab_procurement_extra_line_wizard,project.group_project_manager,1,1,1,1
+access_sab_production_print_profile_user,sab.production.print.profile user,model_sab_production_print_profile,base.group_user,1,1,1,1
+access_sab_production_print_profile_system,sab.production.print.profile system,model_sab_production_print_profile,base.group_system,1,1,1,1
+access_sab_receipt_assignment_list_user,sab.receipt.assignment.list user,model_sab_receipt_assignment_list,base.group_user,1,0,0,0
+access_sab_receipt_assignment_list_system,sab.receipt.assignment.list system,model_sab_receipt_assignment_list,base.group_system,1,1,1,1
+access_sab_receipt_assignment_list_line_user,sab.receipt.assignment.list.line user,model_sab_receipt_assignment_list_line,base.group_user,1,0,0,0
+access_sab_receipt_assignment_list_line_system,sab.receipt.assignment.list.line system,model_sab_receipt_assignment_list_line,base.group_system,1,1,1,1
+access_sab_offer_print_template_user,sab.offer.print.template user,model_sab_offer_print_template,base.group_user,1,1,1,0
+access_sab_offer_print_template_system,sab.offer.print.template system,model_sab_offer_print_template,base.group_system,1,1,1,1

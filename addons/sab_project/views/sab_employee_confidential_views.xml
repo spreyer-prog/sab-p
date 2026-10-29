@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_employee_confidential_note_list" model="ir.ui.view">
+        <field name="name">sab.employee.confidential.note.list</field>
+        <field name="model">sab.employee.confidential.note</field>
+        <field name="arch" type="xml">
+            <list string="Vertrauliche Personalakte" default_order="event_date desc">
+                <field name="event_date"/>
+                <field name="employee_id"/>
+                <field name="note_type"/>
+                <field name="title"/>
+                <field name="salary_review_relevant" optional="show"/>
+                <field name="follow_up_date" optional="show"/>
+                <field name="create_uid" optional="hide"/>
+                <field name="write_date" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_employee_confidential_note_form" model="ir.ui.view">
+        <field name="name">sab.employee.confidential.note.form</field>
+        <field name="model">sab.employee.confidential.note</field>
+        <field name="arch" type="xml">
+            <form string="Vertrauliche Personalnotiz">
+                <sheet>
+                    <group col="4">
+                        <field name="employee_id"/>
+                        <field name="event_date"/>
+                        <field name="note_type"/>
+                        <field name="title"/>
+                        <field name="salary_review_relevant"/>
+                        <field name="follow_up_date"/>
+                    </group>
+                    <group string="Sachliche Dokumentation">
+                        <field name="facts" placeholder="Nur konkrete, arbeitsbezogene Tatsachen dokumentieren. Keine medizinischen Diagnosen oder unnötigen privaten Angaben."/>
+                    </group>
+                    <group string="Bewertung / Personalgespräch">
+                        <field name="assessment" placeholder="Optional: Relevanz für Führung, Beurteilung oder das nächste Gehaltsgespräch."/>
+                    </group>
+                    <group string="Nachvollziehbarkeit" col="4">
+                        <field name="create_uid" readonly="1"/>
+                        <field name="create_date" readonly="1"/>
+                        <field name="write_uid" readonly="1"/>
+                        <field name="write_date" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_employee_confidential_note" model="ir.actions.act_window">
+        <field name="name">Vertrauliche Personalakte</field>
+        <field name="res_model">sab.employee.confidential.note</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_sab_employee_profile_confidential_inherit" model="ir.ui.view">
+        <field name="name">sab.employee.profile.form.confidential</field>
+        <field name="model">sab.employee.profile</field>
+        <field name="inherit_id" ref="sab_project.view_sab_employee_profile_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_confidential_notes"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-lock"
+                            groups="sab_project.group_sab_confidential_hr">
+                        <field name="confidential_note_count" widget="statinfo" string="Vertrauliche Personalakte"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="sab_employee_confidential_menu"
+              name="Vertrauliche Personalakte"
+              parent="sab_project_configuration_menu"
+              action="action_sab_employee_confidential_note"
+              sequence="15"
+              groups="sab_project.group_sab_confidential_hr"/>
+</odoo>

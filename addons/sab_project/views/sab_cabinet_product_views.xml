@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_odoo_product_form_cabinet_data" model="ir.ui.view">
+        <field name="name">product.template.sab.p.cabinet.data</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_sab_odoo_product_form"/>
+        <field name="priority">320</field>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Schrank / Typenschild" name="sab_cabinet_nameplate">
+                    <group col="4">
+                        <field name="sab_is_cabinet_product"/>
+                        <field name="sab_cabinet_width_mm" invisible="not sab_is_cabinet_product"/>
+                    </group>
+                    <group string="Typenschild-Stammdaten" col="4" invisible="not sab_is_cabinet_product">
+                        <field name="sab_nameplate_type_designation"/>
+                        <field name="sab_nameplate_cabinet_type"/>
+                        <field name="sab_nameplate_standard_family"/>
+                        <field name="sab_nameplate_standard_part"/>
+                        <field name="sab_nameplate_rated_voltage"/>
+                        <field name="sab_nameplate_rated_current"/>
+                        <field name="sab_nameplate_frequency"/>
+                        <field name="sab_nameplate_busbar_current"/>
+                        <field name="sab_nameplate_protection_class"/>
+                        <field name="sab_nameplate_ip_rating"/>
+                        <field name="sab_nameplate_notes" colspan="4"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_form_sab_p_cabinet_data" model="ir.ui.view">
+        <field name="name">product.template.form.sab.p.cabinet.data</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sab_project.view_product_template_form_sab_p"/>
+        <field name="priority">320</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_p_calculation']" position="after">
+                <page string="Schrank / Typenschild" name="sab_p_cabinet_nameplate">
+                    <group col="4">
+                        <field name="sab_is_cabinet_product"/>
+                        <field name="sab_cabinet_width_mm" invisible="not sab_is_cabinet_product"/>
+                    </group>
+                    <group string="Typenschild-Stammdaten" col="4" invisible="not sab_is_cabinet_product">
+                        <field name="sab_nameplate_type_designation"/>
+                        <field name="sab_nameplate_cabinet_type"/>
+                        <field name="sab_nameplate_standard_family"/>
+                        <field name="sab_nameplate_standard_part"/>
+                        <field name="sab_nameplate_rated_voltage"/>
+                        <field name="sab_nameplate_rated_current"/>
+                        <field name="sab_nameplate_frequency"/>
+                        <field name="sab_nameplate_busbar_current"/>
+                        <field name="sab_nameplate_protection_class"/>
+                        <field name="sab_nameplate_ip_rating"/>
+                        <field name="sab_nameplate_notes" colspan="4"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sab_sale_order_form_cabinet_product_selection" model="ir.ui.view">
+        <field name="name">sale.order.form.sab.cabinet.product.selection</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_switchboard_rules"/>
+        <field name="priority">320</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_calculation']//field[@name='odoo_product_id']" position="attributes">
+                <attribute name="invisible">line_type not in ('item', 'cabinet')</attribute>
+                <attribute name="domain">[('product_tmpl_id.sab_is_cabinet_product', '=', True)] if line_type == 'cabinet' else []</attribute>
+                <attribute name="string">Produkt / Schrankprodukt</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='quantity']" position="attributes">
+                <attribute name="invisible">line_type not in ('item', 'section', 'cabinet')</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

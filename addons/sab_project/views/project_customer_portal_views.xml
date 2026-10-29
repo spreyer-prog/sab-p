@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_project_customer_portal_form_inherit" model="ir.ui.view">
+        <field name="name">project.project.form.sab.customer.portal</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_project_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_open_sab_customer_status"
+                        type="object"
+                        string="Kundenstatus"
+                        class="btn-secondary"/>
+            </xpath>
+            <xpath expr="//page[@name='sab_offer_data']/group" position="inside">
+                <group string="Kundenportal">
+                    <field name="sab_customer_status_count" readonly="1"/>
+                    <button name="action_open_sab_customer_status"
+                            type="object"
+                            string="Kundenstatus öffnen / anlegen"
+                            class="btn-link"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

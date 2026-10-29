@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Nicht nur das Kennzeichen setzen: Odoo muss die vollständigen
+         deutschen Übersetzungen aller installierten Module tatsächlich laden. -->
+    <!-- _activate_lang ist in Odoo 19 keine @api.model-Methode. Deshalb muss
+         zuerst ein leeres Recordset und danach der Sprachcode übergeben werden. -->
+    <function model="res.lang" name="_activate_lang" eval="[[], 'de_DE']"/>
+
+    <!-- Standard-Administrator direkt auf Deutsch setzen -->
+    <record id="base.user_admin" model="res.users">
+        <field name="lang">de_DE</field>
+    </record>
+</odoo>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_sab_employee" model="res.groups">
+        <field name="name">SAB-P Mitarbeiter</field>
+        <field name="comment">Mobile Fertigungsrückmeldung und eigene Zeitbuchungen.</field>
+    </record>
+
+    <record id="group_sab_purchasing" model="res.groups">
+        <field name="name">SAB-P Einkauf</field>
+        <field name="comment">Darf freigegebene projektbezogene Fehlbestände sammeln, Bestellvorschläge erstellen und freigegebene Bestellungen versenden.</field>
+        <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_user')), (4, ref('stock.group_stock_user'))]"/>
+    </record>
+
+    <record id="group_sab_purchase_approver" model="res.groups">
+        <field name="name">SAB-P Bestellfreigabe</field>
+        <field name="comment">Darf Gesamtstücklisten zur Beschaffung und fertige Lieferantenbestellungen freigeben. Die Rolle wird im Mitarbeiterprofil vergeben.</field>
+        <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+    </record>
+
+    <record id="group_sab_warehouse" model="res.groups">
+        <field name="name">SAB-P Lager</field>
+        <field name="comment">Darf Lagerbestände einsehen, Wareneingänge buchen und eingegangenes Material projektbezogen kommissionieren.</field>
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+    </record>
+
+    <record id="group_sab_customer_release" model="res.groups">
+        <field name="name">SAB-P Kundenfreigaben</field>
+        <field name="comment">Darf Kundenstatus, Projektdokumente und Fertigungsfotos für das Kundenportal freigeben. Diese Rolle verleiht keine Projektleiterrechte.</field>
+    </record>
+
+    <record id="group_sab_confidential_hr" model="res.groups">
+        <field name="name">SAB-P Vertrauliche Personalakte</field>
+        <field name="comment">Exklusiver Zugriff auf vertrauliche Personalnotizen, Fehlzeiten-/Verspätungsereignisse sowie Beurteilungs- und Gehaltsgesprächsnotizen. Diese Rolle ist ausschließlich der Geschäftsführung bzw. ausdrücklich autorisierten Personalverantwortlichen zuzuweisen.</field>
+    </record>
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sab_project.ProductionMultiPrint">
+        <div class="o_sab_production_multi_print p-4">
+            <div class="card mx-auto" style="max-width: 720px;">
+                <div class="card-body">
+                    <h2>Fertigungsdruck</h2>
+                    <p t-if="!state.failed">
+                        Auftrag <t t-out="state.current"/> von <t t-out="state.total"/>
+                    </p>
+                    <div class="progress mb-3" t-if="state.total &gt; 0">
+                        <div class="progress-bar"
+                             t-att-style="'width: ' + Math.round((state.current / state.total) * 100) + '%'"/>
+                    </div>
+                    <p><strong t-out="state.label"/></p>
+                    <p t-if="state.printer">Zieldrucker: <span t-out="state.printer"/></p>
+                    <div class="alert alert-success" t-if="state.done">
+                        Jedes Dokument wurde als eigener Druckauftrag mit seinem hinterlegten Format erzeugt.
+                    </div>
+                    <div class="alert alert-danger" t-if="state.failed">
+                        Der Drucklauf wurde abgebrochen: <span t-out="state.error"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

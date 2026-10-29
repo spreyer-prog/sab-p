@@ -1,0 +1,42 @@
+SAB-P Version 0.4.0 – Projektakte
+
+Neu:
+- Projektmaske mit Reitern:
+  - Angebotsdaten
+  - Projektdaten
+  - Kundendaten
+  - Bestellung / Abrechnung
+  - Notiz
+- Neue Felder:
+  - Kommission
+  - Angebotskennzeichen
+  - Bestell-Nr. / Bestellkennzeichen
+  - Kundenkürzel
+  - Wiedervorlage an
+  - Datum Wiedervorlage
+  - Baustelle / Lieferort
+  - Interne Referenz
+  - Projektbeschreibung
+  - Notiz
+- Automatischer Bearbeiter bleibt erhalten.
+- Gesamtangebot, kalkulierte und benötigte Zeit bleiben sichtbar.
+- Projektübersicht wurde um wichtige optionale Spalten ergänzt.
+
+Installation:
+1. ZIP nach C:\Odoo\sab-p entpacken und vorhandene Dateien ersetzen.
+2. Im VS-Code-Terminal:
+
+   cd C:\Odoo\sab-p
+   git status
+   git add addons/sab_project
+   git commit -m "Version 0.4.0 - Add SAB project file form"
+   git push origin main
+
+3. Odoo.sh-Build abwarten.
+4. Erst bei Test: Success die Projektmaske öffnen.
+5. Test:
+   - neues Projekt anlegen
+   - Bearbeiter wird automatisch gesetzt
+   - neue Reiter und Felder sind sichtbar
+   - Projekt speichern und erneut öffnen
+   - Werte bleiben erhalten

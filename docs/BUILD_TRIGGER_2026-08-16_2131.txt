@@ -1,0 +1,2 @@
+Odoo.sh build trigger after SAB-P Suite schema/version update to 19.0.5.40.0.
+Purpose: force a fresh Development build so database schema includes new supplier price fields such as list_price.

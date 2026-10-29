@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_project_standard_procurement_material" model="ir.ui.view">
+        <field name="name">project.project.sab.p.standard.procurement.material</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_project_form_procurement_detail"/>
+        <field name="priority">510</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_total_material']/field[@name='sab_purchase_requirement_ids']" position="attributes">
+                <attribute name="domain">[('bom_id.bom_scope','in',('procurement','total')),('state','!=','cancel')]</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_total_material']//field[@name='purchase_order_id']" position="after">
+                <field name="odoo_purchase_order_id" string="Odoo-Bestellung" optional="show"/>
+                <field name="odoo_purchase_state" string="Bestellstatus" widget="badge" optional="show"/>
+                <field name="odoo_receipt_status" string="Wareneingang" widget="badge" optional="show"/>
+                <field name="odoo_invoice_status" string="Eingangsrechnung" widget="badge" optional="show"/>
+                <field name="odoo_quantity_received" string="Geliefert" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

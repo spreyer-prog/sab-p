@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_form_offer_release_controls" model="ir.ui.view">
+        <field name="name">sale.order.form.sab.offer.release.controls</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority">260</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_quotation_send']" position="attributes">
+                <attribute name="invisible">state not in ('draft', 'sent') or (sab_project_id and sab_offer_release_state != 'released')</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

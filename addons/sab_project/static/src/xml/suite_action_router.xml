@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sab_project.SuiteActionRouter">
+        <div class="o_sab_suite_action_router p-4">
+            <div class="alert alert-info">SAP-P Suite wird geöffnet …</div>
+        </div>
+    </t>
+</templates>

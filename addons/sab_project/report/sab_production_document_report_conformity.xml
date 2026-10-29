@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_conformity"
+              inherit_id="sab_project.report_sab_production_document"
+              priority="1020">
+        <xpath expr="//t[@t-else]" position="before">
+            <t t-elif="doc.document_type == 'conformity'" t-translation="off">
+                <style>
+                    .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; padding-top:10mm; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
+                    .sab-conf-page:last-child { page-break-after:auto; break-after:auto; }
+                    .sab-conf-head { display:block; position:relative; min-height:25mm; margin-bottom:7mm; }
+                    .sab-conf-head &gt; div { padding-right:60mm; }
+                    .sab-conf-logo { position:absolute; right:0; top:0; max-width:55mm; max-height:25mm; object-fit:contain; }
+                    .sab-conf-title { font-size:15pt; font-weight:700; margin:0 0 7mm 0; }
+                    .sab-conf-subtitle { font-size:11pt; font-weight:700; margin:5mm 0 3mm 0; }
+                    .sab-conf-rule { border-top:0.25mm solid #777; margin:2mm 0; }
+                    .sab-conf-meta { width:100%; border-collapse:collapse; table-layout:fixed; }
+                    .sab-conf-meta td { padding:0.5mm 0; vertical-align:top; }
+                    .sab-conf-grid { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:4mm; }
+                    .sab-conf-grid th, .sab-conf-grid td { border:0.2mm solid #aaa; padding:1.2mm; vertical-align:top; }
+                    .sab-conf-footer { position:absolute; left:0; right:0; bottom:2mm; font-size:7pt; }
+                    .sab-conf-sign { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:10mm; }
+                    .sab-conf-sign td { width:50%; padding-right:5mm; vertical-align:top; }
+                    .sab-conf-sign-line { border-top:0.2mm solid #aaa; padding-top:1mm; }
+                    .sab-conf-check { display:inline-block; width:5mm; height:5mm; border:0.35mm solid #000; vertical-align:middle; margin-right:5mm; }
+                    .sab-conf-note { font-style:italic; margin-top:8mm; }
+                </style>
+
+                <!-- Seite 1: Deckblatt & Übersicht -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head">
+                        <div class="sab-conf-title" style="padding-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
+                        <img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/>
+                    </div>
+                    <div class="sab-conf-rule"></div>
+                    <table class="sab-conf-meta">
+                        <tr><td style="width:31mm;"><b>Hersteller der Schaltgerätekombination:</b></td><td><b>SAB-P GmbH - Schaltanlagenbau Preyer</b><br/>Albert-Einstein-Str. 7a - 42929 Wermelskirchen</td><td style="width:58mm; text-align:center;">Firmenstempel</td></tr>
+                    </table>
+                    <div class="sab-conf-rule" style="margin:6mm 0;"></div>
+                    <table class="sab-conf-meta">
+                        <tr><td style="width:30mm;">Kunde:</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr>
+                        <tr><td>Auftragsnummer:</td><td><span t-out="doc.project_reference or ''"/></td></tr>
+                        <tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr>
+                        <tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr>
+                    </table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm 0;"></div>
+                    <div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div>
+                    <div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div>
+                    <div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm 0;"></div>
+                    <div class="sab-conf-subtitle">Dokumentation</div>
+                    <p>Diese Bestätigung gilt für die nachstehend aufgeführten, dieser Bestätigung anhängenden Dokumente.<br/>Die Bestätigung beinhaltet insgesamt <b>6</b> Seiten.</p>
+                    <table class="sab-conf-grid">
+                        <tr><th style="width:15mm;">Pos.</th><th>Dokument(e)</th></tr>
+                        <tr><td><b>1.</b></td><td><b>1 Stück Prüfprotokoll(e)</b></td></tr>
+                        <tr><td><b>2.</b></td><td><b>Erklärung des Herstellers</b></td></tr>
+                        <tr><td><b>3.</b></td><td><b>Bestätigung der DGUV Vorschrift 3</b></td></tr>
+                        <tr><td><b>4.</b></td><td><b>Konformitätserklärung der EMV-Richtlinie</b></td></tr>
+                        <tr><td><b>5.</b></td><td><b>Konformitätserklärung der Niederspannungsrichtlinie</b></td></tr>
+                        <t t-foreach="range(7)" t-as="i"><tr><td style="height:8mm;"></td><td></td></tr></t>
+                    </table>
+                    <table class="sab-conf-sign">
+                        <tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name und Unterschrift des Ausführenden</div></td></tr>
+                    </table>
+                    <div class="sab-conf-footer"><span>SP_PRF-DBL_D1</span><span style="position:absolute; left:49%;">-1-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 2: Prüfprotokoll -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Prüfprotokoll</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div>
+                    <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td><td style="width:28mm;">Monteur:</td><td><span t-out="doc.responsible_name or ''"/></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td><td>Prüfer:</td><td><span t-out="doc.inspector_name or ''"/></td></tr><tr><td>Teil/Bezeichnung:</td><td><span t-out="doc.cabinet_instance_label or ''"/></td><td></td><td></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or ''"/></td><td></td><td></td></tr></table>
+                    <div class="sab-conf-subtitle">Durchgeführte Prüfungen:</div>
+                    <table class="sab-conf-grid" style="font-size:7.7pt;">
+                        <tr><th style="width:14mm;">1.)</th><th>Sichtprüfung</th><th style="width:24mm;">Ergebnis</th><th style="width:62mm;">Bemerkung<br/><span style="font-weight:400;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                        <tr><td>1.0</td><td>Schranktyp bzw. mechanische Schäden</td><td></td><td></td></tr><tr><td>1.1</td><td>Verschlusssystem</td><td></td><td></td></tr><tr><td>1.2</td><td>Beflanschung bzw. M-Verschraubungen</td><td></td><td></td></tr><tr><td>1.3</td><td>Gerätebeschriftungen / Bezeichnungsschilder</td><td></td><td></td></tr><tr><td>1.4</td><td>Leitungsfarben Hauptstromkreise</td><td></td><td></td></tr><tr><td>1.5</td><td>Leitungsfarben Steuerstromkreise</td><td></td><td></td></tr><tr><td>1.6</td><td>PE-Leiter, Leitungsfarben, Führung</td><td></td><td></td></tr><tr><td>1.7</td><td>Gerätebestückung entspr. Zeichnung / Stückliste</td><td></td><td></td></tr>
+                        <tr><th>2.)</th><th>Mechanische Prüfung</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>2.0</td><td>Betätigungselemente</td><td></td><td></td></tr><tr><td>2.1</td><td>Türkupplungen</td><td></td><td></td></tr><tr><td>2.2</td><td>Schraubverbindungen / Geräteeinbau (Stichproben)</td><td></td><td></td></tr><tr><td>2.3</td><td>Leitungsführung / Befestigung (nicht über Kanten)</td><td></td><td></td></tr>
+                        <tr><th>3.)</th><th>Elektrische Prüfung mit Nennspannung</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>3.0</td><td>Hauptstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr><tr><td>3.1</td><td>Steuerstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr><tr><td>3.2</td><td>Ein-/Ausgänge mit PG überprüft (bei SPS-Steuerung)</td><td></td><td></td></tr><tr><td>3.3</td><td>Leuchtmelder</td><td></td><td></td></tr><tr><td>3.4</td><td>Einhaltung der Isolationswiderstände (&gt;200MΩ)</td><td></td><td></td></tr>
+                        <tr><th>4.)</th><th>Überprüfung der Maßnahmen zum Schutz bei direktem und indirektem Berühren</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>4.0</td><td>Anordnung der Betätigungselemente</td><td></td><td></td></tr><tr><td>4.1</td><td>Überprüfung der Gehäuse, Abdeckungen</td><td></td><td></td></tr><tr><td>4.2</td><td>Überprüfung der Schutzleiterbahnen und deren Verbindungen</td><td></td><td></td></tr><tr><td>4.3</td><td>Überprüfung der Schutzisolierung auf mechanische Beanspruchung</td><td></td><td></td></tr>
+                        <tr><th>5.)</th><th>Überprüfung der zum Erreichen der Schutzart vorgesehenen Maßnahmen</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>5.0</td><td>Kabeleinführungen/Dichtungen/Verschlüsse etc.</td><td></td><td></td></tr>
+                        <tr><th>6.)</th><th>Endkontrolle</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>6.0</td><td>Anlage gereinigt</td><td></td><td></td></tr><tr><td>6.1</td><td>Schaltpläne, Bedienungsanleitungen beigefügt</td><td></td><td></td></tr><tr><td>6.2</td><td>Versandbereitschaft</td><td></td><td></td></tr>
+                    </table>
+                    <table class="sab-conf-sign" style="margin-top:6mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-PR_D1</span><span style="position:absolute; left:49%;">-2-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 3: Herstellererklärung -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Erklärung des Herstellers gemäß EG-Richtlinien</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div>
+                    <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div>
+                    <div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Das oben genannte Produkt, auf das sich diese Erklärung bezieht, stimmt mit den oben gekennzeichneten Normen oder normativen Dokumenten überein, und ist ausschließlich zum Einbau in eine Maschine oder in eine Anlage bestimmt.</p>
+                    <div class="sab-conf-note"><b>Hinweis:</b><br/><br/>Die Inbetriebnahme dieses Produktes ist solange untersagt, bis festgestellt wird, dass die Maschine oder die Anlage, in die dieses Produkt eingebaut wird, den Bestimmungen der jeweiligen Richtlinie entspricht.</div>
+                    <table class="sab-conf-sign" style="margin-top:70mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-HE_D1</span><span style="position:absolute; left:49%;">-3-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 4: DGUV V3 -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Bestätigung der DGUV V3 nach § 5 Absatz 4 der Unfallverhütungsvorschrift „Elektr. Anlagen und Betriebsmittel (DGUV V3)“</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage nach den vorgegebenen Aufbauzeichnungen und Materialien ausgeführt worden ist und den Bestimmungen der Unfallverhütungsvorschrift „Elektrische Betriebsmittel“ (DGUV Vorschrift 3) entsprechend beschaffen ist.</p><p>Diese Bestätigung dient ausschließlich dem Zweck, den Unternehmer davon zu entbinden, die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage vor der ersten Inbetriebnahme zu prüfen bzw. prüfen zu lassen (§ 5 Abs. 1, 4 der DGUV Vorschrift 3). Zivilrechtliche Gewährleistungs- und Haftungsansprüche werden durch diese Bestätigung nicht geregelt.</p>
+                    <table class="sab-conf-sign" style="margin-top:70mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-DGUV_D1</span><span style="position:absolute; left:49%;">-4-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 5: EMV -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(EMV)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten über die elektromagnetische Verträglichkeit (2014/30/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>
+                    <table class="sab-conf-grid" style="margin-top:14mm;"><tr><td colspan="2">Zur Beurteilung des Erzeugnisses hinsichtlich elektromagnetischer Verträglichkeit wurden folgende Normen herangezogen:</td></tr><tr><td style="width:35mm;">Norm, Dokument:</td><td><b>EN 61000-6-4 (VDE 0839-6-4)</b><br/><b>EN 61000-6-2 (VDE 0839-6-2)</b></td></tr></table>
+                    <div class="sab-conf-note"><b>Hinweis:</b><br/><br/>Dieses Produkt ist ausschließlich zum Einbau in eine Maschine oder in eine Anlage bestimmt.<br/>Die Inbetriebnahme dieses Produktes ist solange untersagt, bis festgestellt wird, dass die Maschine oder die Anlage, in die dieses Produkt eingebaut wird, den Bestimmungen der jeweiligen Richtlinien entspricht. Insbesondere gilt hier die Einhaltung der entsprechenden Herstellervorschriften.</div>
+                    <table class="sab-conf-sign" style="margin-top:34mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-EMV_D1</span><span style="position:absolute; left:49%;">-5-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 6: Niederspannungsrichtlinie -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(Niederspannungsrichtlinie)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten betreffend elektrische Betriebsmittel zur Verwendung innerhalb bestimmter Spannungsgrenzen (2014/35/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>
+                    <table class="sab-conf-grid" style="margin-top:14mm;"><tr><td colspan="2">Zur Beurteilung des Erzeugnisses wurden folgende Normen herangezogen:</td></tr><tr><td style="width:35mm;">Norm, Dokument:</td><td><b>EN 60204-1 (VDE 0113-1)</b></td></tr><tr><td style="height:8mm;"></td><td></td></tr><tr><td style="height:8mm;"></td><td></td></tr></table>
+                    <div class="sab-conf-note"><b>Hinweis:</b><br/><br/>Dieses Produkt ist ausschließlich zum Einbau in eine Maschine oder in eine Anlage bestimmt.<br/>Die Inbetriebnahme dieses Produktes ist solange untersagt, bis festgestellt wird, dass die Maschine oder die Anlage, in die dieses Produkt eingebaut wird, den Bestimmungen der jeweiligen Richtlinien entspricht. Insbesondere gilt hier die Einhaltung der entsprechenden Herstellervorschriften.</div>
+                    <table class="sab-conf-sign" style="margin-top:34mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-NSR_D1</span><span style="position:absolute; left:49%;">-6-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Eigenständige, in Odoo Studio bearbeitbare Ausgabe. -->
+    <record id="paperformat_sab_conformity_studio" model="report.paperformat">
+        <field name="name">SAB-P Konformitätserklärung 210 x 297 mm</field>
+        <field name="format">custom</field>
+        <field name="page_width">210</field>
+        <field name="page_height">297</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_sab_conformity_studio" model="ir.actions.report">
+        <field name="name">SAB-P Konformitätserklärung (Studio)</field>
+        <field name="model">sab.production.document</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_conformity_studio</field>
+        <field name="report_file">sab_project.report_sab_conformity_studio</field>
+        <field name="paperformat_id" ref="paperformat_sab_conformity_studio"/>
+        <field name="print_report_name">object._sab_pdf_filename()</field>
+    </record>
+
+    <template id="report_sab_conformity_studio">
+        <t t-call="web.html_container">
+            <t t-call="sab_project.report_sab_studio_pdf_reset"/>
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="sab_project.report_sab_conformity_studio_page"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_sab_conformity_studio_page">
+        <div class="page" name="sab_conformity_studio_page" t-translation="off" style="margin:0; padding:0;">
+                <style>
+                    .sab-conf-page { width:190mm; min-height:277mm; margin:0 auto; padding-top:10mm; font-family:Arial, Helvetica, sans-serif; color:#000; box-sizing:border-box; page-break-after:always; break-after:page; position:relative; font-size:9pt; line-height:1.25; }
+                    .sab-conf-page:last-child { page-break-after:auto; break-after:auto; }
+                    .sab-conf-head { display:block; position:relative; min-height:25mm; margin-bottom:7mm; }
+                    .sab-conf-head &gt; div { padding-right:60mm; }
+                    .sab-conf-logo { position:absolute; right:0; top:0; max-width:55mm; max-height:25mm; object-fit:contain; }
+                    .sab-conf-title { font-size:15pt; font-weight:700; margin:0 0 7mm 0; }
+                    .sab-conf-subtitle { font-size:11pt; font-weight:700; margin:5mm 0 3mm 0; }
+                    .sab-conf-rule { border-top:0.25mm solid #777; margin:2mm 0; }
+                    .sab-conf-meta { width:100%; border-collapse:collapse; table-layout:fixed; }
+                    .sab-conf-meta td { padding:0.5mm 0; vertical-align:top; }
+                    .sab-conf-grid { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:4mm; }
+                    .sab-conf-grid th, .sab-conf-grid td { border:0.2mm solid #aaa; padding:1.2mm; vertical-align:top; }
+                    .sab-conf-footer { position:absolute; left:0; right:0; bottom:2mm; font-size:7pt; }
+                    .sab-conf-sign { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:10mm; }
+                    .sab-conf-sign td { width:50%; padding-right:5mm; vertical-align:top; }
+                    .sab-conf-sign-line { border-top:0.2mm solid #aaa; padding-top:1mm; }
+                    .sab-conf-check { display:inline-block; width:5mm; height:5mm; border:0.35mm solid #000; vertical-align:middle; margin-right:5mm; }
+                    .sab-conf-note { font-style:italic; margin-top:8mm; }
+                </style>
+
+                <!-- Seite 1: Deckblatt & Übersicht -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head">
+                        <div class="sab-conf-title" style="padding-top:12mm;">Deckblatt &amp; Übersicht der Protokolle</div>
+                        <img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/>
+                    </div>
+                    <div class="sab-conf-rule"></div>
+                    <table class="sab-conf-meta">
+                        <tr><td style="width:31mm;"><b>Hersteller der Schaltgerätekombination:</b></td><td><b>SAB-P GmbH - Schaltanlagenbau Preyer</b><br/>Albert-Einstein-Str. 7a - 42929 Wermelskirchen</td><td style="width:58mm; text-align:center;">Firmenstempel</td></tr>
+                    </table>
+                    <div class="sab-conf-rule" style="margin:6mm 0;"></div>
+                    <table class="sab-conf-meta">
+                        <tr><td style="width:30mm;">Kunde:</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr>
+                        <tr><td>Auftragsnummer:</td><td><span t-out="doc.project_reference or ''"/></td></tr>
+                        <tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr>
+                        <tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr>
+                    </table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm 0;"></div>
+                    <div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div>
+                    <div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div>
+                    <div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm 0;"></div>
+                    <div class="sab-conf-subtitle">Dokumentation</div>
+                    <p>Diese Bestätigung gilt für die nachstehend aufgeführten, dieser Bestätigung anhängenden Dokumente.<br/>Die Bestätigung beinhaltet insgesamt <b>6</b> Seiten.</p>
+                    <table class="sab-conf-grid">
+                        <tr><th style="width:15mm;">Pos.</th><th>Dokument(e)</th></tr>
+                        <tr><td><b>1.</b></td><td><b>1 Stück Prüfprotokoll(e)</b></td></tr>
+                        <tr><td><b>2.</b></td><td><b>Erklärung des Herstellers</b></td></tr>
+                        <tr><td><b>3.</b></td><td><b>Bestätigung der DGUV Vorschrift 3</b></td></tr>
+                        <tr><td><b>4.</b></td><td><b>Konformitätserklärung der EMV-Richtlinie</b></td></tr>
+                        <tr><td><b>5.</b></td><td><b>Konformitätserklärung der Niederspannungsrichtlinie</b></td></tr>
+                        <t t-foreach="range(7)" t-as="i"><tr><td style="height:8mm;"></td><td></td></tr></t>
+                    </table>
+                    <table class="sab-conf-sign">
+                        <tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name und Unterschrift des Ausführenden</div></td></tr>
+                    </table>
+                    <div class="sab-conf-footer"><span>SP_PRF-DBL_D1</span><span style="position:absolute; left:49%;">-1-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 2: Prüfprotokoll -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Prüfprotokoll</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div>
+                    <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td><td style="width:28mm;">Monteur:</td><td><span t-out="doc.responsible_name or ''"/></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td><td>Prüfer:</td><td><span t-out="doc.inspector_name or ''"/></td></tr><tr><td>Teil/Bezeichnung:</td><td><span t-out="doc.cabinet_instance_label or ''"/></td><td></td><td></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or ''"/></td><td></td><td></td></tr></table>
+                    <div class="sab-conf-subtitle">Durchgeführte Prüfungen:</div>
+                    <table class="sab-conf-grid" style="font-size:7.7pt;">
+                        <tr><th style="width:14mm;">1.)</th><th>Sichtprüfung</th><th style="width:24mm;">Ergebnis</th><th style="width:62mm;">Bemerkung<br/><span style="font-weight:400;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                        <tr><td>1.0</td><td>Schranktyp bzw. mechanische Schäden</td><td></td><td></td></tr><tr><td>1.1</td><td>Verschlusssystem</td><td></td><td></td></tr><tr><td>1.2</td><td>Beflanschung bzw. M-Verschraubungen</td><td></td><td></td></tr><tr><td>1.3</td><td>Gerätebeschriftungen / Bezeichnungsschilder</td><td></td><td></td></tr><tr><td>1.4</td><td>Leitungsfarben Hauptstromkreise</td><td></td><td></td></tr><tr><td>1.5</td><td>Leitungsfarben Steuerstromkreise</td><td></td><td></td></tr><tr><td>1.6</td><td>PE-Leiter, Leitungsfarben, Führung</td><td></td><td></td></tr><tr><td>1.7</td><td>Gerätebestückung entspr. Zeichnung / Stückliste</td><td></td><td></td></tr>
+                        <tr><th>2.)</th><th>Mechanische Prüfung</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>2.0</td><td>Betätigungselemente</td><td></td><td></td></tr><tr><td>2.1</td><td>Türkupplungen</td><td></td><td></td></tr><tr><td>2.2</td><td>Schraubverbindungen / Geräteeinbau (Stichproben)</td><td></td><td></td></tr><tr><td>2.3</td><td>Leitungsführung / Befestigung (nicht über Kanten)</td><td></td><td></td></tr>
+                        <tr><th>3.)</th><th>Elektrische Prüfung mit Nennspannung</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>3.0</td><td>Hauptstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr><tr><td>3.1</td><td>Steuerstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr><tr><td>3.2</td><td>Ein-/Ausgänge mit PG überprüft (bei SPS-Steuerung)</td><td></td><td></td></tr><tr><td>3.3</td><td>Leuchtmelder</td><td></td><td></td></tr><tr><td>3.4</td><td>Einhaltung der Isolationswiderstände (&gt;200MΩ)</td><td></td><td></td></tr>
+                        <tr><th>4.)</th><th>Überprüfung der Maßnahmen zum Schutz bei direktem und indirektem Berühren</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>4.0</td><td>Anordnung der Betätigungselemente</td><td></td><td></td></tr><tr><td>4.1</td><td>Überprüfung der Gehäuse, Abdeckungen</td><td></td><td></td></tr><tr><td>4.2</td><td>Überprüfung der Schutzleiterbahnen und deren Verbindungen</td><td></td><td></td></tr><tr><td>4.3</td><td>Überprüfung der Schutzisolierung auf mechanische Beanspruchung</td><td></td><td></td></tr>
+                        <tr><th>5.)</th><th>Überprüfung der zum Erreichen der Schutzart vorgesehenen Maßnahmen</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>5.0</td><td>Kabeleinführungen/Dichtungen/Verschlüsse etc.</td><td></td><td></td></tr>
+                        <tr><th>6.)</th><th>Endkontrolle</th><th>Ergebnis</th><th>Bemerkung</th></tr><tr><td>6.0</td><td>Anlage gereinigt</td><td></td><td></td></tr><tr><td>6.1</td><td>Schaltpläne, Bedienungsanleitungen beigefügt</td><td></td><td></td></tr><tr><td>6.2</td><td>Versandbereitschaft</td><td></td><td></td></tr>
+                    </table>
+                    <table class="sab-conf-sign" style="margin-top:6mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-PR_D1</span><span style="position:absolute; left:49%;">-2-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 3: Herstellererklärung -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Erklärung des Herstellers gemäß EG-Richtlinien</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div>
+                    <table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div>
+                    <div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Das oben genannte Produkt, auf das sich diese Erklärung bezieht, stimmt mit den oben gekennzeichneten Normen oder normativen Dokumenten überein, und ist ausschließlich zum Einbau in eine Maschine oder in eine Anlage bestimmt.</p>
+                    <div class="sab-conf-note"><b>Hinweis:</b><br/><br/>Die Inbetriebnahme dieses Produktes ist solange untersagt, bis festgestellt wird, dass die Maschine oder die Anlage, in die dieses Produkt eingebaut wird, den Bestimmungen der jeweiligen Richtlinie entspricht.</div>
+                    <table class="sab-conf-sign" style="margin-top:70mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-HE_D1</span><span style="position:absolute; left:49%;">-3-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 4: DGUV V3 -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">Bestätigung der DGUV V3 nach § 5 Absatz 4 der Unfallverhütungsvorschrift „Elektr. Anlagen und Betriebsmittel (DGUV V3)“</div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage nach den vorgegebenen Aufbauzeichnungen und Materialien ausgeführt worden ist und den Bestimmungen der Unfallverhütungsvorschrift „Elektrische Betriebsmittel“ (DGUV Vorschrift 3) entsprechend beschaffen ist.</p><p>Diese Bestätigung dient ausschließlich dem Zweck, den Unternehmer davon zu entbinden, die elektrische Anlage / das elektrische Betriebsmittel / die elektrotechnische Ausrüstung der Maschine oder Anlage vor der ersten Inbetriebnahme zu prüfen bzw. prüfen zu lassen (§ 5 Abs. 1, 4 der DGUV Vorschrift 3). Zivilrechtliche Gewährleistungs- und Haftungsansprüche werden durch diese Bestätigung nicht geregelt.</p>
+                    <table class="sab-conf-sign" style="margin-top:70mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-DGUV_D1</span><span style="position:absolute; left:49%;">-4-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 5: EMV -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(EMV)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten über die elektromagnetische Verträglichkeit (2014/30/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>
+                    <table class="sab-conf-grid" style="margin-top:14mm;"><tr><td colspan="2">Zur Beurteilung des Erzeugnisses hinsichtlich elektromagnetischer Verträglichkeit wurden folgende Normen herangezogen:</td></tr><tr><td style="width:35mm;">Norm, Dokument:</td><td><b>EN 61000-6-4 (VDE 0839-6-4)</b><br/><b>EN 61000-6-2 (VDE 0839-6-2)</b></td></tr></table>
+                    <div class="sab-conf-note"><b>Hinweis:</b><br/><br/>Dieses Produkt ist ausschließlich zum Einbau in eine Maschine oder in eine Anlage bestimmt.<br/>Die Inbetriebnahme dieses Produktes ist solange untersagt, bis festgestellt wird, dass die Maschine oder die Anlage, in die dieses Produkt eingebaut wird, den Bestimmungen der jeweiligen Richtlinien entspricht. Insbesondere gilt hier die Einhaltung der entsprechenden Herstellervorschriften.</div>
+                    <table class="sab-conf-sign" style="margin-top:34mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-EMV_D1</span><span style="position:absolute; left:49%;">-5-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+
+                <!-- Seite 6: Niederspannungsrichtlinie -->
+                <div class="sab-conf-page">
+                    <div class="sab-conf-head"><div><div class="sab-conf-title">EG-Konformitätserklärung <span style="font-size:9pt;">(Niederspannungsrichtlinie)</span></div><b>Gültig nur in Verbindung mit: Deckblatt und Übersicht der Protokolle</b></div><img t-att-src="doc._sab_report_logo_src()" class="sab-conf-logo"/></div>
+                    <div class="sab-conf-rule"></div><table class="sab-conf-meta"><tr><td style="width:30mm;">Kunde</td><td><b><span t-out="doc.customer_name or ''"/></b></td></tr><tr><td>Projekt:</td><td><span t-out="doc.project_name or ''"/></td></tr><tr><td>Typ:</td><td><span t-out="doc.type_designation or doc.cabinet_type or doc.cabinet_instance_label or ''"/></td></tr></table>
+                    <div class="sab-conf-rule" style="margin:6mm 0 4mm;"></div><div class="sab-conf-subtitle">Niederspannungs-Schaltgerätekombination und Verteiler</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Energie-Schaltgerätekombination (PSC) Bauartnachweis nach DIN EN 61439-2 / VDE 0660-600-2</div><div style="margin:4mm 0;"><span class="sab-conf-check"></span>Installationsverteiler (DBO) Bauartnachweis nach DIN EN 61439-3 / VDE 0660-600-3</div>
+                    <div class="sab-conf-rule" style="margin:10mm 0 3mm;"></div><div class="sab-conf-subtitle">Erklärung:</div><p style="margin-top:14mm;">Für das oben genannte Erzeugnis wird hiermit bestätigt, dass es den Anforderungen entspricht, die in der Richtlinie des Rates zur Angleichung der Rechtsvorschriften der Mitgliedstaaten betreffend elektrische Betriebsmittel zur Verwendung innerhalb bestimmter Spannungsgrenzen (2014/35/EU) festgelegt sind. Diese Erklärung gilt für alle Exemplare, die nach den zugehörigen Fertigungszeichnungen hergestellt werden.</p>
+                    <table class="sab-conf-grid" style="margin-top:14mm;"><tr><td colspan="2">Zur Beurteilung des Erzeugnisses wurden folgende Normen herangezogen:</td></tr><tr><td style="width:35mm;">Norm, Dokument:</td><td><b>EN 60204-1 (VDE 0113-1)</b></td></tr><tr><td style="height:8mm;"></td><td></td></tr><tr><td style="height:8mm;"></td><td></td></tr></table>
+                    <div class="sab-conf-note"><b>Hinweis:</b><br/><br/>Dieses Produkt ist ausschließlich zum Einbau in eine Maschine oder in eine Anlage bestimmt.<br/>Die Inbetriebnahme dieses Produktes ist solange untersagt, bis festgestellt wird, dass die Maschine oder die Anlage, in die dieses Produkt eingebaut wird, den Bestimmungen der jeweiligen Richtlinien entspricht. Insbesondere gilt hier die Einhaltung der entsprechenden Herstellervorschriften.</div>
+                    <table class="sab-conf-sign" style="margin-top:34mm;"><tr><td><div class="sab-conf-sign-line"><b>Wermelskirchen / <span t-out="doc.inspection_date or ''"/></b><br/>Ort / Datum</div></td><td><div class="sab-conf-sign-line"><b><span t-out="doc.inspector_name or doc.responsible_name or ''"/></b><br/>Name des Ausführenden</div></td></tr></table>
+                    <div class="sab-conf-footer"><span>SP_PRF-NSR_D1</span><span style="position:absolute; left:49%;">-6-</span><span style="float:right;">Copyright © 2017 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                </div>
+        </div>
+    </template>
+
+</odoo>

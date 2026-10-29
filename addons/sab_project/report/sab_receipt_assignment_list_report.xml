@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_sab_receipt_assignment_landscape" model="report.paperformat">
+        <field name="name">SAB-P Projektzuordnungsliste A4 quer</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_sab_receipt_assignment_list" model="ir.actions.report">
+        <field name="name">Kommissionierungs- und Projektzuordnungsliste</field>
+        <field name="model">sab.receipt.assignment.list</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_receipt_assignment_list</field>
+        <field name="report_file">sab_project.report_sab_receipt_assignment_list</field>
+        <field name="paperformat_id" ref="paperformat_sab_receipt_assignment_landscape"/>
+        <field name="print_report_name">'Projektzuordnung_%s' % (object.picking_id.name or '')</field>
+    </record>
+
+    <template id="report_sab_receipt_assignment_list">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Kommissionierungs- und Projektzuordnungsliste</h2>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Wareneingang:</strong> <span t-out="o.picking_id.name"/><br/>
+                                <strong>Lieferant:</strong> <span t-out="o.partner_id.display_name or ''"/><br/>
+                                <strong>Bestellung:</strong> <span t-out="', '.join(o.purchase_order_ids.mapped('name'))"/>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong>Lieferschein:</strong> <span t-out="o.picking_id.sab_supplier_delivery_note_number or ''"/><br/>
+                                <strong>Gebucht:</strong> <span t-out="o.picking_id.date_done" t-options="{'widget':'datetime'}"/><br/>
+                                <strong>Liste erzeugt:</strong> <span t-out="o.generated_at" t-options="{'widget':'datetime'}"/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm table-bordered" style="font-size: 9pt;">
+                            <thead>
+                                <tr>
+                                    <th style="width:5%;" class="text-center">Erledigt</th>
+                                    <th style="width:10%;">Artikel</th>
+                                    <th style="width:20%;">Produkt</th>
+                                    <th style="width:12%;">Projekt</th>
+                                    <th style="width:14%;">Verteiler</th>
+                                    <th style="width:12%;">Materialanforderung</th>
+                                    <th style="width:7%;" class="text-end">Geliefert</th>
+                                    <th style="width:7%;" class="text-end">Projekt</th>
+                                    <th style="width:7%;" class="text-end">Frei</th>
+                                    <th style="width:6%;">Lagerziel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids" t-as="line">
+                                    <td class="text-center" style="font-size:16pt;">&#9744;</td>
+                                    <td><span t-out="line.supplier_article_number or line.product_id.default_code or ''"/></td>
+                                    <td><span t-out="line.product_id.display_name"/></td>
+                                    <td><span t-out="line.project_id.sab_project_reference or line.project_id.display_name or 'Freier Lagerbestand'"/></td>
+                                    <td><span t-out="line.source_cabinet_bom_id.display_name or ''"/></td>
+                                    <td><span t-out="line.procurement_bom_id.display_name or ''"/></td>
+                                    <td class="text-end"><span t-out="line.quantity_received" t-options="{'widget':'float','precision':3}"/></td>
+                                    <td class="text-end"><span t-out="line.quantity_project" t-options="{'widget':'float','precision':3}"/></td>
+                                    <td class="text-end"><span t-out="line.quantity_free_stock" t-options="{'widget':'float','precision':3}"/></td>
+                                    <td><span t-out="line.destination_location_id.display_name or ''"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt-4">
+                            <div class="col-6">Zugeordnet durch: ______________________________</div>
+                            <div class="col-6">Datum / Unterschrift: ______________________________</div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

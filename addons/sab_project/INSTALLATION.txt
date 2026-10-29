@@ -1,30 +1,94 @@
-SAB-P Projekt- und Angebotsnummern – Installation
+SAB-P Suite V1 – Installation / Upgrade auf Odoo.sh
 
-1. Diese ZIP-Datei nach C:\Odoo\sab-p entpacken.
-   Danach muss der Ordner so liegen:
-   C:\Odoo\sab-p\addons\sab_project
+Aktueller technischer Referenzstand
+-----------------------------------
+- Entwicklungsbranch: agent/leitfaden-gesamtstand
+- Modulversion: 19.0.5.22.0
+- Referenz-Build: Odoo.sh 36472655
+- Ergebnis Referenz-Build: 57 Tests, 0 Failures, 0 Errors
+- main bleibt bis zur vollständigen V1-Abnahme unverändert.
 
-2. In VS Code ein Terminal im Repository öffnen und ausführen:
+Entwicklungsregel
+-----------------
+- Entwicklung und Tests erfolgen auf: agent/leitfaden-gesamtstand
+- main bleibt bis zur vollständigen V1-Abnahme unverändert.
+- Kein direkter Entwicklungs-Push auf main.
+- Nach dem Green Build werden vorerst keine neuen Komfortfunktionen ergänzt; Vorrang haben Upgrade-, Praxis- und Fachdatenabnahme.
 
-   git status
-   git add addons/sab_project
-   git commit -m "Add SAB project and quotation numbering"
-   git push origin main
+Odoo.sh Entwicklungs-/Testablauf
+--------------------------------
+1. Änderungen werden ausschließlich auf agent/leitfaden-gesamtstand committed/gepusht.
+2. Odoo.sh startet für den Branch einen neuen Build.
+3. Build vollständig auswerten:
+   - Modulinstallation muss durchlaufen.
+   - SAB-P Tests müssen ohne Fehler laufen.
+   - SAB-P bezogene Warnings werden vor Produktivfreigabe bereinigt.
+4. Entwicklungs-/Staging-Datenbank öffnen.
+5. Modul "SAB-P Projekt- und Angebotsnummern" aktualisieren.
+6. Smoke-Test durchführen:
+   - neues Projekt anlegen,
+   - Axx.xxxx Projektnummer in SAB-P Projektübersicht und normaler Odoo-Projektliste prüfen,
+   - Angebot direkt aus Projekt anlegen,
+   - Angebotsnummer -01 prüfen,
+   - Mitarbeiteransicht öffnen,
+   - Kundenstatus/Portal prüfen.
+7. Danach vollständige Checkliste in docs/PRODUKTIVSETZUNG_CHECKLISTE.md abarbeiten.
 
-3. Odoo.sh startet danach automatisch einen neuen Build.
+Expliziter Upgrade-Test vor Go-live
+-----------------------------------
+Ein frischer Green Build ersetzt nicht den Upgrade-Test einer bereits bestehenden Datenbank.
+Vor Merge nach main muss deshalb auf einer bestehenden/produktionsnahen Odoo.sh Datenbank ausdrücklich ein Modulupgrade durchgeführt werden.
 
-4. Nach erfolgreichem Build:
-   - Entwicklungsdatenbank öffnen
-   - Apps öffnen
-   - "Apps-Liste aktualisieren" ausführen
-   - nach "SAB-P Projekt- und Angebotsnummern" suchen
-   - Modul installieren
+Vor dem Upgrade:
+1. aktuellen Datenbank-/Branchstand dokumentieren,
+2. verwertbares Odoo.sh Backup/Snapshot sicherstellen,
+3. letzten stabilen main-Commit dokumentieren,
+4. keine parallelen fachlichen Stammdatenänderungen während der Upgradeprüfung durchführen.
 
-Ergebnis:
+Nach dem Upgrade mindestens prüfen:
+1. Modul startet ohne Registry-/XML-/Model-/Security-Fehler,
+2. vorhandene Projekte und Angebote bleiben vorhanden,
+3. vorhandene SAB-P Nummern bleiben unverändert,
+4. Altprojekte ohne SAB-P Nummer werden nicht unkontrolliert umnummeriert,
+5. neues Projekt erhält die erwartete Axx.xxxx Nummer,
+6. erstes neues Angebot erhält -01,
+7. SAB-P Projektübersicht zeigt die Projektnummer als erste Spalte,
+8. normale Odoo-Projektliste zeigt die Projektnummer ebenfalls,
+9. vorhandene Kalkulations-Snapshots/Stücklisten/Dokumentrevisionen bleiben unverändert,
+10. Mitarbeiter-Record-Rules und Kundenfreigaberolle funktionieren,
+11. Portalzugriff eines fremden Kunden bleibt gesperrt,
+12. Nachkalkulation/Lagerwerte historischer Vorgänge bleiben konsistent.
+
+Nummerierung
+------------
+Standardbeispiele:
 - Projekte: A26.0001, A26.0002 ...
 - Jahreswechsel: A27.0001 ...
 - Angebote je Projekt: A26.0001-01, -02, -03 ...
-- Vergebene Nummern sind eindeutig und nicht änderbar.
 
-Wichtiger Hinweis:
-Die Version startet bewusst bei 0001, nicht bei 0000.
+Die tatsächlichen Präfixe, Stellen und Startwerte sind konfigurierbar. Eine bereits vergebene Projekt- oder Angebotsnummer ist bewusst nicht änderbar.
+
+Produktivsetzung
+----------------
+Ein Merge nach main erfolgt erst, wenn:
+- der finale Odoo.sh Build erfolgreich ist,
+- der explizite Upgrade-Test einer bestehenden/produktionsnahen Datenbank erfolgreich ist,
+- alle SAB-P Tests grün sind,
+- End-to-End- und Rollen-/Portaltests bestanden sind,
+- das Handbuch dem praktisch getesteten Stand entspricht,
+- reale Kalkulations-/DATANORM-/Lager-Abnahmepunkte erledigt sind,
+- unmittelbar vorher ein verwertbares Odoo.sh Backup vorhanden ist,
+- Verantwortliche für Go-live und Rollback benannt sind.
+
+Rollback
+--------
+Der letzte stabile main-Commit bleibt bis zur Abnahme die Code-Rückfallbasis.
+Ein Code-Rollback allein ist bei Datenbankschema-/Datenänderungen nicht automatisch ausreichend. Deshalb muss unmittelbar vor dem Produktivupgrade ein verwertbares Odoo.sh Datenbankbackup/Snapshot vorhanden sein.
+
+Bei fehlgeschlagenem Produktivupgrade:
+1. keine improvisierten manuellen Datenbankreparaturen im Produktivsystem,
+2. Produktivnutzung stoppen bzw. keine weiteren Buchungen auf dem inkonsistenten Stand erzeugen,
+3. auf konsistentes Backup/Snapshot plus dazugehörigen stabilen Code-Stand zurückgehen,
+4. Fehler ausschließlich im Entwicklungsbranch reproduzieren und korrigieren,
+5. Upgrade erneut auf einer Test-/Staging-Kopie prüfen,
+6. erst danach einen neuen Produktivversuch starten.

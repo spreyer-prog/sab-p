@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_material_group_list" model="ir.ui.view">
+        <field name="name">sab.bom.material.group.list</field>
+        <field name="model">sab.bom.material.group</field>
+        <field name="arch" type="xml">
+            <list string="Gesamtstückliste – Artikel mit Schrankaufteilung" create="0" edit="0" delete="0">
+                <header><button name="action_prepare_purchase" type="object" string="Bestellvorschlag für markierte Artikel" groups="sab_project.group_sab_purchasing,base.group_system"/></header>
+                <field name="bom_id" optional="hide"/>
+                <field name="name"/>
+                <field name="quantity"/>
+                <field name="unit"/>
+                <field name="optional" optional="show"/>
+                <field name="unit_purchase_price"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="purchase_total" sum="Material-EK"/>
+                <field name="allocation_text"/>
+                <button name="action_open_requirement_details" type="object" string="Bedarf / Bestellstatus" icon="fa-list"/>
+                <button name="action_edit_allocations" type="object" string="Zuordnung / Material bearbeiten"
+                        icon="fa-pencil" groups="sab_project.group_sab_purchasing,base.group_system"/>
+            </list>
+        </field>
+    </record>
+    <record id="sab_bom_material_control_form" model="ir.ui.view">
+        <field name="name">sab.project.bom.material.control.form</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form"/>
+        <field name="priority">10000</field>
+        <field name="arch" type="xml">
+            <xpath expr="(//form/header/button[@name='action_release'])[1]" position="attributes">
+                <attribute name="name">action_review_material_costs</attribute>
+            </xpath>
+            <xpath expr="(//form/header/button[@name='action_release'])[1]" position="attributes">
+                <attribute name="name">action_review_material_costs</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_release_for_purchase']" position="attributes">
+                <attribute name="name">action_review_purchase_costs</attribute>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_review_material_costs" type="object" string="Einkaufsänderung technisch prüfen"
+                        class="btn-primary" invisible="bom_scope != 'cabinet' or not sab_material_recheck_required"
+                        groups="project.group_project_manager,base.group_system"/>
+                <button name="action_open_material_groups" type="object" string="Gesamtmaterial bearbeiten"
+                        invisible="bom_scope != 'procurement' or not sab_cabinet_first"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']" position="before">
+                <field name="sab_material_currency_id" invisible="1"/>
+                <field name="sab_material_comparison_known" invisible="1"/>
+                <field name="sab_material_percent_known" invisible="1"/>
+                <field name="sab_material_release_known" invisible="1"/>
+                <field name="sab_material_handover_known" invisible="1"/>
+                <field name="sab_material_recheck_required" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="not sab_material_recheck_required">
+                    Der Einkauf hat technische Materialdaten geändert. Einzel- und Gesamtstückliste sind aktualisiert;
+                    die betroffenen Einzelstücklisten müssen vor Bestellung/Fertigungsfreigabe erneut geprüft werden.
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="sab_material_comparison_known">
+                    Für diesen Altbestand wurde bei der Erzeugung keine unveränderliche Kalkulationsbasis gespeichert.
+                    Die ursprünglichen Einkaufskosten werden nicht aus dem bereits bearbeiteten Stand geraten.
+                </div>
+                <group string="Material-EK: Kalkulation gegen aktuellen Bedarf" col="4">
+                    <field name="sab_material_calculated_ek" invisible="not sab_material_comparison_known"/>
+                    <field name="sab_material_current_ek"/>
+                    <field name="sab_material_delta" invisible="not sab_material_comparison_known"/>
+                    <field name="sab_material_delta_percent" invisible="not sab_material_percent_known"/>
+                    <field name="sab_material_optional_ek"/>
+                    <field name="sab_material_zero_price_count" invisible="not sab_material_zero_price_count"/>
+                    <field name="sab_material_release_ek" invisible="not sab_material_release_known"/>
+                    <field name="sab_material_revision"/>
+                    <field name="sab_material_handover_ek" invisible="not sab_material_handover_known"/>
+                    <field name="sab_material_handover_at" invisible="not sab_material_handover_known"/>
+                    <div class="text-muted" colspan="4">Netto-Material-EK der normalen Materialpositionen.
+                        Ohne Montagezeit, kaufmännische Zuschläge, Gewinn und Umsatzsteuer.
+                        Optionales Material wird separat ausgewiesen. Die ursprüngliche Basis bleibt unverändert.</div>
+                </group>
+                <field name="sab_material_group_ids" readonly="1" nolabel="1"
+                       invisible="bom_scope != 'procurement' or not sab_cabinet_first">
+                    <list string="Gesamtmaterial – ein Artikel je Zeile" create="0" edit="0" delete="0">
+                        <field name="name"/>
+                        <field name="quantity"/>
+                        <field name="unit"/>
+                        <field name="optional" optional="show"/>
+                        <field name="unit_purchase_price"/>
+                        <field name="currency_id" column_invisible="1"/>
+                        <field name="purchase_total"/>
+                        <field name="allocation_text"/>
+                        <button name="action_edit_allocations" type="object" string="Zuordnung / Material bearbeiten"
+                                icon="fa-pencil" groups="sab_project.group_sab_purchasing,base.group_system"/>
+                    </list>
+                </field>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']" position="attributes">
+                <attribute name="invisible">bom_scope == 'procurement' and sab_cabinet_first</attribute>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list" position="attributes">
+                <attribute name="decoration-muted">sab_material_removed</attribute>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='quantity']" position="before">
+                <field name="sab_cabinet_label" readonly="1"/>
+                <field name="sab_lv_position" optional="show"/>
+                <field name="sab_material_removed" optional="hide" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='unit_purchase_price']" position="attributes">
+                <attribute name="string">Material-EK je Einheit</attribute>
+                <attribute name="optional"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='purchase_total']" position="attributes">
+                <attribute name="string">Material-EK gesamt</attribute>
+                <attribute name="optional"/>
+            </xpath>
+            <xpath expr="//group[field[@name='sab_material_summary']]" position="attributes">
+                <attribute name="invisible">bom_scope != 'procurement' or sab_cabinet_first</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Nachvollziehbare Einkaufsänderungen" invisible="not sab_material_change_ids">
+                    <field name="sab_material_change_ids" readonly="1" nolabel="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="changed_at"/>
+                            <field name="changed_by_id"/>
+                            <field name="reason"/>
+                            <field name="cabinet_ids" widget="many2many_tags"/>
+                            <field name="before_ek"/>
+                            <field name="after_ek"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="sab_bom_material_control_list" model="ir.ui.view">
+        <field name="name">sab.project.bom.material.control.list</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_list"/>
+        <field name="priority">10000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-success">bom_scope == 'cabinet' and state == 'released' and not sab_handover_package_id and not sab_material_recheck_required</attribute>
+                <attribute name="decoration-info">(sab_handover_package_id or bom_scope == 'procurement') and not sab_material_recheck_required</attribute>
+                <attribute name="decoration-warning">sab_material_recheck_required</attribute>
+            </xpath>
+            <xpath expr="//list" position="inside">
+                <field name="sab_material_recheck_required" column_invisible="1"/>
+                <field name="sab_material_currency_id" column_invisible="1"/>
+                <field name="sab_material_calculated_ek" optional="show" invisible="not sab_material_comparison_known"/>
+                <field name="sab_material_current_ek" optional="show"/>
+                <field name="sab_material_delta" optional="show" invisible="not sab_material_comparison_known"/>
+                <field name="sab_material_comparison_known" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='sab_engineering_status']" position="attributes">
+                <attribute name="decoration-warning">sab_engineering_status == 'recheck'</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sab_material_cost_review_form" model="ir.ui.view">
+        <field name="name">sab.bom.material.review.form</field>
+        <field name="model">sab.bom.material.review</field>
+        <field name="arch" type="xml">
+            <form string="Material-EK vor Freigabe vergleichen">
+                <field name="currency_id" invisible="1"/>
+                <field name="comparison_known" invisible="1"/>
+                <field name="percent_known" invisible="1"/>
+                <group col="4">
+                    <field name="bom_id" colspan="4"/>
+                    <field name="release_kind" readonly="1"/>
+                    <field name="calculated_ek" string="Ursprünglich kalkulierter Material-EK" invisible="not comparison_known"/>
+                    <field name="current_ek" string="Material-EK des freizugebenden Bedarfs"/>
+                    <field name="delta" string="Mehr- / Minderkosten" invisible="not comparison_known"/>
+                    <field name="delta_percent" string="Abweichung (%)" invisible="not percent_known"/>
+                </group>
+                <div class="alert alert-info">Nur normale Materialpositionen, netto. Montage, Gewinnaufschläge,
+                    Umsatzsteuer und optionales Material sind nicht Bestandteil dieses Vergleichs.</div>
+                <div class="alert alert-warning" invisible="comparison_known">Die unveränderliche Ausgangskalkulation wurde für diesen Altbestand nicht erfasst.</div>
+                <group invisible="not zero_price_count and comparison_known">
+                    <field name="zero_price_count" readonly="1"/>
+                    <field name="acknowledge_unknown"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Kosten geprüft – freigeben" class="btn-primary"/>
+                    <button string="Abbrechen" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="sab_material_edit_form" model="ir.ui.view">
+        <field name="name">sab.bom.material.edit.form</field>
+        <field name="model">sab.bom.material.edit</field>
+        <field name="arch" type="xml">
+            <form string="Material und Schrankaufteilung bearbeiten">
+                <field name="available_cabinet_ids" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                <group col="4">
+                    <field name="bom_id"/>
+                    <field name="group_id"/>
+                    <field name="old_quantity"/>
+                    <field name="new_quantity"/>
+                    <field name="old_ek"/>
+                    <field name="new_ek"/>
+                    <field name="current_total_ek"/>
+                    <field name="preview_total_ek"/>
+                </group>
+                <div class="alert alert-warning">Jede Änderung wirkt auf die zugeordneten Einzelstücklisten.
+                    Mengen werden ausdrücklich je Schrank/LV festgelegt, niemals pauschal verteilt.
+                    Zum Löschen „Entfernen“ markieren. Bei technischem Mehrbedarf oder Produkttausch ist eine neue technische Prüfung nötig.
+                    Reine Verpackungs-/Bestellmehrmengen gehören nicht in diesen technischen Bedarf.</div>
+                <field name="line_ids" nolabel="1">
+                    <list editable="bottom" delete="0">
+                        <field name="package_line_id" column_invisible="1"/>
+                        <field name="legacy_product_id" column_invisible="1"/>
+                        <field name="cabinet_bom_id" readonly="package_line_id"
+                               domain="[('id', 'in', parent.available_cabinet_ids)]"
+                               options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="lv_position" readonly="package_line_id"/>
+                        <field name="odoo_product_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="quantity"/>
+                        <field name="unit"/>
+                        <field name="optional"/>
+                        <field name="unit_purchase_price"/>
+                        <field name="supplier_product_id" optional="hide" options="{'no_create': True}"/>
+                        <field name="note" optional="show"/>
+                        <field name="remove" readonly="not package_line_id"/>
+                    </list>
+                </field>
+                <group>
+                    <field name="reason" required="1" placeholder="Was wird warum für welche Schränke geändert?"/>
+                    <field name="confirm_allocation"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Änderungen in Einzel- und Gesamtstückliste übernehmen"
+                            class="btn-primary"/>
+                    <button string="Abbrechen" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

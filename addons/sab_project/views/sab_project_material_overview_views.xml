@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_project_overview_material_action" model="ir.ui.view">
+        <field name="name">project.project.list.material.action</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_overview_procurement_progress"/>
+        <field name="priority">240</field>
+        <field name="arch" type="xml">
+            <field name="sab_material_procured_percent" position="after">
+                <field name="sab_procurement_currency_id" column_invisible="1"/>
+                <field name="sab_material_required_value"
+                       string="Materialbedarf (EK)"
+                       optional="hide"/>
+                <field name="sab_material_available_value"
+                       string="Physisch vorhanden (EK)"
+                       optional="hide"/>
+                <field name="sab_material_procured_value"
+                       string="Beschaffung gesichert (EK)"
+                       optional="hide"/>
+                <field name="sab_material_requirement_count"
+                       string="Materialpositionen"
+                       optional="hide"/>
+                <button name="action_view_sab_material_requirements"
+                        type="object"
+                        string="Gesamtmaterial öffnen"
+                        icon="fa-cubes"
+                        invisible="sab_material_requirement_count == 0"/>
+            </field>
+        </field>
+    </record>
+</odoo>

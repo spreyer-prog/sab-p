@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Layoutgetreuer Neuaufbau der bereitgestellten SAB-P-Fertigungsblätter.
+        Der bestehende Report-XMLID wird bewusst überschrieben, damit Einzel- und
+        Sammeldruck weiterhin dieselbe technische Reportaktion verwenden.
+    -->
+    <template id="report_sab_production_document">
+        <t t-call="web.html_container">
+            <style>
+                .sab-doc-page { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:10.5pt; }
+                .sab-doc-page table { border-collapse: collapse; width:100%; }
+                .sab-doc-page td, .sab-doc-page th { border:1px solid #000; padding:2px 4px; vertical-align:top; }
+                .sab-doc-page .no-border td, .sab-doc-page .no-border th { border:0; }
+                .sab-doc-page .doc-head { font-size:19pt; font-weight:700; margin:0 0 5px 0; }
+                .sab-doc-page .small { font-size:8.5pt; }
+                .sab-doc-page .tiny { font-size:7pt; }
+                .sab-doc-page .center { text-align:center; }
+                .sab-doc-page .right { text-align:right; }
+                .sab-doc-page .bold { font-weight:700; }
+                .sab-doc-page .yellow { background:#fffda0; }
+                .sab-doc-page .orange { background:#f7c58e; font-weight:700; }
+                .sab-doc-page .gray { background:#d3d3d3; }
+                .sab-doc-page .green { background:#00f10a; }
+                .sab-doc-page .result { width:13%; }
+                .sab-doc-page .remark { width:36%; }
+                .sab-doc-page .nr { width:6%; }
+                .sab-doc-page .footer-line { border-top:1px solid #000; margin-top:15px; padding-top:3px; }
+            </style>
+            <t t-foreach="docs" t-as="doc">
+                <div class="page sab-doc-page">
+                    <!-- LAUFKARTE: Vorlage Laufkarte.pdf -->
+                    <t t-if="doc.document_type == 'run_card'">
+                        <table style="font-size:12pt; border:2px solid #000;">
+                            <tr class="yellow">
+                                <td style="width:28%;"><b>Laufkarte</b></td>
+                                <td style="width:28%; text-align:center;"><b><span t-out="doc.project_reference or ''"/></b></td>
+                                <td style="width:20%;"><b>Liefertermin:</b></td>
+                                <td style="width:24%; text-align:center;"><b><span t-field="doc.delivery_date"/></b></td>
+                            </tr>
+                            <tr><td><b>Projekt:</b></td><td colspan="3"><b><span t-out="doc.project_name or ''"/></b></td></tr>
+                            <tr><td><b>Kunde:</b></td><td colspan="3"><b><span t-out="doc.customer_name or ''"/></b></td></tr>
+                            <tr class="yellow"><td><b>Bauteil:</b></td><td colspan="3"><b><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></b></td></tr>
+                            <tr><td colspan="4" style="font-size:9.5pt;">Diese Laufkarte ist vollständig und wahrheitsgemäß auszufüllen!<br/>Unvollständig ausgefüllte Karten werden nicht angenommen und als nicht abgearbeitet gewertet.</td></tr>
+                        </table>
+                        <table style="border:2px solid #000; border-top:0; font-size:9.5pt;">
+                            <tr style="height:42px;"><th style="width:29%;">Abteilung / Tätigkeit</th><th style="width:26%;">Mitarbeiter</th><th style="width:4%; writing-mode:vertical-rl; transform:rotate(180deg);">fertig</th><th style="width:4%; writing-mode:vertical-rl; transform:rotate(180deg);">gepr.</th><th>Bemerkung</th></tr>
+                            <tr class="orange"><td colspan="5">Mechanische Fertigung</td></tr>
+                            <tr style="height:45px;"><td>Mechanischer Aufbau</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:45px;"><td>Bestückung Geräte</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:45px;"><td>Bestückung Klemmen</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:45px;"><td>Endkontrolle</td><td></td><td></td><td></td><td></td></tr>
+                            <tr class="orange"><td colspan="5">Elektrische Fertigung</td></tr>
+                            <tr style="height:45px;"><td>Vorbereitung Verdrahtung</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:45px;"><td>Verdrahtung</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:45px;"><td>Endkontrolle</td><td></td><td></td><td></td><td></td></tr>
+                            <tr class="orange"><td colspan="5">Prüfung</td></tr>
+                            <tr style="height:42px;"><td>Mechanische Prüfung</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:42px;"><td>Elektrische Prüfung</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:28px;"><td>Meldung Versandfertig</td><td></td><td></td><td></td><td></td></tr>
+                            <tr style="height:105px;"><td>Bemerkungen</td><td></td><td></td><td></td><td></td></tr>
+                        </table>
+                    </t>
+
+                    <!-- PRÜFPROTOKOLL FERTIGUNG: Seite 1 der Endprüfungs-Vorlage -->
+                    <t t-elif="doc.document_type == 'production_test'">
+                        <table class="no-border" style="margin-bottom:5px;">
+                            <tr>
+                                <td style="width:70%; padding:0;">
+                                    <div class="doc-head">Prüfprotokoll der Fertigung</div>
+                                    <table style="font-size:9pt; width:100%;">
+                                        <tr><td style="border:0; width:34%; padding:0;">Kunde:</td><td><span t-out="doc.customer_name or ''"/></td></tr>
+                                        <tr><td style="border:0; padding:0;">Auftragsnr./Komission:</td><td><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
+                                        <tr><td style="border:0; padding:0;">Verteiler:</td><td><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                                    </table>
+                                </td>
+                                <td style="width:30%; border:0; text-align:right; vertical-align:middle;">
+                                    <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:180px; max-height:65px;"/>
+                                    <div t-if="not doc.project_id.company_id.logo" style="font-size:27pt; font-weight:bold;">SAB-P</div>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="font-size:8.1pt; line-height:1.05;">
+                            <tr><th colspan="2" style="text-align:left;">Durchgeführte Prüfungen</th><th colspan="2" style="text-align:left;">Legende<br/><span style="font-weight:normal;">iO - in Ordnung | niO - nicht in Ordnung | nr - nicht relevant</span></th></tr>
+                            <tr><th class="nr">1.)</th><th style="text-align:left;">Sichtprüfung</th><th class="result">Ergebnis</th><th class="remark">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>1.0</td><td>Schranktyp bzw. mechanische Schäden</td><td></td><td></td></tr>
+                            <tr><td>1.1</td><td>Verschlusssystem</td><td></td><td></td></tr>
+                            <tr><td>1.2</td><td>Beflanschung bzw. M-Verschraubungen</td><td></td><td></td></tr>
+                            <tr><td>1.3</td><td>Gerätebeschriftungen / Bezeichnungsschilder</td><td></td><td></td></tr>
+                            <tr><td>1.4</td><td>Leitungsfarben Hauptstromkreise</td><td></td><td></td></tr>
+                            <tr><td>1.5</td><td>Leitungsfarben Steuerstromkreise</td><td></td><td></td></tr>
+                            <tr><td>1.6</td><td>PE-Leiter, Leitungsfarben, Führung</td><td></td><td></td></tr>
+                            <tr><td>1.7</td><td>Gerätebestückung entspr. Zeichnung / Stückliste</td><td></td><td></td></tr>
+                            <tr><th>2.)</th><th style="text-align:left;">Mechanische Prüfung</th><th>Ergebnis</th><th style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>2.0</td><td>Betätigungselemente</td><td></td><td></td></tr>
+                            <tr><td>2.1</td><td>Türkupplungen</td><td></td><td></td></tr>
+                            <tr><td>2.2</td><td>Schraubverbindungen/Geräteeinbau (Stichproben)</td><td></td><td></td></tr>
+                            <tr><td>2.3</td><td>Leitungsführung / Befestigung (nicht über Kanten)</td><td></td><td></td></tr>
+                            <tr><th>3.)</th><th style="text-align:left;">Elektrische Prüfung mit Nennspannung</th><th>Ergebnis</th><th style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>3.0</td><td>Hauptstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr>
+                            <tr><td>3.1</td><td>Steuerstromkreise entspr. Stromlaufplan</td><td></td><td></td></tr>
+                            <tr><td>3.2</td><td>Ein-/Ausgänge mit PG überprüft (bei SPS-Steuerung)</td><td></td><td></td></tr>
+                            <tr><td>3.3</td><td>Leuchtmelder</td><td></td><td></td></tr>
+                            <tr><td>3.4</td><td>Einhaltung der Isolationswiderstände (&gt;200MΩ)</td><td></td><td></td></tr>
+                            <tr><th>4.)</th><th style="text-align:left;">Überprüfung der Maßnahmen zum Schutz bei direktem und indirektem Berühren</th><th>Ergebnis</th><th style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>4.0</td><td>Anordnung der Betätigungselemente</td><td></td><td></td></tr>
+                            <tr><td>4.1</td><td>Überprüfung der Gehäuse, Abdeckungen</td><td></td><td></td></tr>
+                            <tr><td>4.2</td><td>Überprüfung der Schutzleiterbahnen und deren Verbindungen, insbesondere an leitenden Konstruktionsteilen, Bedienteilen etc.</td><td></td><td></td></tr>
+                            <tr><td>4.3</td><td>Überprüfung der Schutzisolierung auf mechanische Beanspruchung</td><td></td><td></td></tr>
+                            <tr><th>5.)</th><th style="text-align:left;">Überprüfung der zum Erreichen der Schutzart vorgesehenen Maßnahmen</th><th>Ergebnis</th><th style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>5.0</td><td>Kabeleinführungen/Dichtungen/Verschlüsse etc.</td><td></td><td></td></tr>
+                            <tr><th>6.)</th><th style="text-align:left;">Endkontrolle</th><th>Ergebnis</th><th style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>6.0</td><td>Anlage gereinigt</td><td></td><td></td></tr>
+                            <tr><td>6.1</td><td>Schaltpläne, Bedienungsanleitungen beigefügt</td><td></td><td></td></tr>
+                            <tr><td>6.2</td><td>Versandbereitschaft</td><td></td><td></td></tr>
+                        </table>
+                        <table style="width:88%; margin:10px auto 0 auto; font-size:8.5pt;">
+                            <tr><th colspan="5" style="text-align:left;">Messwerte der Isolationsmessung</th></tr>
+                            <tr><td>Prüfspannung Vtest:</td><td><span t-out="doc.test_voltage or ''"/></td><td style="width:8%; font-weight:bold;">V</td><td>Ergebnis Riso:</td><td><span t-out="doc.insulation_resistance or ''"/> MOhm</td></tr>
+                            <tr><th colspan="5" style="text-align:left;">Durchgängigkeit des Schutzleiters</th></tr>
+                            <tr><td>Ergebnis Rpe:</td><td><span t-out="doc.protective_conductor_resistance or ''"/></td><td style="font-weight:bold;">Ohm</td><td colspan="2"></td></tr>
+                        </table>
+                        <div style="margin-top:15px; border-top:1px solid #000; padding-top:8px;"><b>Wermelskirchen/</b></div>
+                        <table class="no-border" style="margin-top:10px;"><tr><td style="width:48%; border-top:1px solid #000;">Ort / Datum</td><td style="width:4%;"></td><td style="width:48%; border-top:1px solid #000;">Kennung/Name des Prüfers</td></tr></table>
+                        <div class="tiny footer-line"><span>SP_PRF-PR_D2</span><span style="float:right;">Copyright © 2018 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                    </t>
+
+                    <!-- PRÜFPROTOKOLL ENDKONTROLLE: Seite 2 der Vorlage -->
+                    <t t-elif="doc.document_type == 'final_inspection'">
+                        <table class="no-border" style="margin-bottom:5px;">
+                            <tr>
+                                <td style="width:70%; padding:0;">
+                                    <div class="doc-head">Prüfprotokoll Endkontrolle</div>
+                                    <table style="font-size:9pt; width:100%;">
+                                        <tr><td style="border:0; width:34%; padding:0;">Kunde:</td><td><span t-out="doc.customer_name or ''"/></td></tr>
+                                        <tr><td style="border:0; padding:0;">Auftragsnr./Komission:</td><td><span t-out="doc.project_reference or ''"/> - <span t-out="doc.project_name or ''"/></td></tr>
+                                        <tr><td style="border:0; padding:0;">Verteiler:</td><td><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td></tr>
+                                    </table>
+                                </td>
+                                <td style="width:30%; border:0; text-align:right; vertical-align:middle;">
+                                    <img t-if="doc.project_id.company_id.logo" t-att-src="image_data_uri(doc.project_id.company_id.logo)" style="max-width:180px; max-height:65px;"/>
+                                    <div t-if="not doc.project_id.company_id.logo" style="font-size:27pt; font-weight:bold;">SAB-P</div>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="font-size:8.5pt; line-height:1.12;">
+                            <tr><th colspan="4" style="text-align:left;">Durchgeführte Kontrollen</th></tr>
+                            <tr><th class="nr">1.)</th><th style="text-align:left;">Mechanische Kontrolle</th><th style="width:13%;">Prüfer<br/>(Kürzel)</th><th class="remark" style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>1.0</td><td>Anziehmomente der Schraubverbindungen geprüft (Stichproben)</td><td></td><td></td></tr>
+                            <tr><td>1.1</td><td>Hochstrom-Verbindungen gekennzeichnet</td><td></td><td></td></tr>
+                            <tr><td>1.2</td><td>Sicherungseinsätze eingebaut (sofern erforderlich)</td><td></td><td></td></tr>
+                            <tr><td>1.3</td><td>Schaltplantasche eingebaut</td><td></td><td></td></tr>
+                            <tr><td>1.4</td><td>Abdeckungen komplett eingebaut</td><td></td><td></td></tr>
+                            <tr><td>1.5</td><td>Kennzeichnung aller Geräte</td><td></td><td></td></tr>
+                            <tr><td>1.6</td><td>Transporttrennung entsprechend der Vorgabe eingehalten (sofern erforderlich)</td><td></td><td></td></tr>
+                            <tr><td>1.7</td><td>Schutzklasse SK I/II entsprechend der Vorgabe eingehalten</td><td></td><td></td></tr>
+                            <tr><td>1.8</td><td>Schutzart IPxx entsprechend der Vorgabe eingehalten</td><td></td><td></td></tr>
+                            <tr><th>2.)</th><th style="text-align:left;">Elektrische Kontrolle</th><th>Prüfer<br/>(Kürzel)</th><th style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>2.1</td><td>Türerden eingebaut (sofern erforderlich, bei Geräteeinbau)</td><td></td><td></td></tr>
+                            <tr><td>2.2</td><td>Grundparametrierung der Messgeräte erfolgt.</td><td></td><td></td></tr>
+                            <tr><td>2.3</td><td>Anlage geprüft (siehe Prüfprotokoll)</td><td></td><td></td></tr>
+                            <tr><th>3.)</th><th style="text-align:left;">Sichtkontrolle</th><th>Prüfer<br/>(Kürzel)</th><th style="text-align:left;">Bemerkung<br/><span style="font-weight:normal;">Nur bei Abweichung/Einschränkung ausfüllen</span></th></tr>
+                            <tr><td>3.0</td><td>Schrankbeschriftung (Typenschild, Infoschild und Warnschilder)</td><td></td><td></td></tr>
+                            <tr><td>3.1</td><td>Prüfaufkleber angebracht</td><td></td><td></td></tr>
+                            <tr><td>3.2</td><td>Schaltschrank fotografiert</td><td></td><td></td></tr>
+                            <tr><td>3.3</td><td>Änderungen im Schaltplan eingetragen</td><td></td><td></td></tr>
+                            <tr><td>3.4</td><td>Schaltplan zur Revision ins technische Büro gegeben</td><td></td><td></td></tr>
+                            <tr><td>3.5</td><td>Fehlende Komponenten gemeldet bzw. nachbestellt</td><td></td><td></td></tr>
+                            <tr><td>3.6</td><td>Dokumentation vollständig beigefügt</td><td></td><td></td></tr>
+                            <tr><td>3.7</td><td>Beipack vollständig zusammengestellt und im Schrank deponiert</td><td></td><td></td></tr>
+                        </table>
+                        <div style="margin-top:18px; border-top:1px solid #000; padding-top:8px;"><b>Wermelskirchen/</b></div>
+                        <table class="no-border" style="margin-top:12px;"><tr><td style="width:48%; border-top:1px solid #000;">Ort / Datum</td><td style="width:4%;"></td><td style="width:48%; border-top:1px solid #000;">Kennung/Name des/der Prüfer(s)</td></tr></table>
+                        <div class="tiny footer-line"><span>SP_PRF-PR_D3</span><span style="float:right;">Copyright © 2018 SAB-P GmbH - Alle Rechte vorbehalten</span></div>
+                    </t>
+
+                    <!-- BESTELLUNG FEHLTEILE -->
+                    <t t-elif="doc.document_type == 'missing_parts'">
+                        <div style="height:105px;"></div>
+                        <div style="border-top:3px solid #000; border-bottom:3px solid #000; text-align:right; font-size:22pt; font-weight:bold; padding:3px 8px;">Bestellung Fehlteile</div>
+                        <div class="green" style="height:27px; border-bottom:3px solid #000;"></div>
+                        <div style="height:40px; border-bottom:3px solid #000; text-align:center; font-size:18pt; padding-top:6px;">✉✉</div>
+                        <table class="no-border" style="font-size:20pt; font-weight:bold; margin-top:2px;">
+                            <tr><td style="width:34%; padding:0;"><span t-out="doc.project_reference or ''"/></td><td style="width:42%; text-align:center; padding:0;"><span t-out="doc.project_name or ''"/></td><td style="text-align:right; padding:0; font-size:13pt;"><span t-out="doc.customer_name or ''"/></td></tr>
+                        </table>
+                        <table style="font-size:8pt;">
+                            <tr class="gray"><td style="width:22%;">Verteiler</td><td style="width:49%;">Artikelnummer / Artikeltext</td><td style="width:18%;">Bemerkung</td><td>Erledigt/Datum</td></tr>
+                            <t t-foreach="range(20)" t-as="i"><tr style="height:27px;"><td><span t-if="i == 0" t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></td><td></td><td></td><td></td></tr></t>
+                        </table>
+                    </t>
+
+                    <!-- VERSANDBLATT -->
+                    <t t-elif="doc.document_type == 'shipping_sheet'">
+                        <div style="border:2px solid #000; height:930px; padding:55px 25px; text-align:center; display:flex; flex-direction:column; justify-content:space-around;">
+                            <div style="font-size:42pt; font-weight:bold;"><span t-out="doc.project_reference or ''"/></div>
+                            <div style="font-size:30pt; font-weight:bold;"><span t-out="doc.customer_name or ''"/></div>
+                            <div style="font-size:36pt; font-weight:bold;"><span t-out="doc.project_name or ''"/></div>
+                            <div style="font-size:38pt; font-weight:bold;"><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></div>
+                        </div>
+                    </t>
+
+                    <!-- BEIPACKZETTEL -->
+                    <t t-elif="doc.document_type == 'add_pack'">
+                        <div style="border:2px solid #000; margin:60px 20px; padding:28px 45px; text-align:center; min-height:760px;">
+                            <div style="font-size:30pt; font-weight:bold; text-decoration:underline;">Beipackzettel</div>
+                            <div style="font-size:20pt; font-weight:bold; margin-top:12px;"><span t-out="doc.customer_name or ''"/></div>
+                            <div style="font-size:17pt; margin-top:6px;"><span t-out="doc.project_reference or ''"/></div>
+                            <div style="font-size:17pt;"><span t-out="doc.project_name or ''"/></div>
+                            <div style="font-size:25pt; font-weight:bold; margin:32px 0 18px 0;">Achtung! Bitte beachten.</div>
+                            <div style="font-size:16pt; font-weight:bold; line-height:1.35;">
+                                <p>Die Dokumentation befindet sich in der Schaltplantasche oder separat gepackt hinter der Türe / den Abdeckungen.</p>
+                                <p>Anschlußschrauben für Trenner sind in den unbestückten Sicherungskammern beigelegt. (Ansonsten im Beipack)</p>
+                                <p>Weiteres Zubehör, wie z. B. Sicherungshalter, Befestigungswinkel usw. befinden sich hinter den Abdeckungen bzw. im Beipack.</p>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- TYPENSCHILD -->
+                    <t t-elif="doc.document_type == 'nameplate'">
+                        <div style="border:2px solid #000; padding:14px;">
+                            <table class="no-border" style="margin-bottom:8px;"><tr><td style="width:55%; font-size:26pt; font-weight:bold;">SAB-P</td><td style="text-align:right; font-size:8pt;">SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/>Albert-Einstein-Str. 7a<br/>42929 Wermelskirchen<br/>Tel. 02196 90901 0 - FAX 02196 90901 99</td></tr></table>
+                            <table style="font-size:10pt;">
+                                <tr><td style="width:28%;">Typenbezeichnung</td><td><b><span t-out="doc.type_designation or doc.cabinet_type or ''"/></b></td><td style="width:20%;">Auftrag-Nr.:</td><td><b><span t-out="doc.project_reference or ''"/></b></td></tr>
+                                <tr><td>Verteilung</td><td colspan="3"><b><span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></b></td></tr>
+                                <tr><td>Baujahr</td><td><span t-out="doc.construction_year or ''"/></td><td>DIN EN</td><td><span t-out="doc.standard_family or ''"/> - <span t-out="doc.standard_part or ''"/></td></tr>
+                                <tr><td>Bemessungsspannung</td><td><span t-out="doc.rated_voltage or ''"/> V</td><td>Bemessungsstrom</td><td><span t-out="doc.rated_current or ''"/> A</td></tr>
+                                <tr><td>Frequenz</td><td><span t-out="doc.frequency or ''"/> Hz</td><td>Sammelschiene</td><td><span t-out="doc.busbar_current or ''"/> A</td></tr>
+                                <tr><td>Schutzklasse</td><td><span t-out="doc.protection_class or ''"/></td><td>IP-Schutzart</td><td><span t-out="doc.ip_rating or ''"/></td></tr>
+                            </table>
+                            <div style="font-size:12pt; font-weight:bold; margin-top:12px;">Achtung!</div>
+                            <div style="font-size:9pt; line-height:1.35;">
+                                <p>Durchsicht der Schaltgeräte-Kombinationen nach dem Transport und vor Inbetriebnahme erforderlich.<br/>Prüfung gem. DIN VDE 0100-600.</p>
+                                <p>Nach dem Errichten und vor der Inbetriebnahme der fabrikgefertigten Schaltanlage sind folgende Prüfungen durchzuführen:</p>
+                                <p>1. Die Prüfungen nach DIN VDE 0100 sind vom Inbetriebnehmer der Anlage als „Erstprüfung der Anlage“ durchzuführen.</p>
+                                <p>2. Die Anschlussschrauben und Anschlussklemmen an Stromschienen, Geräten und Klemmen sind auf Lockerung zu prüfen und falls erforderlich nachzuziehen. Empfohlenes Anzugsdrehmoment nach DIN 43673, Teil 1. Vergl. DIN EN 61439 VDE 0660-600.</p>
+                                <p>3. Die Verteilung ist auf ggf. erforderliche N / PE Verbinder hin zu überprüfen.</p>
+                                <p>4. Nennstrom bei der Auswahl von Sicherungs-Schmelzeinsätzen bzw. die Einstellung der Überstrom-, Kurzschlussstrom- und Verzögerungswerte an den entsprechenden Bauteilen anhand vorgegebener Anschlusswerte der Verbraucher und zugehörender Leitungs- und Kabellängen zur Sicherstellung der Kurzschlussfestigkeit und Selektivität zu ermitteln und entsprechend festzulegen.</p>
+                                <p><b>Achtung!</b> Dies ist ein Produkt für die Umgebung A. In Haushaltsumgebung kann dieses Produkt Funkstörungen verursachen; in diesem Fall kann der Anwender verpflichtet sein, angemessene Maßnahmen zu ergreifen.</p>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- INFOSCHILD / PRÜFHINWEIS -->
+                    <t t-elif="doc.document_type == 'info_sheet'">
+                        <div style="border:2px solid #000; padding:10px; min-height:650px;">
+                            <table class="no-border"><tr><td style="width:38%; font-size:25pt; font-weight:bold;">SAB-P</td><td style="font-size:8pt; text-align:right;">SAB-P GmbH<br/>Schaltanlagenbau Preyer<br/>Albert-Einstein-Str. 7a<br/>42929 Wermelskirchen<br/>Tel. 02196 90901-0 - FAX -99</td></tr></table>
+                            <table style="font-size:10pt; margin-top:12px;">
+                                <tr>
+                                    <td style="width:34%; text-align:center; font-weight:bold;">Wartung und Prüfung von ortsfesten Anlagen nach DGUV Vorschrift 3 und DIN VDE 0100<br/><br/>Nächster vorgeschlagener Wartungstermin:<br/><br/><span t-field="doc.next_maintenance_date"/></td>
+                                    <td style="width:32%;"><b>Prüfung:</b><br/><br/><span style="font-size:18pt; font-weight:bold;">Geprüft</span><br/><br/>Name : <span t-out="doc.inspector_name or '_______________'"/><br/><br/>Datum: <span t-out="doc.inspection_date or '_______________'"/></td>
+                                    <td style="width:34%; text-align:center;"><b>Information zum Überspannungsschutz:</b><br/><br/>Nachfolgende Information sind für Anlagen mit Überspannungselementen zu beachten!<br/><br/><b>Bei Isolationsmessungen bitte die Schutzmodule abziehen bzw. abklemmen.</b><br/><br/>System contains overvolting protection devices.<br/><br/><b>Please remove or disconnect the protectors during isolation tests.</b></td>
+                                </tr>
+                            </table>
+                            <div style="font-size:25pt; font-weight:bold; margin-top:35px; text-align:center;">Tel: 02196 90901 0</div>
+                        </div>
+                    </t>
+
+                    <!-- Die übrigen auswählbaren Dokumentarten bleiben bewusst separat,
+                         bis ihre jeweilige Originalvorlage vollständig nachgebaut ist. -->
+                    <t t-else="">
+                        <div style="border:2px solid #000; padding:20px;">
+                            <h2><span t-out="doc.name"/></h2>
+                            <p><b>Auftrag:</b> <span t-out="doc.project_reference or ''"/></p>
+                            <p><b>Projekt:</b> <span t-out="doc.project_name or ''"/></p>
+                            <p><b>Kunde:</b> <span t-out="doc.customer_name or ''"/></p>
+                            <p><b>Verteiler:</b> <span t-out="doc.cabinet_instance_label or doc.cabinet_name or ''"/></p>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

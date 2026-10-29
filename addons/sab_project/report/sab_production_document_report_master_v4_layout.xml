@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_master_v4_layout"
+              inherit_id="sab_project.report_sab_production_document"
+              priority="1005">
+        <xpath expr="//style" position="inside">
+            /*
+             * Stabiler globaler Seitenschutz für alle Fertigungs-Master.
+             * Die einzelnen Master werden von parallelen QWeb-Erweiterungen
+             * bereitgestellt. Deshalb darf dieser Layer nicht per XPath in
+             * deren erzeugte Knoten greifen.
+             */
+            .sab-master-page {
+                page-break-before: always !important;
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+                break-before: page !important;
+                break-after: page !important;
+                break-inside: avoid !important;
+                position: relative;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
+            .sab-master-page table,
+            .sab-master-page tr,
+            .sab-master-page td,
+            .sab-master-page th {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        </xpath>
+    </template>
+</odoo>

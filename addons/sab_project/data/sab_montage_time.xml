@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="product_montage_time_minute" model="product.product">
+            <field name="name">Montagezeit</field>
+            <field name="default_code">SAB-MONTAGE-MIN</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_minute"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="sale_ok" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="standard_price">0.0</field>
+            <field name="sab_product_type">mechanical</field>
+            <field name="sab_price_mode">fixed</field>
+            <field name="sab_fixed_purchase_price">0.0</field>
+            <field name="sab_is_montage_time" eval="True"/>
+        </record>
+    </data>
+    <function model="sab.calculation.item" name="_initialize_auto_montage_time"/>
+</odoo>

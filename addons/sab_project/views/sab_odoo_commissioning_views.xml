@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_standard_commissioning_list" model="ir.ui.view">
+        <field name="name">stock.picking.sab.p.commissioning.list</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="SAB-P Kommissionierungen"
+                  create="0"
+                  delete="0"
+                  decoration-info="state in ('draft','waiting','confirmed','assigned')"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="origin" string="Materialanforderung"/>
+                <field name="sab_procurement_bom_id" string="Beschaffungspaket"/>
+                <field name="sab_project_ids" widget="many2many_tags" string="Projekte"/>
+                <field name="sab_source_cabinet_bom_ids" widget="many2many_tags" string="Verteiler" optional="show"/>
+                <field name="sab_picking_user_id" string="Kommissioniert durch"/>
+                <field name="scheduled_date" string="Geplant" optional="show"/>
+                <field name="date_done" string="Gebucht am" optional="show"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_standard_commissioning_search" model="ir.ui.view">
+        <field name="name">stock.picking.sab.p.commissioning.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search string="SAB-P Kommissionierungen">
+                <field name="name"/>
+                <field name="origin"/>
+                <field name="sab_procurement_bom_id"/>
+                <field name="sab_project_ids"/>
+                <field name="sab_source_cabinet_bom_ids"/>
+                <field name="sab_picking_user_id"/>
+                <separator/>
+                <filter name="open" string="Offen" domain="[('state','not in',('done','cancel'))]"/>
+                <filter name="done" string="Gebucht" domain="[('state','=','done')]"/>
+                <group>
+                    <filter name="group_package" string="Materialanforderung" context="{'group_by':'sab_procurement_bom_id'}"/>
+                    <filter name="group_user" string="Mitarbeiter" context="{'group_by':'sab_picking_user_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sab_standard_commissioning_form" model="ir.ui.view">
+        <field name="name">stock.picking.sab.p.commissioning.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="priority">520</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin'][1]" position="after">
+                <field name="sab_is_suite_commissioning" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="before">
+                <group string="SAB-P Kommissionierung" invisible="not sab_is_suite_commissioning" col="4">
+                    <field name="sab_procurement_bom_id" readonly="1"/>
+                    <field name="sab_project_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="sab_source_cabinet_bom_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="sab_picking_user_id" readonly="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='move_ids']/list/field[@name='product_id']" position="after">
+                <field name="sab_project_id" string="Projekt" readonly="1" optional="show"/>
+                <field name="sab_source_cabinet_bom_id" string="Verteiler" readonly="1" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_sab_standard_commissionings" model="ir.actions.act_window">
+        <field name="name">Kommissionierungen</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sab_standard_commissioning_list"/>
+        <field name="search_view_id" ref="view_sab_standard_commissioning_search"/>
+        <field name="domain">[('sab_is_suite_commissioning','=',True)]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem id="sab_standard_commissioning_menu"
+              name="Kommissionierungen"
+              parent="sab_stock_root_menu"
+              action="action_sab_standard_commissionings"
+              sequence="40"
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"/>
+
+    <record id="view_sab_project_bom_form_standard_commissioning" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.standard.commissioning</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_procurement_package"/>
+        <field name="priority">520</field>
+        <field name="arch" type="xml">
+            <button name="action_complete_picking" position="attributes">
+                <attribute name="groups">sab_project.group_sab_warehouse,sab_project.group_sab_purchasing</attribute>
+            </button>
+            <xpath expr="//form/header" position="inside">
+                <button name="action_view_odoo_commissioning_pickings"
+                        type="object"
+                        string="Odoo-Kommissionierungen"
+                        invisible="bom_scope != 'procurement' or odoo_commissioning_picking_count == 0"
+                        groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"/>
+            </xpath>
+            <field name="picking_state" position="after">
+                <field name="odoo_commissioning_picking_count"
+                       readonly="1"
+                       invisible="bom_scope != 'procurement'"
+                       groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"/>
+            </field>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page name="sab_odoo_commissionings"
+                      string="Odoo-Kommissionierungen"
+                      groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing"
+                      invisible="bom_scope != 'procurement' or odoo_commissioning_picking_count == 0">
+                    <field name="odoo_commissioning_picking_ids" nolabel="1" readonly="1">
+                        <list create="0" delete="0">
+                            <field name="name"/>
+                            <field name="origin"/>
+                            <field name="sab_picking_user_id"/>
+                            <field name="scheduled_date"/>
+                            <field name="date_done"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_sab_procurement_picking" model="ir.actions.report">
+        <field name="name">SAB-P Kommissionierliste</field>
+        <field name="model">sab.project.bom</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sab_project.report_sab_procurement_picking</field>
+        <field name="report_file">sab_project.report_sab_procurement_picking</field>
+        <field name="print_report_name">'Kommissionierliste_%s' % (object.procurement_reference or object.name or '')</field>
+    </record>
+
+    <template id="report_sab_procurement_picking">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row mb-4">
+                            <div class="col-7">
+                                <h2>Kommissionierliste <span t-out="o.procurement_reference or o.name"/></h2>
+                                <p>
+                                    <strong>Projekt:</strong>
+                                    <span t-out="o.project_id.sab_project_reference or o.project_id.display_name"/>
+                                    <br/>
+                                    <strong>Auftrag:</strong>
+                                    <span t-out="o.order_id.sab_offer_reference or o.order_id.name"/>
+                                    <br/>
+                                    <strong>Schaltschränke:</strong>
+                                    <span t-out="', '.join(o.source_cabinet_bom_ids.mapped('cabinet_line_id.description'))"/>
+                                </p>
+                            </div>
+                            <div class="col-5 text-end">
+                                <p>
+                                    <strong>Zugewiesen:</strong>
+                                    <span t-out="o.picking_user_id.name or 'noch nicht zugewiesen'"/>
+                                    <br/>
+                                    <strong>Erzeugt:</strong>
+                                    <span t-out="o.generated_at" t-options="{'widget':'datetime'}"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Erledigt</th>
+                                    <th class="text-start">Verteiler</th>
+                                    <th class="text-start">Artikel</th>
+                                    <th class="text-start">Bezeichnung</th>
+                                    <th class="text-end">Bedarf</th>
+                                    <th class="text-end">Lagerbestand</th>
+                                    <th class="text-end">Zu kommissionieren</th>
+                                    <th class="text-end">Bereits kommissioniert</th>
+                                    <th class="text-end">Fehlbestand</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.purchase_requirement_ids.filtered(lambda r: r.state != 'cancel').sorted(key=lambda r: (r.source_cabinet_bom_id.cabinet_line_id.sequence if r.source_cabinet_bom_id and r.source_cabinet_bom_id.cabinet_line_id else 0, r.sequence, r.id))"
+                                   t-as="line">
+                                    <tr>
+                                        <td class="text-center"><span style="font-size:18px;">&#9744;</span></td>
+                                        <td><span t-out="line.source_cabinet_bom_id.cabinet_line_id.description or line.source_cabinet_bom_id.name or ''"/></td>
+                                        <td><span t-out="line.supplier_product_id.supplier_article_number or line.odoo_product_id.default_code or ''"/></td>
+                                        <td><span t-out="line.odoo_product_id.display_name if line.odoo_product_id else line.product_id.display_name"/></td>
+                                        <td class="text-end"><span t-out="line.quantity" t-options="{'widget':'float','precision':3}"/></td>
+                                        <td class="text-end"><span t-out="line.warehouse_on_hand" t-options="{'widget':'float','precision':3}"/></td>
+                                        <td class="text-end"><span t-out="line.project_reserved_quantity" t-options="{'widget':'float','precision':3}"/></td>
+                                        <td class="text-end"><span t-out="line.commissioned_quantity" t-options="{'widget':'float','precision':3}"/></td>
+                                        <td class="text-end"><span t-out="line.shortage_quantity" t-options="{'widget':'float','precision':3}"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt-5">
+                            <div class="col-6">
+                                <p>Kommissioniert durch: ______________________________</p>
+                            </div>
+                            <div class="col-6">
+                                <p>Datum / Unterschrift: ______________________________</p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

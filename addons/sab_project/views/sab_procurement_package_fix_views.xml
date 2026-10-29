@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_project_bom_form_procurement_package_fix" model="ir.ui.view">
+        <field name="name">sab.project.bom.form.procurement.package.fix</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form_procurement_package"/>
+        <field name="priority">330</field>
+        <field name="arch" type="xml">
+            <button name="action_release_for_purchase" position="attributes">
+                <attribute name="invisible">state != 'released' or bom_scope != 'procurement' or purchase_release_state == 'released'</attribute>
+            </button>
+            <xpath expr="//page[@name='sab_bom_procurement_workspace']//field[@name='purchase_requirement_ids']/list" position="attributes">
+                <attribute name="decoration-success">stock_status in ('in_stock','commissioned','received')</attribute>
+                <attribute name="decoration-warning">stock_status in ('partial','partial_commissioned','ordered','partial_received')</attribute>
+                <attribute name="decoration-danger">stock_status == 'missing'</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_master_v6_native_formats"
+              inherit_id="sab_project.report_sab_production_document_master_v5_orientation"
+              priority="1020">
+        <xpath expr="//style" position="inside">
+            /* Native Papierformate werden bereits durch ir.actions.report/paperformat
+               gedreht bzw. auf Sondermaß gesetzt. Deshalb hier KEINE zusätzliche
+               CSS-Rotation. Der bisherige sab-master-landscape-Rotationstrick bleibt
+               ausschließlich für den gemischten A4-Fertigungsordner bestehen. */
+            .sab-master-native-landscape {
+                width: 277mm !important;
+                min-width: 277mm !important;
+                max-width: 277mm !important;
+                height: 190mm !important;
+                min-height: 190mm !important;
+                max-height: 190mm !important;
+                margin: 0 auto !important;
+                position: relative !important;
+                overflow: hidden !important;
+                transform: none !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .sab-master-native-landscape table,
+            .sab-master-native-landscape tr,
+            .sab-master-native-landscape td,
+            .sab-master-native-landscape th {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .sab-master-native-landscape .m-cell {
+                padding: 0.25mm 0.65mm !important;
+            }
+
+            .sab-info-native-page {
+                position: relative !important;
+                width: 265mm !important;
+                min-width: 265mm !important;
+                max-width: 265mm !important;
+                height: 176mm !important;
+                min-height: 176mm !important;
+                max-height: 176mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+            .sab-info-native-card {
+                position: relative !important;
+                width: 265mm !important;
+                height: 176mm !important;
+                left: 0 !important;
+                top: 0 !important;
+                margin: 0 !important;
+                transform: none !important;
+                transform-origin: top left !important;
+            }
+        </xpath>
+
+        <xpath expr="//t[@t-if=&quot;doc.document_type == 'run_card'&quot;]/div[1]" position="attributes">
+            <attribute name="t-att-class">'sab-master-page sab-run-card-landscape ' + ('sab-master-native-landscape' if doc.env.context.get('sab_native_sheet_format') else 'sab-master-landscape')</attribute>
+        </xpath>
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'production_test'&quot;]/div[1]" position="attributes">
+            <attribute name="t-att-class">'sab-master-page sab-test-landscape ' + ('sab-master-native-landscape' if doc.env.context.get('sab_native_sheet_format') else 'sab-master-landscape')</attribute>
+        </xpath>
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'final_inspection'&quot;]/div[1]" position="attributes">
+            <attribute name="t-att-class">'sab-master-page sab-final-landscape ' + ('sab-master-native-landscape' if doc.env.context.get('sab_native_sheet_format') else 'sab-master-landscape')</attribute>
+        </xpath>
+
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'info_sheet'&quot;]/div[1]" position="attributes">
+            <attribute name="t-att-class">'sab-info-native-page' if doc.env.context.get('sab_native_sheet_format') else 'sab-master-page'</attribute>
+            <attribute name="t-att-style">'position:relative; overflow:hidden; width:265mm; height:176mm; margin:0; padding:0;' if doc.env.context.get('sab_native_sheet_format') else 'position:relative; overflow:hidden; height:277mm;'</attribute>
+        </xpath>
+        <xpath expr="//t[@t-elif=&quot;doc.document_type == 'info_sheet'&quot;]/div[1]/div[1]" position="attributes">
+            <attribute name="t-att-class">'sab-info-native-card' if doc.env.context.get('sab_native_sheet_format') else ''</attribute>
+            <attribute name="t-att-style">'position:relative; width:265mm; height:176mm; left:0; top:0; transform:none; transform-origin:top left; font-family:Arial Narrow,Liberation Sans Narrow,Arial,Helvetica,sans-serif; color:#000;' if doc.env.context.get('sab_native_sheet_format') else 'position:absolute; width:265mm; height:176mm; left:7mm; top:49mm; transform:rotate(-90deg) translate(-176mm,0); transform-origin:top left; font-family:Arial Narrow,Liberation Sans Narrow,Arial,Helvetica,sans-serif; color:#000;'</attribute>
+        </xpath>
+    </template>
+</odoo>

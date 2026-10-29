@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_production_order_form_printing" model="ir.ui.view">
+        <field name="name">sab.production.order.form.printing</field>
+        <field name="model">sab.production.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_production_order_form_documents"/>
+        <field name="priority">340</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_open_production_print_wizard"
+                        type="object"
+                        string="Fertigungsdruck"
+                        class="btn-primary"
+                        invisible="state == 'cancel'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sab_production_document_form_printing" model="ir.ui.view">
+        <field name="name">sab.production.document.form.printing</field>
+        <field name="model">sab.production.document</field>
+        <field name="inherit_id" ref="sab_project.view_sab_production_document_form"/>
+        <field name="priority">340</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_print_document"
+                        type="object"
+                        string="Dieses Blatt drucken / speichern"
+                        class="btn-primary"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

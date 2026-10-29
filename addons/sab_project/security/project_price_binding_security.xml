@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The calculator accesses only its derived company/project/customer key.
+         No public registry editing rights are granted, including to managers. -->
+    <record id="access_sab_project_position_price_admin_read" model="ir.model.access">
+        <field name="name">SAB-P Projektpositionspreise: Administration lesen</field>
+        <field name="model_id" ref="model_sab_project_position_price"/>
+        <field name="group_id" ref="base.group_system"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_sab_project_position_price_company" model="ir.rule">
+        <field name="name">SAB-P Projektpositionspreise: erlaubte Firmen</field>
+        <field name="model_id" ref="model_sab_project_position_price"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

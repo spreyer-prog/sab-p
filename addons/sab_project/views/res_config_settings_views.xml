@@ -7,30 +7,52 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app string="SAB-P Suite" name="sab_p_suite">
-                    <block title="Projekt- und Angebotsnummern"
-                           help="Format der automatisch vergebenen Nummern festlegen.">
-                        <setting string="Präfix"
-                                 help="Beispiel: A ergibt zusammen mit dem Jahr A26.">
-                            <field name="sab_project_prefix"/>
+                    <block title="Projekt- und Angebotsnummern" help="Format der automatisch vergebenen Nummern festlegen.">
+                        <setting string="Präfix" help="Beispiel: A ergibt zusammen mit dem Jahr A26."><field name="sab_project_prefix"/></setting>
+                        <setting string="Jahresformat"><field name="sab_year_digits"/></setting>
+                        <setting string="Projekt-Trennzeichen"><field name="sab_project_separator"/></setting>
+                        <setting string="Stellen der Projektnummer"><field name="sab_project_digits"/></setting>
+                        <setting string="Startnummer bei neuem Jahr" help="Eine Änderung setzt den bereits laufenden aktuellen Jahreszähler nicht zurück."><field name="sab_project_start_number"/></setting>
+                        <setting string="Angebots-Trennzeichen"><field name="sab_offer_separator"/></setting>
+                        <setting string="Stellen der Angebotsnummer"><field name="sab_offer_digits"/></setting>
+                    </block>
+
+                    <block title="Kalkulationskonstanten" help="Änderungen werden mit Benutzer und Zeitpunkt protokolliert. Zum Speichern geänderter Kalkulationswerte ist der aktuell gültige Freigabecode erforderlich.">
+                        <setting string="Materialfaktor"><field name="sab_material_factor"/></setting>
+                        <setting string="Hilfsmaterialfaktor"><field name="sab_aux_material_factor"/></setting>
+                        <setting string="Kalkulatorischer Stundenlohn"><field name="sab_hourly_rate"/></setting>
+                        <setting string="Zeitfaktor"><field name="sab_time_factor"/></setting>
+                        <setting string="Schwierigkeitsfaktor"><field name="sab_difficulty_factor"/></setting>
+                        <setting string="Planungszuschlag – Formelabgleich offen" help="Der Wert wird derzeit als Angebots-Snapshot gespeichert, ist aber bis zum 1:1-Abgleich mit der SAB-P Altkalkulation bewusst noch nicht Bestandteil des Netto-Richtwerts."><field name="sab_planning_surcharge_factor"/></setting>
+                        <setting string="Verpackung / Transport"><field name="sab_packaging_factor"/></setting>
+                        <setting string="Skonto"><field name="sab_skonto_factor"/></setting>
+                        <setting string="Marge"><field name="sab_margin_factor"/></setting>
+                        <setting string="Rabatt"><field name="sab_rebate_factor"/></setting>
+                        <setting string="Freigabecode ändern" help="Ändert den künftig gültigen Code. Auch dafür muss unten zuerst der bisherige Code bestätigt werden."><field name="sab_calculation_change_code" password="True"/></setting>
+                        <setting string="Freigabecode bestätigen" help="Nur erforderlich, wenn mindestens ein Kalkulationsparameter oder der Freigabecode geändert wurde."><field name="sab_calculation_change_code_confirm" password="True"/></setting>
+                    </block>
+
+                    <block title="Fertigungsdruck" help="Papierformat, Ausrichtung, Drucker, Ränder, Skalierung, Exemplare und Druckreihenfolge werden je Blatt eingestellt.">
+                        <setting string="Standard-PDF-Drucker" help="Dieser Drucker wird verwendet, wenn eine einzelne Vorlage keinen eigenen Drucker enthält.">
+                            <field name="sab_default_pdf_printer" placeholder="PDF-Drucker"/>
                         </setting>
-                        <setting string="Jahresformat">
-                            <field name="sab_year_digits"/>
+                        <setting string="Vorlagen individuell bearbeiten" help="Jedes Fertigungsblatt besitzt ein eigenes Druckprofil und wird beim Gesamtdruck als eigener Druckauftrag erzeugt.">
+                            <button name="%(action_sab_production_print_profiles)d"
+                                    type="action"
+                                    string="Fertigungsdruck – Vorlagen öffnen"
+                                    class="btn-primary"/>
                         </setting>
-                        <setting string="Projekt-Trennzeichen">
-                            <field name="sab_project_separator"/>
+                        <setting string="Projektzuordnungsliste nach Wareneingang" help="Die Liste enthält ausschließlich tatsächlich gebuchte Mengen und wird bei Teillieferungen erneut erzeugt.">
+                            <field name="sab_receipt_assignment_printer" placeholder="Leer = Standard-PDF-Drucker"/>
                         </setting>
-                        <setting string="Stellen der Projektnummer">
-                            <field name="sab_project_digits"/>
-                        </setting>
-                        <setting string="Startnummer bei neuem Jahr"
-                                 help="Eine Änderung setzt den bereits laufenden aktuellen Jahreszähler nicht zurück.">
-                            <field name="sab_project_start_number"/>
-                        </setting>
-                        <setting string="Angebots-Trennzeichen">
-                            <field name="sab_offer_separator"/>
-                        </setting>
-                        <setting string="Stellen der Angebotsnummer">
-                            <field name="sab_offer_digits"/>
+                    </block>
+
+                    <block title="Angebotsdruck" help="Das Angebotslayout entspricht der geprüften SAB-P-Mustervorlage. Firmenkopf, Kundendaten, Positionen, Summen, Bedingungen und AGB werden dynamisch ausgegeben.">
+                        <setting string="Angebotsvorlage bearbeiten" help="A4-Hochformat, Seitenränder, Drucker, Textbausteine, Bindefrist und AGB individuell pflegen.">
+                            <button name="%(action_sab_offer_print_templates)d"
+                                    type="action"
+                                    string="Angebotsdruck – Vorlagen öffnen"
+                                    class="btn-primary"/>
                         </setting>
                     </block>
                 </app>

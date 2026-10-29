@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_form_reuse_panel" model="ir.ui.view">
+        <field name="name">sale.order.form.sab.reuse.panel</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_switchboard_rules"/>
+        <field name="priority">220</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_sab_bom']" position="attributes">
+                <attribute name="invisible">not sab_project_id or state not in ('sale', 'done') or sab_calculation_source != 'schematic'</attribute>
+            </xpath>
+            <xpath expr="//chatter" position="after">
+                <widget name="sab_offer_reuse_panel"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_form_bom_navigation" model="ir.ui.view">
+        <field name="name">sale.order.form.sab.bom.navigation</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_inherit"/>
+        <field name="priority">250</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_sab_bom']" position="after">
+                <button name="action_view_sab_boms"
+                        type="object"
+                        string="Stücklisten öffnen"
+                        class="btn-secondary"
+                        invisible="sab_bom_count == 0"/>
+            </xpath>
+            <xpath expr="//field[@name='sab_project_id']" position="after">
+                <field name="sab_bom_count" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
