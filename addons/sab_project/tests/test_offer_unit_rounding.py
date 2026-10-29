@@ -143,12 +143,21 @@ class TestSabOfferUnitRounding(TransactionCase):
         self.assertEqual(line.recommended_net_price, 96.0)
 
     def test_margin_and_material_are_applied_once(self):
-        self.item.legacy_time_minutes = 60
+        # The material basis belongs before the first price binding, not in a
+        # later edit of an already saved project position.
+        material = self.env["sab.product"].create({
+            "name": "Unit rounding material", "price_mode": "fixed",
+            "fixed_purchase_price": 10.0,
+        })
+        self.item.write({
+            "legacy_time_minutes": 60,
+            "product_line_ids": [(0, 0, {"product_id": material.id, "quantity": 1.0})],
+        })
         order = self._quote(2, sab_hourly_rate=94.95, sab_time_factor=1,
                             sab_packaging_factor=1, sab_skonto_factor=1,
                             sab_margin_factor=1.15, sab_rebate_factor=1)
         line = order.sab_calculation_line_ids
-        line.unit_material_purchase = 10.0
+        self.assertEqual(line.unit_material_purchase, 10.0)
         self.assertEqual(line.unit_recommended_net_price, 120.69)
         self.assertEqual(line.recommended_net_price, 241.38)
         self.assertEqual(order.sab_labor_cost, 189.90)
