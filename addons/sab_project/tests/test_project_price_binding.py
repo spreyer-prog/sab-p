@@ -1,4 +1,6 @@
 """Integration tests: these require an actual Odoo 19 test database."""
+from unittest.mock import patch
+
 from odoo.exceptions import ValidationError
 from odoo.tests import Form
 from odoo.tests.common import TransactionCase
@@ -339,3 +341,105 @@ class TestSabProjectPriceBinding(TransactionCase):
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
             target.quantity = 3
         self.assertEqual(source.unit_recommended_net_price, 80.56)
+
+
+    def test_explicit_legacy_compute_keeps_history_without_public_write(self):
+        order = self.order(sab_price_rounding_version='legacy')
+        line = self.line(order, quantity=3)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+        self.assertEqual(line.recommended_net_price, 241.69)
+        registry = self.env['sab.project.position.price'].sudo()
+        before = registry.search_count([])
+        with patch.object(type(line), 'write', side_effect=AssertionError(
+                'An internal price compute must not enter the public writer.')):
+            line._compute_price()
+        line.flush_recordset(['unit_recommended_net_price', 'recommended_net_price'])
+        line.invalidate_recordset(['unit_recommended_net_price', 'recommended_net_price'])
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+        self.assertEqual(line.recommended_net_price, 241.69)
+        self.assertFalse(line.sab_project_price_bound)
+        self.assertEqual(registry.search_count([]), before)
+
+    def test_explicit_bound_compute_keeps_unit_price_and_registry(self):
+        order = self.order()
+        line = self.line(order, quantity=3)
+        self.item.legacy_time_minutes = 60
+        order.write({'sab_hourly_rate': 160, 'sab_margin_factor': 2})
+        stored = line._sab_registry_price()
+        before = (stored.unit_price, stored.write_date, line.sab_project_price_reference)
+        with patch.object(type(line), 'write', side_effect=AssertionError(
+                'A fixed price compute must not write commercial metadata.')):
+            line._compute_price()
+        line.flush_recordset(['unit_recommended_net_price', 'recommended_net_price'])
+        line.invalidate_recordset(['unit_recommended_net_price', 'recommended_net_price'])
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+        self.assertEqual(line.recommended_net_price, 241.68)
+        self.assertEqual((stored.unit_price, stored.write_date, line.sab_project_price_reference), before)
+
+    def test_explicit_unbound_unit_compute_does_not_allocate_a_price(self):
+        line = self.line(self.order(), code=False, quantity=3)
+        self.assertFalse(line.lv_position)
+        self.assertFalse(line.sab_project_price_bound)
+        registry = self.env['sab.project.position.price'].sudo()
+        before = registry.search_count([])
+        line._compute_price()
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+        self.assertEqual(line.recommended_net_price, 241.68)
+        self.assertFalse(line.sab_project_price_bound)
+        self.assertEqual(registry.search_count([]), before)
+
+    def test_explicit_mixed_legacy_and_bound_compute_preserves_both_algorithms(self):
+        legacy = self.line(self.order(sab_price_rounding_version='legacy'), quantity=3)
+        other_project = self.env['project.project'].create({
+            'name': 'Mixed compute unit-first project', 'partner_id': self.customer.id,
+        })
+        bound = self.line(self.order(sab_project_id=other_project.id), quantity=3)
+        (legacy | bound)._compute_price()
+        self.assertEqual(legacy.unit_recommended_net_price, 80.56)
+        self.assertEqual(legacy.recommended_net_price, 241.69)
+        self.assertFalse(legacy.sab_project_price_bound)
+        self.assertEqual(bound.unit_recommended_net_price, 80.56)
+        self.assertEqual(bound.recommended_net_price, 241.68)
+        self.assertTrue(bound.sab_project_price_bound)
+
+    def test_compute_failure_restores_scope_and_public_write_guard(self):
+        line = self.line(self.order(), quantity=3)
+        line.flush_recordset()
+        price_fields = [line._fields[name] for name in
+                        ('recommended_net_price', 'unit_recommended_net_price')]
+        before = {field: set(self.env._protected.get(field, ())) for field in price_fields}
+        with patch.object(type(line.currency_id), 'round', side_effect=RuntimeError('compute probe')):
+            with self.assertRaisesRegex(RuntimeError, 'compute probe'):
+                line._compute_price()
+        after = {field: set(self.env._protected.get(field, ())) for field in price_fields}
+        self.assertEqual(after, before)
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            line.write({'recommended_net_price': 1})
+        line._compute_price()
+        self.assertEqual(line.recommended_net_price, 241.68)
+
+    def test_explicit_compute_does_not_enable_context_price_override(self):
+        line = self.line(self.order(), quantity=3)
+        line._compute_price()
+        attempted_values = (
+            {'unit_recommended_net_price': 1}, {'recommended_net_price': 1},
+            {'sab_project_unit_price': 1}, {'sab_project_price_bound': False},
+        )
+        for values in attempted_values:
+            with self.assertRaises(ValidationError), self.env.cr.savepoint():
+                line.with_context(sab_offer_release_write=True, sab_price_compute=True,
+                                  skip_sale_line_sync=True, skip_section_normalize=True).write(values)
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+        self.assertEqual(line.recommended_net_price, 241.68)
+
+    def test_explicit_compute_of_released_offer_preserves_release_and_price(self):
+        order = self.order()
+        line = self.line(order, quantity=3)
+        order.action_sab_release_offer()
+        before = (order.sab_offer_release_state, line.lv_position,
+                  line.sab_project_price_reference, line.sab_project_unit_price)
+        line._compute_price()
+        self.assertEqual(line.unit_recommended_net_price, 80.56)
+        self.assertEqual(line.recommended_net_price, 241.68)
+        self.assertEqual((order.sab_offer_release_state, line.lv_position,
+                          line.sab_project_price_reference, line.sab_project_unit_price), before)

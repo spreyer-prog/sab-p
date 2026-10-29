@@ -273,6 +273,18 @@ class SabOfferProjectPriceBinding(models.Model):
         "quantity", "line_type", "currency_id", "order_id.sab_price_rounding_version",
     )
     def _compute_price(self):
+        # The ORM normally protects both computed fields before calling us.
+        # Explicit internal calls must use the same scope: field assignment
+        # must not enter the public write guard or create a price binding.
+        # This changes no formula and grants no RPC/context-based write bypass.
+        price_fields = [
+            self._fields["recommended_net_price"],
+            self._fields["unit_recommended_net_price"],
+        ]
+        with self.env.protecting(price_fields, self):
+            self._sab_compute_project_price_values()
+
+    def _sab_compute_project_price_values(self):
         bound = self.filtered(lambda row: row.sab_project_price_bound
                               and row._sab_can_bind_project_price())
         unbound = self - bound
