@@ -1,7 +1,7 @@
 {
     "name": "SAB-P Suite",
     "summary": "SAB-P Suite für Projekt, Kalkulation, Fertigung, Einkauf, Lager, Dokumente, Zeiterfassung, Nachkalkulation, Mitarbeiter-Mobile und Kundenportal",
-    "version": "19.0.5.111.0",
+    "version": "19.0.5.112.0",
     "category": "Services/Project",
     "author": "SAB-P GmbH",
     "license": "LGPL-3",
@@ -32,7 +32,7 @@
         "security/project_price_binding_security.xml", "views/sab_offer_project_price_binding_views.xml",
         "views/sab_offer_position_dialog_views.xml",
         "views/sab_bom_cabinet_first_views.xml",
-        "security/sab_material_control_access.csv", "security/sab_material_control_rules.xml",
+        "security/sab_material_control_access.xml", "security/sab_material_control_rules.xml",
         "views/sab_bom_material_control_views.xml"
     ],
     "assets": {

@@ -381,8 +381,13 @@ class CabinetFirstPackageWizard(models.TransientModel):
                     'procurement_reference': reference, 'order_id': order.id,
                     'project_id': order.sab_project_id.id, 'bom_scope': 'procurement',
                     'sab_cabinet_first': True, 'source_cabinet_bom_ids': [Command.set(cabinets.ids)],
-                    'line_ids': values, 'note': self.note,
+                    'note': self.note,
                 })
+                # Persist the source-cabinet M2M before creating any O2M rows.
+                # A nested create may validate rows before the M2M is present.
+                # Keep the existing source constraint; both operations remain
+                # inside this savepoint, so a failed row rolls back the header.
+                package.write({'line_ids': values})
                 # Source-row update also provides concurrency conflict detection
                 # under repeatable-read; no two sessions can claim one cabinet.
                 cabinets.write({'sab_handover_package_id': package.id})
