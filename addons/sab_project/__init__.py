@@ -6,3 +6,4 @@ from .models import sab_offer_unit_rounding
 from .models import sab_offer_draft_positions
 from .models import sab_offer_live_preview
 from .models import sab_offer_project_price_binding
+from .models import sab_offer_position_dialog

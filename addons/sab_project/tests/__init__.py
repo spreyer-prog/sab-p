@@ -54,3 +54,4 @@ from . import test_offer_unit_rounding
 from . import test_saved_project_positions
 from . import test_offer_live_preview
 from . import test_project_price_binding
+from . import test_offer_position_dialog
