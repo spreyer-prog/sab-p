@@ -1,0 +1,34 @@
+name: SAB-P Material-Schnelltests
+
+on:
+  push:
+    branches:
+      - agent/leitfaden-gesamtstand
+    paths:
+      - 'addons/sab_project/models/sab_bom_material_wizards.py'
+      - 'addons/sab_project/models/sab_material_logic.py'
+      - 'addons/sab_project/tools/test_material_source_consistency.py'
+      - '.github/workflows/sab-p-material-quickchecks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  material-contracts:
+    name: Isolierte Materialpruefung (kein Odoo.sh-Ersatz)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Material-Python-Syntax pruefen
+        run: |
+          python -m py_compile addons/sab_project/models/sab_bom_material_wizards.py
+          python -m py_compile addons/sab_project/models/sab_material_logic.py
+      - name: Einzel- und Gesamtstuecklisten-Konsistenz testen
+        run: python addons/sab_project/tools/test_material_source_consistency.py
