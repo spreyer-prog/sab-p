@@ -1,27 +1,37 @@
-# Odoo.sh Build-Status
+# Odoo.sh-Buildstatus und GitHub-CI – SAB-P Suite
 
-Stand: 16.08.2026
+**Aktuelle technische Prüfung: 18.11.2026.** Dies ist eine Statusdokumentation, keine Odoo.sh-Freigabe.
 
-Für das Odoo.sh-Projekt ist die Rückmeldung von Build-Status auf GitHub aktiviert.
+## Branch und Codebasis
 
 - Repository: `spreyer-prog/sab-p`
 - Entwicklungsbranch: `agent/leitfaden-gesamtstand`
-- GitHub-Berechtigung: Commit statuses `Read and write`
-- Scope des Tokens: ausschließlich Repository `sab-p`
-- Token selbst wird nicht im Repository gespeichert.
+- Letzter bei dieser Prüfung gelesener **Code-/CI-Stand**: `1a2e21ebcd29ed7e8a30f9aa601f1867d5c6d312` (17.11.2026)
+- Modulversion laut `addons/sab_project/__manifest__.py`: **`19.0.5.113.0`**
+- `main`: `28056e70766fdbb9072b23b2a9679dcdb307a902`; bei dieser Prüfung unverändert.
 
-## Ziel
+## Verifizierte Ergebnisse (nicht verwechseln)
 
-Neue Odoo.sh Builds sollen ihren Commit-Status an GitHub zurückmelden. Damit kann der Entwicklungsstand nach jedem Push über den zugehörigen GitHub-Commit auf `pending`, `success`, `failure` oder `error` geprüft werden.
+| Prüfsystem | Stand | Ergebnis / Nachweis |
+| --- | --- | --- |
+| GitHub Actions: isolierte Python-/JavaScript-Regressionen | Code-/CI-Commit `1a2e21e` | **Erfolgreich** am 17.11.2026: 54 isolierte Python-Tests, 8 Node-Tests und 32 weitere isolierte Frontend-Prüfungen. [Workflow-Lauf](https://github.com/spreyer-prog/sab-p/actions/runs/44088463318) |
+| GitHub Commit Statuses: `ci/odoo.sh (dev)` | `1a2e21e`, vorheriger Code-Commit `44eb6eb` | **Keine Statusmeldungen vorhanden**. Dies beweist weder einen grünen noch einen fehlgeschlagenen Odoo.sh-Build. |
+| Odoo.sh-Lauf / Datenbankupgrade / Odoo-Integrationstests | aktuelle Modulversion `19.0.5.113.0` | **Nicht verifiziert**: kein direkter Zugriff auf Odoo.sh-Buildlogs und kein erfolgreicher Odoo.sh-Status des aktuellen Entwicklungscommits verfügbar. |
+| Odoo.sh `ci/odoo.sh (production)` auf `main` | `28056e7` (08.08.2026) | GitHub liefert **`success`** für diesen historischen Produktionscommit. Das ist **keine** Abnahme des Entwicklungsbranches. |
+| Älterer Odoo.sh-Entwicklungsstand | `19.0.5.35.0` (historische Abnahme) und Basisstand vom 20.08.2026 | Die älteren grünen Prüfergebnisse sind in `docs/BRANCH_ABNAHME.md` und `docs/LEITFADEN_GESAMTSTAND.md` dokumentiert; sie bestätigen **nicht** die aktuelle Version. |
 
-## Vorgehen bei rotem Status
+### Grenzen der Schnelltests
 
-1. Keine weiteren Komfortfunktionen hinzufügen.
-2. Odoo.sh Buildfehler priorisiert auswerten.
-3. Errors und Failures zuerst beheben.
-4. Danach SAB-P bezogene Warnings beseitigen.
-5. Erneut pushen und nächsten Status prüfen.
+Die isolierten Tests prüfen Syntax, Materiallogik und Frontend-Verträge mit Mocks. Sie starten **weder Odoo 19 noch PostgreSQL**, führen **kein Modulupgrade** und **keine** echten Odoo-`TransactionCase`-Tests aus. Ein grüner GitHub-Actions-Workflow darf niemals als grüner Odoo.sh-Build ausgegeben werden.
 
-## Freigaberegel
+## Konkreter Blocker und Prüfweg
 
-Ein Merge nach `main` erfolgt erst nach grünem Build, praktischem Smoke-Test und abgeschlossener V1-Abnahme gemäß `PRODUKTIVSETZUNG_CHECKLISTE.md`.
+1. In [Odoo.sh Builds](https://www.odoo.sh/project/spreyer-prog-sab-p/builds) den Branch `agent/leitfaden-gesamtstand` und dessen zuletzt tatsächlich gebauten Git-SHA ermitteln.
+2. Den neuesten Build auf **success/error/failure**, Upgrade-Ergebnis, Odoo-19-Tests und Log-Warnings prüfen. Bei Fehlern den ersten ursächlichen Traceback und betroffene Modul-/Datenbankoperation notieren.
+3. Falls der Odoo.sh-Build grün ist, aber GitHub unter `ci/odoo.sh (dev)` keinen Commitstatus erhält: Odoo.sh-Branch-/Statusintegration, App-/Token-Rechte (`Commit statuses: Read and write`), GitHub-Zugriff und Webhook prüfen. Der konkrete Grund ist bislang **nicht nachgewiesen**.
+4. Erst wenn der aktuelle Entwicklungs-**Code**-Commit durch einen echten Odoo.sh-Lauf grün bestätigt ist, weitere riskante Odoo-Modell-/View-/Migrationsänderungen vornehmen und nach jedem Schritt den neuen Build wieder bestätigen.
+5. Keine ungeprüfte Produktivänderung, kein automatischer Merge nach `main`. Die praktische Produktivabnahme erfolgt separat anhand `docs/PRODUKTIVSETZUNG_CHECKLISTE.md`.
+
+## Historie
+
+Am 16.08.2026 war die Rückmeldung von Odoo.sh-Commitstatus an GitHub als aktiviert dokumentiert. Zu diesem Zeitpunkt waren eine auf `sab-p` begrenzte Berechtigung `Commit statuses: Read and write` und der Entwicklungsbranch `agent/leitfaden-gesamtstand` vermerkt. Diese historische Dokumentation ersetzt keine aktuelle Berechtigungs- oder Funktionsprüfung; keine Tokens oder Zugangsdaten sind hier abgelegt.
