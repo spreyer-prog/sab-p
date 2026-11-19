@@ -18,15 +18,13 @@ Zusätzlich gehören verbindlich zur V1:
 
 ## 2. Aktueller technischer Meilenstein
 
-Zuletzt bestätigter grüner Odoo.sh-Härtungsstand:
+**Statusabgleich 19.11.2026:** Der aktuelle Modulstand auf `agent/leitfaden-gesamtstand` ist `19.0.5.113.0`. Ein grüner Odoo.sh-Build dieses Entwicklungsstands ist **nicht nachgewiesen**: Die letzten abgefragten Entwicklungscommits liefern keinen `ci/odoo.sh (dev)`-Commitstatus, und die Odoo.sh-Buildlogs sind über die vorhandene Verbindung nicht abrufbar. Kein automatischer Merge nach `main`.
 
-- automatisierter Teststand vor dem Workflow-Paket `19.0.5.53.0` grün,
-- Entwicklungsbranch `agent/leitfaden-gesamtstand`,
-- `main` bleibt bis zur vollständigen Abnahme unverändert/stabil.
+Der ältere grüne Odoo.sh-Härtungsstand `19.0.5.35.0` sowie der im Leitfaden dokumentierte Basisstand vom 20.08.2026 sind historische Referenzen und keine Freigabe für `19.0.5.113.0`. Die in dieser Roadmap ursprünglich als aktuell bezeichnete Version `19.0.5.53.0` ist ebenfalls überholt.
 
-Der aktuelle Entwicklungsstand `19.0.5.53.0` enthält das neue Angebotsfreigabe-, Bauteil- und Beschaffungsworkflow-Paket. Dessen Odoo.sh-Upgrade- und Testlauf muss vor dem nächsten Browser-Test vollständig grün sein.
+GitHub Actions meldete am 17.11.2026 isolierte Python- und JavaScript-Tests erfolgreich; diese starten weder Odoo noch PostgreSQL und bestätigen daher kein Odoo.sh-Upgrade. Maßgeblich für aktuelle Buildnachweise ist `docs/BUILD_STATUS.md`; die produktive Abnahme bleibt gesondert.
 
-Der automatische technische Teststand muss bei jeder weiteren Änderung grün bleiben.
+Bis zur Verfügbarkeit eines echten Odoo.sh-Builds dürfen neue Moduländerungen nicht als integrationsgetestet oder grün bezeichnet werden.
 
 ---
 
@@ -97,7 +95,7 @@ Der automatische technische Teststand muss bei jeder weiteren Änderung grün bl
 - automatische Erzeugung der projektweiten Einkaufsbedarfe,
 - automatische Prüfung und Reservierung des verfügbaren Lagerbestands,
 - je Position sichtbarer Bedarf, Lagerbestand, Lagerwert, Projektreservierung, Fehlbestand, Lieferant und Bestellstatus,
-- automatisch ermittelte Bestellvorschlagsmenge unter Berücksichtigung von Mindestbestellmenge und Verpackungseinheit,
+- automatisch ermittelte Bestellvorschlagsmenge aus dem **realen Projektfehlbestand**; Lieferanten-Mindestbestellmengen und Verpackungseinheiten werden **nur als Hinweise** angezeigt und erhöhen die Projektbestellmenge nicht ungefragt; eine separate Mindestbestandsauffüllung erfolgt nur nach ausdrücklicher Auswahl,
 - vom Einkauf bearbeitbares Feld **Jetzt bestellen**; Wert `0` schließt die Position aus der aktuellen Bestellung aus,
 - ausgewählte Positionen werden lieferantenweise zu echten SAB-P Bestellvorschlägen zusammengefasst,
 - die erzeugten Entwürfe erscheinen im offenen Bestellbereich und durchlaufen anschließend Bestellfreigabe, Versand und Wareneingang,
@@ -149,7 +147,7 @@ Für **jedes SAB-Produkt / jeden bestellbaren Artikel** wird die bereits angeleg
 
 ## 5. Noch technisch/fachlich abzuarbeiten
 
-- aktuellen Odoo.sh-Upgrade- und Testlauf für `19.0.5.53.0` grün abschließen,
+- aktuellen Odoo.sh-Upgrade- und Integrationstestlauf für den jeweils aktuellen Entwicklungsstand (derzeit `19.0.5.113.0`) nachweislich grün abschließen und Buildlogs prüfen,
 - expliziter Upgrade-Test auf bestehender/produktionsnaher Datenbank,
 - Browser-/Mobil-Smoke-Test,
 - reales Projekt Ende-zu-Ende,
