@@ -1,6 +1,6 @@
 # SAB-P Suite V1 – Produktivsetzungs- und Abnahmecheckliste
 
-**Statusabgleich 20.11.2026:** Die frühere grüne Odoo.sh-Abnahme betrifft **nur** Modulversion `19.0.5.35.0`. Aktueller Entwicklungsbranch-Head: `5b1eb8e272280a844ff7fbe77d2f125e3eb6d822` mit Modulversion `19.0.5.113.0`. Für diesen Stand ist **kein grüner Odoo.sh-Build nachgewiesen**; der Commit besitzt keinen `ci/odoo.sh (dev)`-Status und die Odoo.sh-Buildlogs sind nicht verfügbar. Die isolierten GitHub-Schnelltests ersetzen kein Odoo-Upgrade. Historische `[x]`-Nachweise sind keine Freigabe der aktuellen Version. Siehe `docs/BUILD_STATUS.md`.
+**Statusabgleich 20.11.2026:** Die frühere grüne Odoo.sh-Abnahme betrifft **nur** Modulversion `19.0.5.35.0`. Letzter fachlicher Entwicklungs-/Modulcode-Commit (vor den reinen Dokumentationsänderungen): `5b1eb8e272280a844ff7fbe77d2f125e3eb6d822` mit Modulversion `19.0.5.113.0`. Für diesen Stand ist **kein grüner Odoo.sh-Build nachgewiesen**; der Commit besitzt keinen `ci/odoo.sh (dev)`-Status und die Odoo.sh-Buildlogs sind nicht verfügbar. Die isolierten GitHub-Schnelltests ersetzen kein Odoo-Upgrade. Historische `[x]`-Nachweise sind keine Freigabe der aktuellen Version. Siehe `docs/BUILD_STATUS.md`.
 
 Legende:
 - `[x]` historisch technisch im Code/Test abgedeckt bzw. für den ausdrücklich genannten älteren Green Build nachgewiesen; **nicht automatisch aktuell abgenommen**,
@@ -8,7 +8,7 @@ Legende:
 
 ## A. Technische Abnahme
 
-- [ ] Odoo.sh-Build des **aktuellen Branch-Heads `5b1eb8e`** erfolgreich und mit SHA nachgewiesen.
+- [ ] Odoo.sh-Build des **aktuellen Modulcode-Stands `5b1eb8e`** erfolgreich und mit SHA nachgewiesen; zusätzlich den jeweils aktuellen Git-Branch-Head zuordnen.
 - [ ] Aktuelle Modulversion `19.0.5.113.0` durch echtes Odoo.sh-Upgrade und Integrationstests grün bestätigt.
 - [ ] `ci/odoo.sh (dev)` für den aktuellen Entwicklungscommit vorhanden bzw. aktueller Odoo.sh-Buildlog direkt geprüft.
 - [x] Historischer Stand `19.0.5.35.0` war durch Odoo.sh grün bestätigt; diese frühere Abnahme gilt nicht für `19.0.5.113.0`.
