@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_standard_purchase_order_list_supplier_confirmation" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.list.supplier.confirmation</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_standard_purchase_order_list"/>
+        <field name="priority">550</field>
+        <field name="arch" type="xml">
+            <field name="state" position="after">
+                <field name="sab_supplier_confirmation_state" string="AB-Status" widget="badge" optional="show"/>
+                <field name="sab_supplier_confirmation_number" string="AB-Nr." optional="show"/>
+                <field name="sab_supplier_confirmation_date" string="AB-Datum" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_standard_purchase_order_form_supplier_confirmation" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.form.supplier.confirmation</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sab_project.view_sab_standard_purchase_order_form"/>
+        <field name="priority">550</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_sab_record_supplier_confirmation"
+                        type="object"
+                        string="Auftragsbestätigung prüfen"
+                        class="btn-secondary"
+                        groups="sab_project.group_sab_purchasing"
+                        invisible="not sab_is_suite_order or state != 'purchase'"/>
+                <button name="action_sab_accept_supplier_confirmation"
+                        type="object"
+                        string="AB-Abweichung freigeben &amp; übernehmen"
+                        class="btn-primary"
+                        groups="sab_project.group_sab_purchase_approver"
+                        invisible="not sab_is_suite_order or sab_supplier_confirmation_state != 'deviation'"/>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Lieferanten-AB"
+                      name="sab_supplier_confirmation"
+                      invisible="not sab_is_suite_order">
+                    <group string="Auftragsbestätigung" col="4">
+                        <field name="sab_supplier_confirmation_state" readonly="1" widget="badge"/>
+                        <field name="sab_supplier_confirmation_number"/>
+                        <field name="sab_supplier_confirmation_date"/>
+                        <field name="sab_supplier_confirmation_has_deviation" readonly="1"/>
+                        <field name="sab_supplier_confirmation_file" filename="sab_supplier_confirmation_filename"/>
+                        <field name="sab_supplier_confirmation_filename" invisible="1"/>
+                        <field name="sab_supplier_confirmation_accepted_by_id" readonly="1" invisible="sab_supplier_confirmation_state != 'accepted'"/>
+                        <field name="sab_supplier_confirmation_accepted_at" readonly="1" invisible="sab_supplier_confirmation_state != 'accepted'"/>
+                    </group>
+                    <field name="order_line" nolabel="1" readonly="state == 'cancel' or locked">
+                        <list editable="bottom" create="0" delete="0">
+                            <field name="display_type" column_invisible="True"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="sab_project_id" string="Projekt" readonly="1" optional="show"/>
+                            <field name="sab_source_cabinet_bom_id" string="Verteiler" readonly="1" optional="show"/>
+                            <field name="sab_supplier_article_number" string="Lieferanten-Art.-Nr." readonly="1" optional="show"/>
+                            <field name="sab_ordered_quantity_snapshot" string="Bestellt" readonly="1"/>
+                            <field name="sab_supplier_confirmed_quantity" string="AB-Menge"/>
+                            <field name="sab_supplier_quantity_deviation" string="Mengenabw." readonly="1"/>
+                            <field name="sab_ordered_price_snapshot" string="Bestell-EK" readonly="1"/>
+                            <field name="sab_supplier_confirmed_price" string="AB-EK"/>
+                            <field name="sab_supplier_price_deviation" string="Preisabw." readonly="1"/>
+                            <field name="sab_ordered_delivery_date_snapshot" string="Bestelltermin" readonly="1"/>
+                            <field name="sab_supplier_confirmed_delivery_date" string="AB-Liefertermin"/>
+                            <field name="sab_supplier_delivery_deviation" string="Terminabw." readonly="1"/>
+                            <field name="qty_received" string="Bereits geliefert" readonly="1" optional="show"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

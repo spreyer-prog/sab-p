@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_standard_receipt_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('sab_project.group_sab_warehouse'), ref('sab_project.group_sab_purchasing')])]"/>
+    </record>
+</odoo>

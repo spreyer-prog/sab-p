@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_project_price_binding" model="ir.ui.view">
+        <field name="name">sale.order.sab.project.price.binding</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_lv_rules"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sab_calculation_line_ids']/list/field[@name='quantity']" position="before">
+                <field name="sab_project_price_bound" column_invisible="1" readonly="1"/>
+                <field name="sab_project_unit_price" column_invisible="1" readonly="1"/>
+                <field name="sab_project_price_currency_id" column_invisible="1" readonly="1"/>
+                <field name="sab_project_price_source_id" column_invisible="1" readonly="1"/>
+                <field name="sab_project_price_reference" column_invisible="1" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='sab_calculation_line_ids']/list/field[@name='recommended_net_price']" position="after">
+                <field name="sab_project_price_label" string="Preisbindung" optional="hide" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="sab_sale_order_material_project_price_binding" model="ir.ui.view">
+        <field name="name">sale.order.sab.material.project.price.binding</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_switchboard_rules"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sab_material_calculation_line_ids']/list/field[@name='quantity']" position="before">
+                <field name="sab_project_price_bound" column_invisible="1" readonly="1"/>
+                <field name="sab_project_unit_price" column_invisible="1" readonly="1"/>
+                <field name="sab_project_price_currency_id" column_invisible="1" readonly="1"/>
+                <field name="sab_project_price_source_id" column_invisible="1" readonly="1"/>
+                <field name="sab_project_price_reference" column_invisible="1" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

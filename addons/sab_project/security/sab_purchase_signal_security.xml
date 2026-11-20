@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_sab_purchasing_manager" model="res.groups">
+        <field name="name">SAB-P Einkaufsleitung</field>
+        <field name="comment">Darf gelbe Mengenüberschreitungen freigeben und besitzt die operativen Einkaufs- sowie Bestellfreigaberechte.</field>
+        <field name="implied_ids" eval="[(4, ref('sab_project.group_sab_purchasing')), (4, ref('sab_project.group_sab_purchase_approver'))]"/>
+    </record>
+
+    <record id="group_sab_management" model="res.groups">
+        <field name="name">SAB-P Geschäftsführung</field>
+        <field name="comment">Darf gelbe und rote Artikel-Ampelfreigaben entscheiden. Die Rolle besitzt Bestellfreigabe-, aber keine automatischen operativen Einkaufsrechte.</field>
+        <field name="implied_ids" eval="[(4, ref('sab_project.group_sab_purchase_approver'))]"/>
+    </record>
+</odoo>

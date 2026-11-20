@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_sale_order_form_live_preview" model="ir.ui.view">
+        <field name="name">sale.order.form.sab.live.price.preview</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_switchboard_rules"/>
+        <field name="priority">600</field>
+        <field name="arch" type="xml">
+            <!-- Keep scalar inputs across browser onchange round-trips.
+                 Readonly, without force_save: create/write still own snapshots. -->
+            <xpath expr="//field[@name='sab_calculation_line_ids']/list/field[@name='order_id']" position="after">
+                <field name="source_write_date" column_invisible="1" readonly="1"/>
+                <field name="unit_material_purchase" column_invisible="1" readonly="1"/>
+                <field name="unit_auxiliary_purchase" column_invisible="1" readonly="1"/>
+                <field name="unit_mechanical_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_wiring_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_testing_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_total_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_space_units" column_invisible="1" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='sab_material_calculation_line_ids']/list/field[@name='order_id']" position="after">
+                <field name="source_write_date" column_invisible="1" readonly="1"/>
+                <field name="unit_material_purchase" column_invisible="1" readonly="1"/>
+                <field name="unit_auxiliary_purchase" column_invisible="1" readonly="1"/>
+                <field name="unit_mechanical_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_wiring_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_testing_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_total_minutes" column_invisible="1" readonly="1"/>
+                <field name="unit_space_units" column_invisible="1" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='sab_calculation_line_ids']/list/field[@name='order_id']" position="after">
+                <field name="currency_id" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

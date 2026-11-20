@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sab_sale_order_position_dialog" model="ir.ui.view">
+        <field name="name">sale.order.sab.position.dialog</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_draft_position_choice"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_sab_choose_lv_position']" position="replace">
+                <field name="sab_position_choice" widget="sab_position_picker" string="LV / NTG" width="145px"
+                       invisible="line_type != 'item' or parent_section_id"
+                       readonly="parent.state not in ('draft', 'sent') or parent.sab_offer_release_state == 'released' or sab_project_price_bound"/>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='calculation_item_id']" position="attributes">
+                <attribute name="widget">sab_position_article</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_calculation']//field[@name='odoo_product_id']" position="attributes">
+                <attribute name="widget">sab_position_article</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function model="sab.production.print.profile" name="_sab_apply_original_standard_profiles"/>
+</odoo>

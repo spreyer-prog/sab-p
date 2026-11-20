@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Einkaufsbedarf: Der produktive Button erzeugt ab jetzt echte Odoo-Bestellungen. -->
+    <record id="view_sab_purchase_requirement_list_standard_purchase" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.list.standard.purchase</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_list"/>
+        <field name="priority">500</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_create_purchase_orders']" position="attributes">
+                <attribute name="name">action_create_standard_purchase_orders</attribute>
+                <attribute name="string">Odoo-Bestellungen aus Auswahl erzeugen</attribute>
+                <attribute name="groups">sab_project.group_sab_purchasing</attribute>
+            </xpath>
+            <field name="purchase_order_id" position="after">
+                <field name="odoo_purchase_order_id" string="Odoo-Bestellung" optional="show"/>
+                <field name="odoo_purchase_state" string="Bestellstatus" widget="badge" optional="show"/>
+                <field name="odoo_receipt_status" string="Wareneingang" widget="badge" optional="show"/>
+                <field name="odoo_invoice_status" string="Eingangsrechnung" widget="badge" optional="show"/>
+                <field name="odoo_quantity_received" string="Geliefert" optional="show"/>
+                <field name="odoo_quantity_invoiced" string="Berechnet" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_form_standard_purchase" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.form.standard.purchase</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_form"/>
+        <field name="priority">500</field>
+        <field name="arch" type="xml">
+            <field name="purchase_order_state" position="after">
+                <field name="odoo_purchase_order_id" readonly="1"/>
+                <field name="odoo_purchase_state" readonly="1" widget="badge"/>
+                <field name="odoo_receipt_status" readonly="1" widget="badge"/>
+                <field name="odoo_invoice_status" readonly="1" widget="badge"/>
+                <field name="odoo_quantity_received" readonly="1"/>
+                <field name="odoo_quantity_invoiced" readonly="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_requirement_search_standard_purchase" model="ir.ui.view">
+        <field name="name">sab.purchase.requirement.search.standard.purchase</field>
+        <field name="model">sab.purchase.requirement</field>
+        <field name="inherit_id" ref="sab_project.view_sab_purchase_requirement_search"/>
+        <field name="priority">500</field>
+        <field name="arch" type="xml">
+            <field name="purchase_order_id" position="after">
+                <field name="odoo_purchase_order_id"/>
+            </field>
+            <filter name="proposal" position="after">
+                <filter name="standard_proposal" string="Odoo-Bestellvorschlag" domain="[('odoo_purchase_state','in',('draft','sent','to approve'))]"/>
+                <filter name="standard_ordered" string="Odoo-Bestellung – Lieferung offen" domain="[('odoo_purchase_state','=','purchase'),('odoo_receipt_status','!=','full')]"/>
+                <filter name="standard_received" string="Odoo-Wareneingang vollständig" domain="[('odoo_receipt_status','=','full')]"/>
+            </filter>
+        </field>
+    </record>
+
+    <!-- SAB-P-eigene Listenansicht für echte purchase.order-Datensätze. -->
+    <record id="view_sab_standard_purchase_order_list" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.list</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <list string="SAB-P Lieferantenbestellungen"
+                  create="0"
+                  delete="0"
+                  decoration-info="state in ('draft','sent','to approve')"
+                  decoration-warning="state == 'purchase' and receipt_status != 'full'"
+                  decoration-success="state == 'purchase' and receipt_status == 'full'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="partner_id" string="Lieferant"/>
+                <field name="sab_project_ids" widget="many2many_tags" string="Projekte"/>
+                <field name="sab_source_cabinet_bom_ids" widget="many2many_tags" string="Verteiler" optional="show"/>
+                <field name="state" widget="badge"/>
+                <field name="receipt_status" string="Wareneingang" widget="badge"/>
+                <field name="invoice_status" string="Eingangsrechnung" widget="badge"/>
+                <field name="date_planned" string="Nächster Liefertermin" optional="show"/>
+                <field name="amount_untaxed" string="Netto" sum="Gesamt netto"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="user_id" string="Einkäufer" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_standard_purchase_order_search" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.search</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <search string="SAB-P Lieferantenbestellungen">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="sab_project_ids"/>
+                <field name="sab_source_cabinet_bom_ids"/>
+                <separator/>
+                <filter name="sab_drafts" string="Bestellvorschläge" domain="[('state','in',('draft','sent','to approve'))]"/>
+                <filter name="sab_open_receipts" string="Lieferung offen" domain="[('state','=','purchase'),('receipt_status','!=','full')]"/>
+                <filter name="sab_received" string="Wareneingang vollständig" domain="[('state','=','purchase'),('receipt_status','=','full')]"/>
+                <filter name="sab_to_invoice" string="Eingangsrechnung offen" domain="[('state','=','purchase'),('invoice_status','=','to invoice')]"/>
+                <group>
+                    <filter name="group_supplier" string="Lieferant" context="{'group_by':'partner_id'}"/>
+                    <filter name="group_project" string="Projekt" context="{'group_by':'sab_project_ids'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sab_standard_purchase_order_form" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">500</field>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//field[@name='name'][1]" position="after">
+                <field name="sab_is_suite_order" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-info" role="alert" invisible="not sab_is_suite_order">
+                    Diese Bestellung wurde aus dem SAB-P-Materialbedarf erzeugt. Projekt-, Verteiler-, Wareneingangs- und Rechnungszuordnung werden im Hintergrund durchgängig erhalten.
+                </div>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_sab_view_material_requirements"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-list-alt"
+                        invisible="not sab_is_suite_order">
+                    <field name="sab_requirement_count" widget="statinfo" string="Materialpositionen"/>
+                </button>
+            </xpath>
+            <xpath expr="//sheet/group[1]" position="after">
+                <group string="SAB-P Zuordnung" invisible="not sab_is_suite_order" col="4">
+                    <field name="sab_supplier_id" readonly="1"/>
+                    <field name="sab_project_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="sab_procurement_bom_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="sab_source_cabinet_bom_ids" widget="many2many_tags" readonly="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="after">
+                <field name="sab_project_id" string="Projekt" readonly="1" optional="show"/>
+                <field name="sab_source_cabinet_bom_id" string="Verteiler" readonly="1" optional="show"/>
+                <field name="sab_supplier_article_number" string="Lieferanten-Art.-Nr." readonly="1" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Verbindliche deutsche Beschriftungen. Das ist zusätzlich zum Laden des
+         deutschen Sprachpakets nötig, damit ein unvollständiger Odoo-
+         Übersetzungsstand nicht wieder gemischte Schaltflächen erzeugt. -->
+    <record id="view_sab_standard_purchase_order_form_german" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.form.german</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Bestellung</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_acknowledge']" position="attributes">
+                <attribute name="string">Lieferantenbestätigung erfassen</attribute>
+            </xpath>
+            <xpath expr="//button[@name='print_quotation']" position="attributes">
+                <attribute name="string">Drucken</attribute>
+            </xpath>
+            <xpath expr="//button[@name='%(purchase.action_report_purchase_order)d']" position="attributes">
+                <attribute name="string">Drucken</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rfq_send']" position="attributes">
+                <attribute name="string">Bestellung per E-Mail senden</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_approve']" position="attributes">
+                <attribute name="string">Bestellung freigeben</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_ref']" position="attributes">
+                <attribute name="string">Lieferantenreferenz</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_approve']" position="attributes">
+                <attribute name="string">Bestätigungsdatum</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_planned']" position="attributes">
+                <attribute name="string">Erwartete Ankunft</attribute>
+            </xpath>
+            <xpath expr="//div[@name='reminder']/span[1]" position="replace">
+                <span>Bestätigung anfordern</span>
+            </xpath>
+            <xpath expr="//page[@name='products']" position="attributes">
+                <attribute name="string">Produkte</attribute>
+            </xpath>
+            <xpath expr="//page[@name='purchase_delivery_invoice']" position="attributes">
+                <attribute name="string">Weitere Informationen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/create[@name='add_product_control']" position="attributes">
+                <attribute name="string">Produkt hinzufügen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/create[@name='add_section_control']" position="attributes">
+                <attribute name="string">Abschnitt hinzufügen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/create[@name='add_note_control']" position="attributes">
+                <attribute name="string">Notiz hinzufügen</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/control/button[@name='action_add_from_catalog']" position="attributes">
+                <attribute name="string">Katalog</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="attributes">
+                <attribute name="string">Produkt</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="attributes">
+                <attribute name="string">Menge</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='qty_received']" position="attributes">
+                <attribute name="string">Erhalten</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='qty_invoiced']" position="attributes">
+                <attribute name="string">Abgerechnet</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="attributes">
+                <attribute name="string">Einzelpreis</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_subtotal']" position="attributes">
+                <attribute name="string">Betrag</attribute>
+            </xpath>
+            <xpath expr="//field[@name='note']" position="attributes">
+                <attribute name="placeholder">Liefer- und Zahlungsbedingungen eingeben …</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_sab_purchase_stock_order_form_german" model="ir.ui.view">
+        <field name="name">purchase.order.sab.p.stock.form.german</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
+        <field name="priority">900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_picking']" position="attributes">
+                <attribute name="string">Wareneingang buchen</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_view_picking']/field[@name='incoming_picking_count']" position="attributes">
+                <attribute name="string">Wareneingang</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_sab_standard_purchase_order_drafts" model="ir.actions.act_window">
+        <field name="name">Bestellvorschläge</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sab_standard_purchase_order_list"/>
+        <field name="search_view_id" ref="view_sab_standard_purchase_order_search"/>
+        <field name="domain">[('sab_is_suite_order','=',True),('state','in',('draft','sent','to approve'))]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="action_sab_standard_purchase_order_open" model="ir.actions.act_window">
+        <field name="name">Bestellt – noch nicht vollständig geliefert</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sab_standard_purchase_order_list"/>
+        <field name="search_view_id" ref="view_sab_standard_purchase_order_search"/>
+        <field name="domain">[('sab_is_suite_order','=',True),('state','=','purchase'),('receipt_status','!=','full')]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="action_sab_standard_purchase_order_all" model="ir.actions.act_window">
+        <field name="name">Alle Bestellungen</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sab_standard_purchase_order_list"/>
+        <field name="search_view_id" ref="view_sab_standard_purchase_order_search"/>
+        <field name="domain">[('sab_is_suite_order','=',True)]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <!-- Bestehende SAB-P-Menüpunkte bleiben erhalten, zeigen aber die echten Odoo-Dokumente. -->
+    <record id="sab_purchase_order_drafts_menu" model="ir.ui.menu">
+        <field name="action" ref="action_sab_standard_purchase_order_drafts"/>
+    </record>
+    <record id="sab_purchase_order_open_menu" model="ir.ui.menu">
+        <field name="action" ref="action_sab_standard_purchase_order_open"/>
+    </record>
+    <record id="sab_purchase_order_all_menu" model="ir.ui.menu">
+        <field name="action" ref="action_sab_standard_purchase_order_all"/>
+    </record>
+
+    <!-- Echter Wareneingang auf stock.picking. -->
+    <record id="view_sab_standard_receipt_list" model="ir.ui.view">
+        <field name="name">stock.picking.sab.p.receipt.list</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="SAB-P Wareneingänge"
+                  create="0"
+                  delete="0"
+                  decoration-warning="state in ('waiting','confirmed','assigned')"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="partner_id" string="Lieferant"/>
+                <field name="origin" string="Bestellung"/>
+                <field name="sab_project_ids" widget="many2many_tags" string="Projekte"/>
+                <field name="sab_source_cabinet_bom_ids" widget="many2many_tags" string="Verteiler" optional="show"/>
+                <field name="scheduled_date" string="Geplant"/>
+                <field name="date_done" string="Gebucht am" optional="show"/>
+                <field name="sab_supplier_delivery_note_number" string="Lieferschein-Nr." optional="show"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_standard_receipt_search" model="ir.ui.view">
+        <field name="name">stock.picking.sab.p.receipt.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search string="SAB-P Wareneingänge">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="origin"/>
+                <field name="sab_project_ids"/>
+                <field name="sab_supplier_delivery_note_number"/>
+                <separator/>
+                <filter name="open" string="Offen" domain="[('state','not in',('done','cancel'))]"/>
+                <filter name="done" string="Gebucht" domain="[('state','=','done')]"/>
+                <group>
+                    <filter name="group_supplier" string="Lieferant" context="{'group_by':'partner_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sab_standard_receipt_form" model="ir.ui.view">
+        <field name="name">stock.picking.sab.p.receipt.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="priority">500</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin'][1]" position="after">
+                <field name="sab_is_suite_receipt" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="before">
+                <group string="SAB-P Wareneingang" invisible="not sab_is_suite_receipt" col="4">
+                    <field name="sab_project_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="sab_source_cabinet_bom_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="sab_supplier_delivery_note_number" required="sab_is_suite_receipt and state not in ('done','cancel')"/>
+                    <field name="sab_supplier_delivery_note_date"/>
+                    <field name="sab_supplier_delivery_note_file" filename="sab_supplier_delivery_note_filename"/>
+                    <field name="sab_supplier_delivery_note_filename" invisible="1"/>
+                </group>
+                <div class="alert alert-info" role="alert" invisible="not sab_is_suite_receipt or state in ('done','cancel')">
+                    Nicht gelieferte Positionen können gelöscht oder auf Menge 0 gesetzt werden. Sie bleiben in der Bestellung offen und erscheinen automatisch im nächsten Wareneingang.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_sab_standard_receipts" model="ir.actions.act_window">
+        <field name="name">Wareneingänge</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sab_standard_receipt_list"/>
+        <field name="search_view_id" ref="view_sab_standard_receipt_search"/>
+        <field name="domain">[('sab_is_suite_receipt','=',True),('picking_type_id.code','=','incoming')]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem id="sab_standard_receipt_menu"
+              name="Wareneingänge"
+              parent="sab_stock_root_menu"
+              action="action_sab_standard_receipts"
+              sequence="35"
+              groups="sab_project.group_sab_warehouse,sab_project.group_sab_purchasing,sab_project.group_sab_purchase_approver"/>
+
+    <!-- Eingangsrechnungen bleiben Standard-account.move, werden aber in der SAB-P Suite geöffnet. -->
+    <record id="view_sab_standard_vendor_bill_list" model="ir.ui.view">
+        <field name="name">account.move.sab.p.vendor.bill.list</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <list string="SAB-P Eingangsrechnungen" create="0" delete="0">
+                <field name="name" string="Beleg"/>
+                <field name="ref" string="Lieferanten-Rechnungsnr."/>
+                <field name="partner_id" string="Lieferant"/>
+                <field name="sab_project_ids" widget="many2many_tags" string="Projekte"/>
+                <field name="invoice_date" string="Rechnungsdatum"/>
+                <field name="invoice_date_due" string="Fällig am"/>
+                <field name="amount_untaxed" string="Netto"/>
+                <field name="amount_total" string="Brutto"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="state" widget="badge"/>
+                <field name="payment_state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_sab_standard_vendor_bills" model="ir.actions.act_window">
+        <field name="name">Eingangsrechnungen</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sab_standard_vendor_bill_list"/>
+        <field name="domain">[('sab_is_suite_vendor_bill','=',True),('move_type','in',('in_invoice','in_refund'))]</field>
+        <field name="context">{'default_move_type': 'in_invoice', 'create': False}</field>
+    </record>
+
+    <menuitem id="sab_standard_vendor_bill_menu"
+              name="Eingangsrechnungen"
+              parent="sab_stock_root_menu"
+              action="action_sab_standard_vendor_bills"
+              sequence="60"
+              groups="account.group_account_invoice"/>
+
+    <!-- Im Projekt wird die produktive Standardbestellung statt des Übergangsmodells gezeigt. -->
+    <record id="view_sab_project_standard_purchase_orders" model="ir.ui.view">
+        <field name="name">project.project.sab.p.standard.purchase.orders</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="sab_project.sab_project_project_form_procurement_detail"/>
+        <field name="priority">500</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_project_purchase_orders']/field[@name='sab_purchase_order_ids']" position="replace">
+                <field name="sab_standard_purchase_order_ids" nolabel="1" readonly="1">
+                    <list create="0" delete="0">
+                        <field name="name"/>
+                        <field name="partner_id" string="Lieferant"/>
+                        <field name="state" widget="badge"/>
+                        <field name="amount_untaxed" string="Bestellwert netto"/>
+                        <field name="receipt_status" string="Wareneingang" widget="badge"/>
+                        <field name="invoice_status" string="Eingangsrechnung" widget="badge"/>
+                        <field name="date_planned" string="Liefertermin"/>
+                    </list>
+                </field>
+            </xpath>
+        </field>
+    </record>
+</odoo>

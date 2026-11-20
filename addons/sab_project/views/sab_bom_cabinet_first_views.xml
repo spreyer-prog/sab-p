@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Applied last: all existing restrictions and navigation remain intact. -->
+    <record id="sab_sale_order_cabinet_first_bom" model="ir.ui.view">
+        <field name="name">sale.order.sab.cabinet.first.bom</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority">9900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_sab_bom']" position="attributes">
+                <attribute name="name">action_generate_sab_cabinet_boms</attribute>
+                <attribute name="string">Einzelstücklisten erzeugen / öffnen</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_procurement_package_wizard']" position="attributes">
+                <attribute name="string">Freigegebene Einzelstücklisten zusammenfassen</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sab_bom_cabinet_first_list" model="ir.ui.view">
+        <field name="name">sab.project.bom.cabinet.first.list</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_list"/>
+        <field name="priority">9900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-success">bom_scope == 'cabinet' and state == 'released' and not sab_handover_package_id</attribute>
+                <attribute name="decoration-info">sab_handover_package_id or bom_scope == 'procurement'</attribute>
+            </xpath>
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="action_combine_released_cabinets" type="object"
+                            string="Markierte Einzelstücklisten zusammenfassen"
+                            groups="project.group_project_manager,base.group_system"/>
+                </header>
+                <field name="sab_handover_package_id" optional="show"/>
+                <field name="sab_engineering_status" widget="badge"
+                       decoration-success="sab_engineering_status == 'ready'"
+                       decoration-info="sab_engineering_status in ('combined','handed_over')"/>
+                <field name="sab_technical_released_by_id" optional="hide"/>
+                <field name="sab_technical_released_at" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="sab_bom_cabinet_first_form" model="ir.ui.view">
+        <field name="name">sab.project.bom.cabinet.first.form</field>
+        <field name="model">sab.project.bom</field>
+        <field name="inherit_id" ref="sab_project.view_sab_project_bom_form"/>
+        <field name="priority">9900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_release']" position="attributes">
+                <attribute name="invisible">state != 'draft' or bom_scope == 'cabinet'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_procurement_workspace']" position="attributes">
+                <attribute name="invisible">state != 'released' or bom_scope != 'procurement' or (sab_cabinet_first and purchase_release_state != 'released')</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_release_for_purchase']" position="attributes">
+                <attribute name="string">Gesamtstückliste an Einkauf freigeben</attribute>
+            </xpath>
+            <xpath expr="//page[@name='sab_bom_procurement_workspace']/parent::notebook" position="attributes">
+                <attribute name="invisible">state != 'released' or bom_scope != 'procurement' or (sab_cabinet_first and purchase_release_state != 'released')</attribute>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_release" type="object" string="Zur Bestellung freigeben"
+                        class="btn-primary" invisible="state != 'draft' or bom_scope != 'cabinet'"
+                        confirm="Ist die Einzelstückliste technisch fertig geprüft? Nach der Freigabe ist sie gegen Material- und Mengenänderungen gesperrt."/>
+                <button name="action_combine_released_cabinets" type="object"
+                        string="Diese Einzelstückliste zusammenfassen"
+                        invisible="bom_scope != 'cabinet' or state != 'released' or sab_handover_package_id"
+                        groups="project.group_project_manager,base.group_system"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Technische Prüfung und Einkaufszusammenfassung">
+                    <field name="sab_engineering_status" widget="badge"
+                           decoration-success="sab_engineering_status == 'ready'"/>
+                    <field name="sab_technical_released_at" invisible="not sab_technical_released_at"/>
+                    <field name="sab_technical_released_by_id" invisible="not sab_technical_released_by_id"/>
+                    <field name="sab_handover_package_id" invisible="not sab_handover_package_id"/>
+                    <field name="sab_cabinet_first" invisible="1"/>
+                </group>
+                <group string="Material gesamt – aus den ausgewählten Einzelstücklisten"
+                       invisible="bom_scope != 'procurement'">
+                    <field name="sab_material_summary" widget="html" readonly="1" nolabel="1"/>
+                    <div class="text-muted">Die Mengen sind nach Produkt, Einheit und Optional-Kennzeichnung zusammengefasst.
+                        Die Einzelzeilen und ihre Schrankzuordnung bleiben für Einkauf und Kommissionierung erhalten.</div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="sab_cabinet_first_package_wizard" model="ir.ui.view">
+        <field name="name">sab.procurement.package.wizard.cabinet.first</field>
+        <field name="model">sab.procurement.package.wizard</field>
+        <field name="inherit_id" ref="sab_project.view_sab_procurement_package_wizard_form"/>
+        <field name="priority">9900</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_id']" position="after">
+                <field name="sab_cabinet_first" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='cabinet_bom_ids']" position="attributes">
+                <attribute name="domain">[('order_id','=',order_id),('bom_scope','=','cabinet'),('state','=','released'),('sab_handover_package_id','=',False)] if sab_cabinet_first else [('order_id','=',order_id),('bom_scope','=','cabinet')]</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_procurement_package']" position="attributes">
+                <attribute name="string">Gesamtstückliste für Einkauf erstellen</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

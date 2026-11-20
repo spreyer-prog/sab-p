@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sab_project.PositionDialog">
+        <Dialog title="'LV-/NTG-Position auswählen'" size="'lg'">
+            <p class="fw-bold" t-esc="props.payload.article"/>
+            <p>Vorhandene Projektposition mit ihrem Einzelpreis übernehmen oder bewusst eine neue Position anlegen.</p>
+            <div t-if="state.error" class="alert alert-danger" role="alert" t-esc="state.error"/>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th>LV / NTG</th><th>Angebotstext</th><th>Quellangebot</th><th>Status</th><th class="text-end">VK je Einheit</th><th/></tr></thead>
+                    <tbody>
+                        <tr t-foreach="props.payload.positions" t-as="entry" t-key="entry.code + ':' + entry.is_ntg">
+                            <td class="text-nowrap fw-bold" t-esc="entry.code"/>
+                            <td style="white-space:normal;min-width:160px;max-width:350px" t-esc="entry.description"/>
+                            <td class="text-nowrap" t-esc="entry.offer"/>
+                            <td t-esc="entry.status"/>
+                            <td class="text-end text-nowrap" t-esc="formatPrice(entry)"/>
+                            <td><button type="button" class="btn btn-primary btn-sm" t-att-disabled="state.busy" t-on-click="() => this.choose('existing', entry.code, entry.is_ntg)">Übernehmen</button></td>
+                        </tr>
+                        <tr t-if="!props.payload.positions.length"><td colspan="6">Für diesen Artikel ist noch keine Projektposition vorhanden.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div t-if="props.payload.can_new_lv" class="border-top pt-3 mt-3">
+                <label for="sab_new_lv_code" class="form-label">Andere LV-Position neu anlegen</label>
+                <div class="d-flex gap-2">
+                    <input id="sab_new_lv_code" type="text" class="form-control" placeholder="Neue LV-Nummer, z. B. 1.1.5" t-model="state.newCode" t-att-disabled="state.busy"/>
+                    <button type="button" class="btn btn-secondary text-nowrap" t-att-disabled="state.busy || !state.newCode.trim()" t-on-click="() => this.choose('new_lv', state.newCode)">Neue LV übernehmen</button>
+                </div>
+            </div>
+            <div t-if="props.payload.can_new_ntg" class="border-top pt-3 mt-3">
+                <button type="button" class="btn btn-secondary" t-att-disabled="state.busy" t-on-click="() => this.choose('new_ntg')">Neuen Nachtrag (NTG) anlegen</button>
+                <div class="text-muted mt-2">Die nächste freie NTG-Nummer wird erst beim Speichern des Angebots vergeben. Bestehende Positionen bleiben unverändert.</div>
+            </div>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-secondary" t-att-disabled="state.busy" t-on-click="props.close">Abbrechen</button>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="sab_project.PositionPickerField">
+        <button t-if="enabled" type="button" class="btn btn-link btn-sm p-0 text-nowrap" t-att-title="title" t-on-click.stop="open">
+            <i class="fa fa-list me-1"/><t t-esc="label"/>
+        </button>
+        <span t-else=""/>
+    </t>
+</templates>

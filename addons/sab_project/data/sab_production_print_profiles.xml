@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="print_profile_conformity" model="sab.production.print.profile">
+        <field name="document_type">conformity</field><field name="sequence">10</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_production_test" model="sab.production.print.profile">
+        <field name="document_type">production_test</field><field name="sequence">30</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_final_inspection" model="sab.production.print.profile">
+        <field name="document_type">final_inspection</field><field name="sequence">40</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_run_card" model="sab.production.print.profile">
+        <field name="document_type">run_card</field><field name="sequence">20</field><field name="paper_kind">a4</field><field name="orientation">portrait</field><field name="width_mm">210</field><field name="height_mm">297</field>
+    </record>
+    <record id="print_profile_missing_parts" model="sab.production.print.profile">
+        <field name="document_type">missing_parts</field><field name="sequence">50</field><field name="paper_kind">a4</field><field name="orientation">landscape</field><field name="width_mm">297</field><field name="height_mm">210</field>
+    </record>
+    <record id="print_profile_shipping_sheet" model="sab.production.print.profile">
+        <field name="document_type">shipping_sheet</field><field name="sequence">60</field><field name="paper_kind">a4</field><field name="orientation">landscape</field><field name="width_mm">297</field><field name="height_mm">210</field>
+    </record>
+    <record id="print_profile_add_pack" model="sab.production.print.profile">
+        <field name="document_type">add_pack</field><field name="sequence">70</field><field name="paper_kind">a4</field><field name="orientation">landscape</field><field name="width_mm">297</field><field name="height_mm">210</field>
+    </record>
+    <record id="print_profile_nameplate" model="sab.production.print.profile">
+        <field name="document_type">nameplate</field><field name="sequence">80</field><field name="paper_kind">custom</field><field name="orientation">portrait</field><field name="width_mm">176</field><field name="height_mm">265</field>
+    </record>
+    <record id="print_profile_info_sheet" model="sab.production.print.profile">
+        <field name="document_type">info_sheet</field><field name="sequence">90</field><field name="paper_kind">custom</field><field name="orientation">landscape</field><field name="width_mm">265</field><field name="height_mm">176</field>
+    </record>
+    <record id="print_profile_folder_label" model="sab.production.print.profile">
+        <field name="document_type">folder_label</field><field name="sequence">100</field><field name="paper_kind">custom</field><field name="orientation">portrait</field><field name="width_mm">61</field><field name="height_mm">192</field><field name="margin_top_mm">2</field><field name="margin_bottom_mm">2</field><field name="margin_left_mm">2</field><field name="margin_right_mm">2</field>
+    </record>
+
+    <record id="paperformat_sab_production_landscape" model="report.paperformat">
+        <field name="name">SAB-P Fertigungsblatt A4 quer</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">5</field><field name="margin_bottom">5</field><field name="margin_left">5</field><field name="margin_right">5</field>
+        <field name="dpi">77</field>
+    </record>
+    <record id="paperformat_sab_info_sheet_native" model="report.paperformat">
+        <field name="name">SAB-P Infoschild 265 x 176 mm</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field><field name="page_width">265</field><field name="page_height">176</field><field name="orientation">Portrait</field>
+        <field name="margin_top">2</field><field name="margin_bottom">2</field><field name="margin_left">2</field><field name="margin_right">2</field><field name="dpi">77</field>
+    </record>
+    <record id="paperformat_sab_folder_label_native" model="report.paperformat">
+        <field name="name">SAB-P Ordneretikett 61 x 192 mm</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field><field name="page_width">61</field><field name="page_height">192</field><field name="orientation">Portrait</field>
+        <field name="margin_top">2</field><field name="margin_bottom">2</field><field name="margin_left">2</field><field name="margin_right">2</field><field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_sab_production_landscape" model="ir.actions.report">
+        <field name="name">Fertigungsblatt A4 quer</field><field name="model">sab.production.document</field><field name="report_type">qweb-pdf</field><field name="report_name">sab_project.report_sab_production_document</field><field name="report_file">sab_project.report_sab_production_document</field><field name="paperformat_id" ref="paperformat_sab_production_landscape"/>
+    </record>
+    <record id="action_report_sab_info_sheet_native" model="ir.actions.report">
+        <field name="name">Infoschild</field><field name="model">sab.production.document</field><field name="report_type">qweb-pdf</field><field name="report_name">sab_project.report_sab_production_document</field><field name="report_file">sab_project.report_sab_production_document</field><field name="paperformat_id" ref="paperformat_sab_info_sheet_native"/>
+    </record>
+    <record id="action_report_sab_folder_label_native" model="ir.actions.report">
+        <field name="name">Ordneretikett</field><field name="model">sab.production.document</field><field name="report_type">qweb-pdf</field><field name="report_name">sab_project.report_sab_production_document</field><field name="report_file">sab_project.report_sab_production_document</field><field name="paperformat_id" ref="paperformat_sab_folder_label_native"/>
+    </record>
+</odoo>

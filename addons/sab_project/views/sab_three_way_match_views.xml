@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_standard_vendor_bill_list_three_way" model="ir.ui.view">
+        <field name="name">account.move.sab.p.vendor.bill.list.three.way</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="sab_project.view_sab_standard_vendor_bill_list"/>
+        <field name="priority">540</field>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="sab_three_way_match_state" string="3-Wege-Abgleich" widget="badge" optional="show"/>
+                <field name="sab_three_way_override_approved" string="Abweichung freigegeben" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_move_form_sab_three_way" model="ir.ui.view">
+        <field name="name">account.move.form.sab.p.three.way</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority">540</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_sab_approve_three_way_deviation"
+                        type="object"
+                        string="Abweichung freigeben"
+                        class="btn-primary"
+                        groups="sab_project.group_sab_purchase_approver,account.group_account_manager"
+                        invisible="not sab_is_suite_vendor_bill or state != 'draft' or sab_three_way_match_state != 'mismatch'"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="SAB-P Drei-Wege-Abgleich"
+                       invisible="not sab_is_suite_vendor_bill"
+                       col="4">
+                    <field name="sab_is_suite_vendor_bill" invisible="1"/>
+                    <field name="sab_three_way_match_state" readonly="1" widget="badge"/>
+                    <field name="sab_three_way_quantity_mismatch" readonly="1"/>
+                    <field name="sab_three_way_price_mismatch" readonly="1"/>
+                    <field name="sab_three_way_tax_mismatch" readonly="1"/>
+                    <field name="sab_three_way_override_approved" readonly="1"/>
+                    <field name="sab_three_way_override_by_id" readonly="1" invisible="not sab_three_way_override_approved"/>
+                    <field name="sab_three_way_override_at" readonly="1" invisible="not sab_three_way_override_approved"/>
+                    <field name="sab_three_way_message" readonly="1" colspan="4"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -5,6 +5,21 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
+            <xpath expr="//form/header" position="inside">
+                <button name="action_create_sab_quotation"
+                        type="object"
+                        string="Neues Angebot"
+                        class="btn-primary"/>
+                <button name="action_view_sab_quotations"
+                        type="object"
+                        string="Angebote"
+                        invisible="sab_sale_order_count == 0"/>
+                <button name="action_assign_sab_project_reference"
+                        type="object"
+                        string="Projektnummer vergeben"
+                        invisible="sab_project_reference"/>
+            </xpath>
+
             <xpath expr="//field[@name='name']" position="before">
                 <field name="sab_project_reference"
                        readonly="1"
@@ -12,6 +27,7 @@
                 <field name="sab_status"
                        widget="statusbar"
                        statusbar_visible="offer_open,customer_awarded,won,lost"/>
+                <field name="sab_sale_order_count" invisible="1"/>
             </xpath>
 
             <xpath expr="//sheet" position="inside">
@@ -52,6 +68,23 @@
                                 <field name="sab_required_hours"/>
                             </group>
                         </group>
+                    </page>
+
+                    <page string="Angebote" name="sab_quotations">
+                        <button name="action_create_sab_quotation"
+                                type="object"
+                                string="Neues Angebot anlegen"
+                                class="btn-primary"/>
+                        <field name="sab_sale_order_ids" readonly="1" nolabel="1">
+                            <list>
+                                <field name="sab_offer_reference" string="Angebots-Nr."/>
+                                <field name="date_order" string="Datum"/>
+                                <field name="partner_id" string="Kunde"/>
+                                <field name="state" string="Status"/>
+                                <field name="amount_total" string="Angebotssumme"/>
+                                <field name="sab_calculated_hours" string="Kalk. Stunden" optional="show"/>
+                            </list>
+                        </field>
                     </page>
 
                     <page string="Projektdaten" name="sab_project_data">

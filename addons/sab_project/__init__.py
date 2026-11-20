@@ -1,1 +1,12 @@
 from . import models
+from . import wizard
+from . import controllers
+# Load versioned price rounding after the existing model extensions.
+from .models import sab_offer_unit_rounding
+from .models import sab_offer_draft_positions
+from .models import sab_offer_live_preview
+from .models import sab_offer_project_price_binding
+from .models import sab_offer_position_dialog
+from .models import sab_bom_cabinet_first
+from .models import sab_bom_material_control
+from .models import sab_bom_material_wizards

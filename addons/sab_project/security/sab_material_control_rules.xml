@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_material_group_company_rule" model="ir.rule">
+        <field name="name">Materialübersicht: erlaubte Unternehmen</field>
+        <field name="model_id" ref="model_sab_bom_material_group"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="sab_material_change_company_rule" model="ir.rule">
+        <field name="name">Materialprotokoll: erlaubte Unternehmen</field>
+        <field name="model_id" ref="model_sab_bom_material_change"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

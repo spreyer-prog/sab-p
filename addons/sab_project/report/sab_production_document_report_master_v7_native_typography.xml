@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_sab_production_document_master_v7_native_typography"
+              inherit_id="sab_project.report_sab_production_document_master_v6_native_formats"
+              priority="1030">
+        <xpath expr="//style" position="inside">
+            /* Echte Querformat-Ausgabe: keine zusammenlaufenden Schriften.
+               Die komprimierte V5-Geometrie bleibt nur für die gemischte
+               A4-Vorschau; native Einzelblätter erhalten lesbare Abstände. */
+            .sab-master-native-landscape {
+                font-family: 'Arial Narrow','Liberation Sans Narrow',Arial,Helvetica,sans-serif !important;
+                box-sizing: border-box !important;
+            }
+            .sab-master-native-landscape table {
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+            }
+            .sab-master-native-landscape td,
+            .sab-master-native-landscape th {
+                line-height: 1.14 !important;
+                vertical-align: middle !important;
+                white-space: normal !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+                padding: 0.45mm 0.8mm !important;
+            }
+
+            /* Laufkarte – charakteristische große Arbeitsfelder bleiben erhalten,
+               Kopf- und Tätigkeitszeilen werden aber auf die echte Querblatthöhe
+               abgestimmt. */
+            .sab-master-native-landscape.sab-run-card-landscape {
+                font-size: 8.8pt !important;
+                line-height: 1.12 !important;
+            }
+            .sab-master-native-landscape.sab-run-card-landscape table:first-of-type tr {
+                height: 6.4mm !important;
+            }
+            .sab-master-native-landscape.sab-run-card-landscape table:first-of-type tr:last-child {
+                height: 9mm !important;
+            }
+            .sab-master-native-landscape.sab-run-card-landscape table:nth-of-type(2) tr {
+                height: 8.8mm !important;
+            }
+            .sab-master-native-landscape.sab-run-card-landscape table:nth-of-type(2) tr:first-child {
+                height: 10.5mm !important;
+            }
+            .sab-master-native-landscape.sab-run-card-landscape table:nth-of-type(2) tr.m-orange {
+                height: 5.2mm !important;
+            }
+            .sab-master-native-landscape.sab-run-card-landscape table:nth-of-type(2) tr:last-child {
+                height: 31mm !important;
+            }
+
+            /* Fertigungsprüfung / Endkontrolle – genügend Zeilenhöhe für
+               zweizeilige Bezeichnungen und Hinweise, ohne Schriftüberdeckung. */
+            .sab-master-native-landscape.sab-test-landscape,
+            .sab-master-native-landscape.sab-final-landscape {
+                font-size: 7.15pt !important;
+                line-height: 1.14 !important;
+            }
+            .sab-master-native-landscape.sab-test-landscape table tr,
+            .sab-master-native-landscape.sab-final-landscape table tr {
+                height: 5.15mm !important;
+            }
+            .sab-master-native-landscape.sab-test-landscape table:first-of-type tr,
+            .sab-master-native-landscape.sab-final-landscape table:first-of-type tr {
+                height: 5.8mm !important;
+            }
+            .sab-master-native-landscape.sab-test-landscape table:nth-of-type(2) tr:first-child,
+            .sab-master-native-landscape.sab-final-landscape table:nth-of-type(2) tr:first-child {
+                height: 7.4mm !important;
+            }
+            .sab-master-native-landscape.sab-test-landscape th,
+            .sab-master-native-landscape.sab-final-landscape th {
+                font-size: 7.1pt !important;
+                line-height: 1.12 !important;
+            }
+            .sab-master-native-landscape.sab-test-landscape .m-footer,
+            .sab-master-native-landscape.sab-final-landscape .m-footer {
+                margin-top: 1.2mm !important;
+                font-size: 6.4pt !important;
+                line-height: 1.12 !important;
+            }
+        </xpath>
+    </template>
+</odoo>

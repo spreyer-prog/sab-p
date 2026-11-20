@@ -1,0 +1,48 @@
+name: SAB-P Isolierte Schnelltests
+
+on:
+  push:
+    branches:
+      - agent/leitfaden-gesamtstand
+    paths:
+      - 'addons/sab_project/**'
+      - '.github/workflows/sab-p-material-quickchecks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-regressions:
+    name: Python Syntax & isolierte Regressionen (kein Odoo.sh-Ersatz)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test-Abhaengigkeiten installieren
+        run: python -m pip install 'lxml>=5,<7' 'MarkupSafe>=2,<4'
+      - name: Python-Syntaxpruefung aller SAB-P-Dateien
+        run: python -m compileall -q addons/sab_project
+      - name: Isolierte Regressionstests
+        run: python -m unittest discover -s addons/sab_project/tools -p 'test_*.py' -v
+
+  javascript-regressions:
+    name: JavaScript-Angebotsdialoge (kein Odoo-Browser-Ersatz)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Angebotsdialog und Entwurf aktualisieren
+        run: |
+          node addons/sab_project/tools/test_offer_draft_refresh.mjs
+          node addons/sab_project/tools/test_position_dialog.mjs

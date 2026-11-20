@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sab_lv_position_choice_list" model="ir.ui.view">
+        <field name="name">sab.offer.lv.position.choice</field>
+        <field name="model">sab.offer.calculation.line</field>
+        <field name="arch" type="xml">
+            <list string="LV-Position auswählen" create="0" edit="0" delete="0">
+                <field name="order_id" string="Quellangebot"/>
+                <field name="lv_position"/>
+                <field name="is_ntg"/>
+                <field name="description" string="Angebotstext"/>
+                <button name="action_sab_apply_lv_choice" type="object" string="Übernehmen" icon="fa-check"/>
+            </list>
+        </field>
+    </record>
+    <record id="sab_sale_order_draft_position_choice" model="ir.ui.view">
+        <field name="name">sale.order.sab.draft.position.choice</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sab_project.sab_sale_order_form_lv_rules"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sab_calculation']//field[@name='calculation_item_id']" position="before">
+                <field name="sab_lv_choice_required" column_invisible="1"/>
+                <button name="action_sab_choose_lv_position" type="object" string="LV wählen" icon="fa-list"
+                        invisible="not sab_lv_choice_required or parent.sab_offer_release_state == 'released'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

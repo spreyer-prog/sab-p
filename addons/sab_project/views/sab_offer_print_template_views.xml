@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sab_offer_print_template_list" model="ir.ui.view">
+        <field name="name">sab.offer.print.template.list</field>
+        <field name="model">sab.offer.print.template</field>
+        <field name="arch" type="xml">
+            <list string="Angebotsdruck – Vorlagen" delete="0">
+                <field name="active"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="paper_format"/>
+                <field name="orientation"/>
+                <field name="printer_name"/>
+                <field name="binding_days"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sab_offer_print_template_form" model="ir.ui.view">
+        <field name="name">sab.offer.print.template.form</field>
+        <field name="model">sab.offer.print.template</field>
+        <field name="arch" type="xml">
+            <form string="Angebotsdruck – Vorlage" delete="0">
+                <header>
+                    <button name="action_preview" type="object" string="Vorschau / Testdruck" class="btn-primary"/>
+                    <button name="action_reset_layout" type="object" string="Layout zurücksetzen" class="btn-secondary" confirm="Papierformat, Ausrichtung, Ränder und Bindefrist werden auf den geprüften Standard zurückgesetzt. Die Textbausteine bleiben erhalten. Fortfahren?"/>
+                </header>
+                <sheet>
+                    <group col="4">
+                        <field name="active"/>
+                        <field name="name"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="printer_name" placeholder="Leer = Standard-PDF-Drucker"/>
+                        <field name="paper_format"/>
+                        <field name="orientation"/>
+                        <field name="binding_days"/>
+                        <field name="footer_manager_name"/>
+                    </group>
+                    <group string="Seitenränder" col="4">
+                        <field name="margin_top_mm"/>
+                        <field name="margin_bottom_mm"/>
+                        <field name="margin_left_mm"/>
+                        <field name="margin_right_mm"/>
+                    </group>
+                    <notebook>
+                        <page string="Einleitung"><field name="intro_html" nolabel="1"/></page>
+                        <page string="Leistung"><field name="scope_html" nolabel="1"/></page>
+                        <page string="Lieferung"><field name="delivery_html" nolabel="1"/></page>
+                        <page string="Zahlung"><field name="payment_html" nolabel="1"/></page>
+                        <page string="Vorbehalte"><field name="reservations_html" nolabel="1"/></page>
+                        <page string="Bedingungen"><field name="conditions_html" nolabel="1"/></page>
+                        <page string="Schlusstext"><field name="closing_html" nolabel="1"/></page>
+                        <page string="AGB"><field name="terms_html" nolabel="1"/></page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sab_offer_print_templates" model="ir.actions.act_window">
+        <field name="name">Angebotsdruck – Vorlagen</field>
+        <field name="res_model">sab.offer.print.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_sab_offer_print_templates"
+              name="Angebotsdruck – Vorlagen"
+              parent="sab_calculation_root_menu"
+              action="action_sab_offer_print_templates"
+              sequence="191"
+              groups="base.group_system,project.group_project_manager"/>
+
+    <record id="view_sale_order_sab_exact_offer_print" model="ir.ui.view">
+        <field name="name">sale.order.sab.exact.offer.print</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority">650</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_print_sab_offer"
+                        type="object"
+                        string="SAB-P Angebot drucken"
+                        class="btn-secondary"
+                        invisible="not sab_project_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
