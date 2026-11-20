@@ -1,19 +1,22 @@
 # SAB-P Suite V1 – Produktivsetzungs- und Abnahmecheckliste
 
-Stand: Odoo.sh Green Build auf `agent/leitfaden-gesamtstand` für Modulversion `19.0.5.35.0`. GitHub-Commit-Status ist eingerichtet und liefert `ci/odoo.sh (dev)`.
+**Statusabgleich 20.11.2026:** Die frühere grüne Odoo.sh-Abnahme betrifft **nur** Modulversion `19.0.5.35.0`. Aktueller Entwicklungsbranch-Head: `5b1eb8e272280a844ff7fbe77d2f125e3eb6d822` mit Modulversion `19.0.5.113.0`. Für diesen Stand ist **kein grüner Odoo.sh-Build nachgewiesen**; der Commit besitzt keinen `ci/odoo.sh (dev)`-Status und die Odoo.sh-Buildlogs sind nicht verfügbar. Die isolierten GitHub-Schnelltests ersetzen kein Odoo-Upgrade. Historische `[x]`-Nachweise sind keine Freigabe der aktuellen Version. Siehe `docs/BUILD_STATUS.md`.
 
 Legende:
-- `[x]` technisch im Code/Test abgedeckt bzw. im letzten Green Build nachgewiesen,
-- `[ ]` benötigt noch Upgrade-, Praxis- oder Fachdatenabgleich.
+- `[x]` historisch technisch im Code/Test abgedeckt bzw. für den ausdrücklich genannten älteren Green Build nachgewiesen; **nicht automatisch aktuell abgenommen**,
+- `[ ]` für den aktuellen Entwicklungsstand noch nicht nachgewiesen oder fachlich/praktisch offen.
 
 ## A. Technische Abnahme
 
-- [x] Aktueller Odoo.sh Build des Branches `agent/leitfaden-gesamtstand` erfolgreich.
-- [x] Aktuellen Stand `19.0.5.35.0` durch Odoo.sh grün bestätigt.
-- [x] Odoo.sh GitHub-Commit-Status eingerichtet; neue Builds sind über `ci/odoo.sh (dev)` verfolgbar.
+- [ ] Odoo.sh-Build des **aktuellen Branch-Heads `5b1eb8e`** erfolgreich und mit SHA nachgewiesen.
+- [ ] Aktuelle Modulversion `19.0.5.113.0` durch echtes Odoo.sh-Upgrade und Integrationstests grün bestätigt.
+- [ ] `ci/odoo.sh (dev)` für den aktuellen Entwicklungscommit vorhanden bzw. aktueller Odoo.sh-Buildlog direkt geprüft.
+- [x] Historischer Stand `19.0.5.35.0` war durch Odoo.sh grün bestätigt; diese frühere Abnahme gilt nicht für `19.0.5.113.0`.
 - [ ] Modul `sab_project` auf einer bestehenden, produktionsnahen Datenbank explizit als Upgrade testen.
-- [x] Aktueller Odoo.sh Build ohne SAB-P Testfehler; die zuvor festgestellten 1 Failure / 2 Errors wurden behoben und erneut grün gebaut.
-- [x] Im zuletzt vollständig geprüften Buildlog keine SAB-P bezogenen Warnings festgestellt.
+- [ ] Odoo.sh-Buildlog und SAB-P-Integrationstests für `19.0.5.113.0` ohne Failures und Errors nachgewiesen.
+- [ ] Aktuelles Odoo.sh-Buildlog auf SAB-P-Warnings geprüft.
+- [x] Im historischen Härtungsbuild `19.0.5.35.0` wurden die damals festgestellten 1 Failure / 2 Errors behoben und ein grüner Build dokumentiert.
+- [x] Im damaligen vollständig geprüften Buildlog wurden keine SAB-P-bezogenen Warnings festgestellt.
 - [x] Automatisierter End-to-End-Test vorhanden; aktueller Stand bindet einen echten aktiven SAB-P Mitarbeiterzugang und Arbeitsbereiche ein.
 - [x] Keine ungewollte Änderung an `main`.
 - [x] Stabiler Code-Referenzpunkt vor V1-Merge dokumentiert: `main` Commit `28056e70766fdbb9072b23b2a9679dcdb307a902`; Rollback-Vorgehen in `docs/ROLLBACK_PLAN.md` festgehalten.
@@ -138,7 +141,8 @@ Legende:
 ## J. End-to-End-Praxistest
 
 - [x] Automatisierter End-to-End-Prozess vorhanden; aktueller Test umfasst echten aktiven SAB-P Mitarbeiterzugang und Arbeitsbereiche.
-- [x] Aktuellen Härtungsstand `19.0.5.35.0` im Odoo.sh Build bestätigt.
+- [x] Historischer Härtungsstand `19.0.5.35.0` im Odoo.sh-Build bestätigt.
+- [ ] Aktuellen Stand `19.0.5.113.0` für `5b1eb8e` mit realem Odoo.sh-Integrationstest bestätigt.
 - [ ] Zusätzlich echtes oder vollständig realistisches SAB-P Projekt praktisch durchspielen.
 - [ ] Angebot/Kalkulation gegen bekannte Altwerte prüfen.
 - [ ] Einkauf/Lager mit realen Artikeln prüfen.
@@ -154,6 +158,7 @@ Legende:
 - [ ] Verantwortliche für Rollback benannt.
 - [x] Branch-Abnahme technisch dokumentiert in `docs/BRANCH_ABNAHME.md`.
 - [x] Rollback-Referenz und Wiederherstellungsablauf dokumentiert in `docs/ROLLBACK_PLAN.md`; praktische Wiederherstellung bleibt offen.
+- [ ] Vor Merge den jeweils aktuellen Entwicklungs-**Code**-Commit mit echtem grünem Odoo.sh-Build inklusive Upgrade und Testlog nachweisen.
 - [ ] Erst danach Merge von `agent/leitfaden-gesamtstand` nach `main`.
 - [ ] Produktivupgrade kontrolliert ausführen.
 - [ ] Smoke-Test nach Upgrade: Projekt/A26-Nummer, Angebot, Mitarbeiterverwaltung, Mitarbeiter-App, Portal, Dokumentdownload.
