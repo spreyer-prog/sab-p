@@ -18,7 +18,7 @@ Zusätzlich gehören verbindlich zur V1:
 
 ## 2. Aktueller technischer Meilenstein
 
-**Statusabgleich 19.11.2026:** Der aktuelle Modulstand auf `agent/leitfaden-gesamtstand` ist `19.0.5.113.0`. Ein grüner Odoo.sh-Build dieses Entwicklungsstands ist **nicht nachgewiesen**: Die letzten abgefragten Entwicklungscommits liefern keinen `ci/odoo.sh (dev)`-Commitstatus, und die Odoo.sh-Buildlogs sind über die vorhandene Verbindung nicht abrufbar. Kein automatischer Merge nach `main`.
+**Statusabgleich 21.11.2026:** Der aktuelle Modulstand auf `agent/leitfaden-gesamtstand` ist `19.0.5.113.0`. Letzter Commit mit Odoo-Moduldateien: `44eb6eb20a2760df701d106b622718590980926e` (29.10.2026); spätere CI- und Dokumentationscommits haben keinen Odoo-Modulcode geändert. Ein grüner Odoo.sh-Build dieses Entwicklungsstands ist **nicht nachgewiesen**: Die letzten abgefragten Entwicklungscommits liefern keinen `ci/odoo.sh (dev)`-Commitstatus, und die Odoo.sh-Buildlogs sind über die vorhandene Verbindung nicht abrufbar. Kein automatischer Merge nach `main`.
 
 Der ältere grüne Odoo.sh-Härtungsstand `19.0.5.35.0` sowie der im Leitfaden dokumentierte Basisstand vom 20.08.2026 sind historische Referenzen und keine Freigabe für `19.0.5.113.0`. Die in dieser Roadmap ursprünglich als aktuell bezeichnete Version `19.0.5.53.0` ist ebenfalls überholt.
 

@@ -1,12 +1,13 @@
 # Odoo.sh-Buildstatus und GitHub-CI – SAB-P Suite
 
-**Aktuelle technische Prüfung: 18.11.2026.** Dies ist eine Statusdokumentation, keine Odoo.sh-Freigabe.
+**Aktuelle technische Prüfung: 21.11.2026.** Dies ist eine Statusdokumentation, keine Odoo.sh-Freigabe.
 
 ## Branch und Codebasis
 
 - Repository: `spreyer-prog/sab-p`
 - Entwicklungsbranch: `agent/leitfaden-gesamtstand`
-- Letzter bei dieser Prüfung gelesener **Code-/CI-Stand**: `1a2e21ebcd29ed7e8a30f9aa601f1867d5c6d312` (17.11.2026)
+- Letzter Commit mit Änderungen an Odoo-Moduldateien: `44eb6eb20a2760df701d106b622718590980926e` (29.10.2026).
+- Letzter Commit mit Änderungen an den isolierten CI-Prüfungen: `1a2e21ebcd29ed7e8a30f9aa601f1867d5c6d312` (17.11.2026); die folgenden Commits betreffen Dokumentation. Keine Odoo.sh-Abnahme für diese Stände.
 - Modulversion laut `addons/sab_project/__manifest__.py`: **`19.0.5.113.0`**
 - `main`: `28056e70766fdbb9072b23b2a9679dcdb307a902`; bei dieser Prüfung unverändert.
 

@@ -1,6 +1,6 @@
 # SAB-P Suite V1 – Produktivsetzungs- und Abnahmecheckliste
 
-**Statusabgleich 20.11.2026:** Die frühere grüne Odoo.sh-Abnahme betrifft **nur** Modulversion `19.0.5.35.0`. Letzter fachlicher Entwicklungs-/Modulcode-Commit (vor den reinen Dokumentationsänderungen): `5b1eb8e272280a844ff7fbe77d2f125e3eb6d822` mit Modulversion `19.0.5.113.0`. Für diesen Stand ist **kein grüner Odoo.sh-Build nachgewiesen**; der Commit besitzt keinen `ci/odoo.sh (dev)`-Status und die Odoo.sh-Buildlogs sind nicht verfügbar. Die isolierten GitHub-Schnelltests ersetzen kein Odoo-Upgrade. Historische `[x]`-Nachweise sind keine Freigabe der aktuellen Version. Siehe `docs/BUILD_STATUS.md`.
+**Statusabgleich 21.11.2026:** Die frühere grüne Odoo.sh-Abnahme betrifft **nur** Modulversion `19.0.5.35.0`. Letzter Commit mit Odoo-Moduldateien: `44eb6eb20a2760df701d106b622718590980926e` (29.10.2026), Modulversion `19.0.5.113.0`. Der zuvor genannte Commit `5b1eb8e` änderte ausschließlich die Roadmap und ist **kein** Modulcode-Commit. Für diesen Stand ist **kein grüner Odoo.sh-Build nachgewiesen**; der Commit besitzt keinen `ci/odoo.sh (dev)`-Status und die Odoo.sh-Buildlogs sind nicht verfügbar. Die isolierten GitHub-Schnelltests ersetzen kein Odoo-Upgrade. Historische `[x]`-Nachweise sind keine Freigabe der aktuellen Version. Siehe `docs/BUILD_STATUS.md`.
 
 Legende:
 - `[x]` historisch technisch im Code/Test abgedeckt bzw. für den ausdrücklich genannten älteren Green Build nachgewiesen; **nicht automatisch aktuell abgenommen**,
@@ -8,7 +8,7 @@ Legende:
 
 ## A. Technische Abnahme
 
-- [ ] Odoo.sh-Build des **aktuellen Modulcode-Stands `5b1eb8e`** erfolgreich und mit SHA nachgewiesen; zusätzlich den jeweils aktuellen Git-Branch-Head zuordnen.
+- [ ] Odoo.sh-Build des **aktuellen Modulcode-Stands `44eb6eb`** erfolgreich und mit SHA nachgewiesen; zusätzlich den jeweils aktuellen Git-Branch-Head zuordnen.
 - [ ] Aktuelle Modulversion `19.0.5.113.0` durch echtes Odoo.sh-Upgrade und Integrationstests grün bestätigt.
 - [ ] `ci/odoo.sh (dev)` für den aktuellen Entwicklungscommit vorhanden bzw. aktueller Odoo.sh-Buildlog direkt geprüft.
 - [x] Historischer Stand `19.0.5.35.0` war durch Odoo.sh grün bestätigt; diese frühere Abnahme gilt nicht für `19.0.5.113.0`.
@@ -67,6 +67,7 @@ Legende:
 - [x] Historische Lagerbewertung automatisiert geprüft.
 - [ ] Lageranfangsbestände je Produkt festlegen/importieren.
 - [ ] Anfangsbewertung der Lagerbestände fachlich freigeben.
+- [ ] Mindestbestandsauffüllung für mehrere Anforderungen desselben Produkts mit einem Odoo-19-Integrationstest auf mögliche doppelte Auffüllung prüfen; siehe `docs/BUILD_STATUS.md` (Codeprüfung 21.11.2026).
 
 ## F. Mitarbeiterverwaltung, Fertigung und Mitarbeiteroberfläche
 
@@ -142,7 +143,7 @@ Legende:
 
 - [x] Automatisierter End-to-End-Prozess vorhanden; aktueller Test umfasst echten aktiven SAB-P Mitarbeiterzugang und Arbeitsbereiche.
 - [x] Historischer Härtungsstand `19.0.5.35.0` im Odoo.sh-Build bestätigt.
-- [ ] Aktuellen Stand `19.0.5.113.0` für `5b1eb8e` mit realem Odoo.sh-Integrationstest bestätigt.
+- [ ] Aktuellen Stand `19.0.5.113.0` für `44eb6eb` mit realem Odoo.sh-Integrationstest bestätigt.
 - [ ] Zusätzlich echtes oder vollständig realistisches SAB-P Projekt praktisch durchspielen.
 - [ ] Angebot/Kalkulation gegen bekannte Altwerte prüfen.
 - [ ] Einkauf/Lager mit realen Artikeln prüfen.
