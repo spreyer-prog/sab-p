@@ -35,3 +35,18 @@ Die isolierten Tests prüfen Syntax, Materiallogik und Frontend-Verträge mit Mo
 ## Historie
 
 Am 16.08.2026 war die Rückmeldung von Odoo.sh-Commitstatus an GitHub als aktiviert dokumentiert. Zu diesem Zeitpunkt waren eine auf `sab-p` begrenzte Berechtigung `Commit statuses: Read and write` und der Entwicklungsbranch `agent/leitfaden-gesamtstand` vermerkt. Diese historische Dokumentation ersetzt keine aktuelle Berechtigungs- oder Funktionsprüfung; keine Tokens oder Zugangsdaten sind hier abgelegt.
+
+## Codeprüfung 21.11.2026 – noch nicht laufzeitbestätigtes Dispositionsrisiko
+
+**Prüfbefund (Quellcodeanalyse, kein Odoo-Integrationstest):** Bei mehreren offenen Materialanforderungen für **dasselbe Produkt** kann die **ausdrücklich angewählte** Mindestbestandsauffüllung möglicherweise mehrfach in Bestellvorschlägen berücksichtigt werden. In `addons/sab_project/models/sab_minimum_stock_fix.py` berechnet `_compute_minimum_stock_replenishment` den Produkt-Mindestbestandsfehlbetrag pro Anforderung aus dem gemeinsamen Produktbestand und den offenen Bedarfen. `addons/sab_project/models/sab_minimum_stock.py`, Methode `_sab_policy_order_quantity`, addiert diesen Wert bei aktivierter `include_minimum_stock_replenishment`-Option **für jede Anforderung einzeln**. Die vorhandenen `test_minimum_stock_and_delivery_overdue.py`-Tests legen jeweils nur **eine** Materialanforderung an; ein Test mit zwei Anforderungen desselben Produkts fehlt.
+
+**Rechenbeispiel zur Reproduktion (hypothetisch, nicht als Datenbank-Istwert behauptet):** Produkt A: zwei offene Anforderungen mit jeweils 6 Stück Fehlbestand, frei verfügbar 0, unbestellt, Mindestbestand 5. Gesamter Projektfehlbestand 12 Stück; einmalige optionale Mindestbestandsauffüllung 5 Stück, also insgesamt 17 Stück. Wenn beide Anforderungen jeweils den gesamten Auffüllwert 5 addieren, ergeben sich zwei Vorschläge à 11 Stück = 22 Stück, also 5 Stück zu viel.
+
+**Verbindlicher Prüf- und Abnahmeschritt nach Wiederherstellung eines echten Odoo.sh-Buildnachweises:**
+1. In einem `TransactionCase` zwei offene Anforderungen für dasselbe Produkt, unterschiedliche Schränke/Projekte und eine gemeinsame Mindestbestandsregel erzeugen.
+2. Ohne aktivierte Auffüllung exakt den realen Fehlbestand pro Position prüfen (keine automatische Rundung).
+3. Auffüllung einmal und bei beiden Positionen aktivieren; die **gesamte** optional aufgefüllte Bestellmenge darf den gemeinsam berechneten Mindestbestandsfehlbetrag nur **einmal** zusätzlich zum Projektfehlbestand enthalten.
+4. Bereits bestellte, teilweise empfangene und zurückgesendete Mengen sowie unterschiedliche Lieferanten als weitere Fälle prüfen; Projekt-/Schrankzuordnung und historische Preise müssen erhalten bleiben.
+5. Erst nach bestandenem Odoo-19-Integrationstest und neuem grünen Odoo.sh-Build eine technische Korrektur als verifiziert bezeichnen.
+
+**Status:** Verdachtsfall dokumentiert; **kein** Odoo-Modellcode, keine Bestellungen und keine Produktivdaten geändert. Die isolierten GitHub-Actions-Tests decken diese Mehrfachkonstellation derzeit nicht ab.
